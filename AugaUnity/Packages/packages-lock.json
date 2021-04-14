@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.passivepicasso.thunderkit": {
+      "version": "https://github.com/PassivePicasso/ThunderKit.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.scriptablebuildpipeline": "1.16.1"
+      },
+      "hash": "c63740fb67cb455f1941026c65ba20a436f18fed"
+    },
     "com.unity.collab-proxy": {
       "version": "1.2.16",
       "depth": 0,
@@ -14,13 +23,11 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.unity.textmeshpro": {
-      "version": "2.1.1",
-      "depth": 0,
+    "com.unity.scriptablebuildpipeline": {
+      "version": "1.16.1",
+      "depth": 1,
       "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
@@ -43,6 +50,12 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "valheim": {
+      "version": "file:valheim",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

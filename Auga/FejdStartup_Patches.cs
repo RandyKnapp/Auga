@@ -8,41 +8,16 @@ namespace Auga
     {
         public static void Postfix(FejdStartup __instance)
         {
-            HideElementByType<ChangeLog>(__instance);
-            HideElement(__instance.m_versionLabel);
-            HideElementByName(__instance.m_mainMenu, "showlog");
-            HideElementByName(__instance.m_mainMenu, "Embers");
-            HideElementByName(__instance.m_mainMenu, "Embers (1)");
-            HideElementByName(__instance.m_mainMenu, "Embers (2)");
-            HideElementByName(__instance.m_mainMenu, "Embers (3)");
-            HideElementByName(__instance.m_mainMenu, "LOGO");
+            __instance.HideElementByType<ChangeLog>();
+            __instance.m_versionLabel.HideElement();
+            __instance.m_mainMenu.HideElementByName("showlog");
+            __instance.m_mainMenu.HideElementByName("Embers");
+            __instance.m_mainMenu.HideElementByName("Embers (1)");
+            __instance.m_mainMenu.HideElementByName("Embers (2)");
+            __instance.m_mainMenu.HideElementByName("Embers (3)");
+            __instance.m_mainMenu.HideElementByName("LOGO");
 
             Object.Instantiate(Auga.Assets.AugaLogo, __instance.m_mainMenu.transform);
-        }
-
-        private static void HideElement(Component c)
-        {
-            if (c != null)
-            {
-                c.gameObject.SetActive(false);
-            }
-        }
-
-        private static void HideElementByType<T>(Component parent) where T : Component
-        {
-            var c = parent.GetComponentInChildren<T>();
-            HideElement(c);
-        }
-
-        private static void HideElementByName(GameObject parent, string name)
-        {
-            HideElementByName(parent.transform, name);
-        }
-
-        private static void HideElementByName(Component parent, string name)
-        {
-            var c = parent.transform.Find(name);
-            HideElement(c);
         }
     }
 }

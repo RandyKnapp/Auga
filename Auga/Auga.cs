@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
-using AugaUnity;
+﻿using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -12,6 +10,7 @@ namespace Auga
     public class Assets
     {
         public GameObject AugaLogo;
+        public GameObject InventoryScreen;
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -47,15 +46,23 @@ namespace Auga
         private void LoadDependencies()
         {
             var assembly = Assembly.GetCallingAssembly();
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{assembly.GetName().Name}.AugaUnityLib.dll");
-            if (stream != null)
+            LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
+        }
+
+        private static void LoadEmbeddedAssembly(Assembly assembly, string assemblyName)
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{assembly.GetName().Name}.{assemblyName}");
+            if (stream == null)
             {
-                using (stream)
-                {
-                    var data = new byte[stream.Length];
-                    stream.Read(data, 0, data.Length);
-                    Assembly.Load(data);
-                }
+                LogError($"Could not load embedded assembly ({assemblyName})!");
+                return;
+            }
+
+            using (stream)
+            {
+                var data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+                Assembly.Load(data);
             }
         }
 
@@ -65,10 +72,11 @@ namespace Auga
             _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
         }
 
-        private void LoadAssets()
+        private static void LoadAssets()
         {
             var assetBundle = LoadAssetBundle("augaassets");
             Assets.AugaLogo = assetBundle.LoadAsset<GameObject>("AugaLogo");
+            Assets.InventoryScreen = assetBundle.LoadAsset<GameObject>("Inventory_screen");
         }
 
         public static AssetBundle LoadAssetBundle(string filename)

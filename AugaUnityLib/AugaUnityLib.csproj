@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AugaUnity</RootNamespace>
-    <AssemblyName>AugaUnityLib</AssemblyName>
+    <AssemblyName>Unity.Auga</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -31,22 +31,37 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.AnimationModule.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreModule_publicized">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\publicized_assemblies\UnityEngine.TextCoreModule_publicized.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -54,8 +69,68 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InventoryGui_Fixer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestScript.cs" />
+    <Compile Include="TextMeshPro\AssemblyInfo.cs" />
+    <Compile Include="TextMeshPro\FastAction.cs" />
+    <Compile Include="TextMeshPro\ITextPreProcessor.cs" />
+    <Compile Include="TextMeshPro\MaterialReferenceManager.cs" />
+    <Compile Include="TextMeshPro\TextContainer.cs" />
+    <Compile Include="TextMeshPro\TextMeshPro.cs" />
+    <Compile Include="TextMeshPro\TextMeshProUGUI.cs" />
+    <Compile Include="TextMeshPro\TMPro_EventManager.cs" />
+    <Compile Include="TextMeshPro\TMPro_ExtensionMethods.cs" />
+    <Compile Include="TextMeshPro\TMPro_MeshUtilities.cs" />
+    <Compile Include="TextMeshPro\TMPro_Private.cs" />
+    <Compile Include="TextMeshPro\TMPro_UGUI_Private.cs" />
+    <Compile Include="TextMeshPro\TMP_Asset.cs" />
+    <Compile Include="TextMeshPro\TMP_Character.cs" />
+    <Compile Include="TextMeshPro\TMP_CharacterInfo.cs" />
+    <Compile Include="TextMeshPro\TMP_ColorGradient.cs" />
+    <Compile Include="TextMeshPro\TMP_Compatibility.cs" />
+    <Compile Include="TextMeshPro\TMP_CoroutineTween.cs" />
+    <Compile Include="TextMeshPro\TMP_DefaultControls.cs" />
+    <Compile Include="TextMeshPro\TMP_Dropdown.cs" />
+    <Compile Include="TextMeshPro\TMP_FontAsset.cs" />
+    <Compile Include="TextMeshPro\TMP_FontAssetCommon.cs" />
+    <Compile Include="TextMeshPro\TMP_FontAssetUtilities.cs" />
+    <Compile Include="TextMeshPro\TMP_FontFeaturesCommon.cs" />
+    <Compile Include="TextMeshPro\TMP_FontFeatureTable.cs" />
+    <Compile Include="TextMeshPro\TMP_InputField.cs" />
+    <Compile Include="TextMeshPro\TMP_InputValidator.cs" />
+    <Compile Include="TextMeshPro\TMP_LineInfo.cs" />
+    <Compile Include="TextMeshPro\TMP_ListPool.cs" />
+    <Compile Include="TextMeshPro\TMP_MaterialManager.cs" />
+    <Compile Include="TextMeshPro\TMP_MeshInfo.cs" />
+    <Compile Include="TextMeshPro\TMP_ObjectPool.cs" />
+    <Compile Include="TextMeshPro\TMP_ResourcesManager.cs" />
+    <Compile Include="TextMeshPro\TMP_RichTextTagsCommon.cs" />
+    <Compile Include="TextMeshPro\TMP_ScrollbarEventHandler.cs" />
+    <Compile Include="TextMeshPro\TMP_SelectionCaret.cs" />
+    <Compile Include="TextMeshPro\TMP_Settings.cs" />
+    <Compile Include="TextMeshPro\TMP_ShaderUtilities.cs" />
+    <Compile Include="TextMeshPro\TMP_Sprite.cs" />
+    <Compile Include="TextMeshPro\TMP_SpriteAnimator.cs" />
+    <Compile Include="TextMeshPro\TMP_SpriteAsset.cs" />
+    <Compile Include="TextMeshPro\TMP_SpriteAssetImportFormats.cs" />
+    <Compile Include="TextMeshPro\TMP_SpriteCharacter.cs" />
+    <Compile Include="TextMeshPro\TMP_SpriteGlyph.cs" />
+    <Compile Include="TextMeshPro\TMP_Style.cs" />
+    <Compile Include="TextMeshPro\TMP_StyleSheet.cs" />
+    <Compile Include="TextMeshPro\TMP_SubMesh.cs" />
+    <Compile Include="TextMeshPro\TMP_SubMeshUI.cs" />
+    <Compile Include="TextMeshPro\TMP_Text.cs" />
+    <Compile Include="TextMeshPro\TMP_TextElement.cs" />
+    <Compile Include="TextMeshPro\TMP_TextElement_Legacy.cs" />
+    <Compile Include="TextMeshPro\TMP_TextInfo.cs" />
+    <Compile Include="TextMeshPro\TMP_TextParsingUtilities.cs" />
+    <Compile Include="TextMeshPro\TMP_TextProcessingStack.cs" />
+    <Compile Include="TextMeshPro\TMP_TextUtilities.cs" />
+    <Compile Include="TextMeshPro\TMP_UpdateManager.cs" />
+    <Compile Include="TextMeshPro\TMP_UpdateRegistery.cs" />
+    <Compile Include="UIGradient\UIGradient.cs" />
+    <Compile Include="UIGradient\Vector2Extension.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -55,6 +55,12 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Auga">
+      <HintPath>..\AugaUnity\Library\ScriptAssemblies\Unity.Auga.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\AugaUnity\Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.dll</HintPath>
     </Reference>
@@ -77,20 +83,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auga.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="FejdStartup_Patches.cs" />
+    <Compile Include="InventoryGui_Patches.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AugaUnityLib\AugaUnityLib.csproj">
-      <Project>{5b19eb03-f699-46bc-afaf-2a2e78e1f6c5}</Project>
-      <Name>AugaUnityLib</Name>
-    </ProjectReference>
+    <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
+      <Link>augaassets</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="augaassets" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="AugaUnityLib.dll" />
+    <EmbeddedResource Include="..\AugaUnityLib\bin\Debug\Unity.Auga.dll">
+      <Link>Unity.Auga.dll</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
