@@ -5,9 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UI.CoroutineTween;
 
-namespace TMProX
+namespace TMPro
 {
     [AddComponentMenu("UI/Dropdown - TextMeshPro", 35)]
     [RequireComponent(typeof(RectTransform))]

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     public static class TMP_MaterialManager

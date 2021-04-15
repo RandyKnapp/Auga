@@ -1,15 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.TextCore;
-using Object = UnityEngine.Object;
 
 
 #pragma warning disable 0414 // Disabled a few warnings related to serialized variables not used in this script but used in the editor.
 
-namespace TMProX
+namespace TMPro
 {
 
     public partial class TextMeshPro

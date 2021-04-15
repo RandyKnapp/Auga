@@ -1,7 +1,6 @@
 ﻿#define TMP_PRESENT
 
 using System;
-using System.Collections;
 using System.Text;
 using System.Collections.Generic;
 using Unity.Profiling;
@@ -10,7 +9,7 @@ using UnityEngine.TextCore;
 using UnityEngine.UI;
 
 
-namespace TMProX
+namespace TMPro
 {
     public interface ITextElement
     {

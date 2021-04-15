@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.TextCore.LowLevel;
 
 
-namespace TMProX
+namespace TMPro
 {
     [Flags]
     public enum FontFeatureLookupFlags

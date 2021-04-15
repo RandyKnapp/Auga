@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
     public static class TMP_ListPool<T>
     {      

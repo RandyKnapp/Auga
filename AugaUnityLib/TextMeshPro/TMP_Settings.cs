@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 
 #pragma warning disable 0649 // Disabled warnings related to serialized fields not assigned in this script but used in the editor.
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Scaling options for the sprites

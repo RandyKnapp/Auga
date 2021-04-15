@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using UnityEngine.TextCore;
-using UnityEngine.TextCore.LowLevel;
 
 
-namespace TMProX
+namespace TMPro
 {
     public class TMP_FontAssetUtilities
     {

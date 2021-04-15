@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Table that contains the various font features available for the given font asset.

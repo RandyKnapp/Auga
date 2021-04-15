@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace TMProX
+namespace TMPro
 {
 
     // Base class inherited by the various TextMeshPro Assets.

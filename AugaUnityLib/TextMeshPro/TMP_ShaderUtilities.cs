@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.Linq;
-using System.Collections;
 
 
-namespace TMProX
+namespace TMPro
 {
     public static class ShaderUtilities
     {

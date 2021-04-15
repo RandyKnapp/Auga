@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace TMProX
+namespace TMPro
 {
     [ExcludeFromPresetAttribute]
     public class TMP_SpriteAsset : TMP_Asset

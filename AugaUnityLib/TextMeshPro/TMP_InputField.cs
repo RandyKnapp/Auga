@@ -2,18 +2,15 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
-using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Editable text input field.

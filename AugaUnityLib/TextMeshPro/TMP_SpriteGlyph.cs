@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.TextCore;
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// The visual representation of the sprite character using this glyph.

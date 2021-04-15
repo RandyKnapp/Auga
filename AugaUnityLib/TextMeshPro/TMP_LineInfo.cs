@@ -1,4 +1,4 @@
-﻿namespace TMProX
+﻿namespace TMPro
 {
 
     /// <summary>

@@ -12,7 +12,7 @@ using System.Linq;
 #endif
 
 
-namespace TMProX
+namespace TMPro
 {
     public enum AtlasPopulationMode
     {

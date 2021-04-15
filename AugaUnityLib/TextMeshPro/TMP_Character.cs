@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine.TextCore;
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// A basic element of text.

@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using System.Collections;
 
 
-namespace TMProX
+namespace TMPro
 {
     // Base interface for tweeners,
     // using an interface instead of

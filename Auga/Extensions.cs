@@ -14,6 +14,16 @@ namespace Auga
 
     public static class AugaExtensions
     {
+        public static RectTransform RectTransform(this Component c)
+        {
+            return c.transform as RectTransform;
+        }
+
+        public static RectTransform RectTransform(this GameObject go)
+        {
+            return go.transform as RectTransform;
+        }
+
         public static void HideElement(this Component c)
         {
             if (c != null)

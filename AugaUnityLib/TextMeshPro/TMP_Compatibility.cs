@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-
-namespace TMProX
+﻿namespace TMPro
 {
     // Class used to convert scenes and objects saved in version 0.1.44 to the new Text Container
     public static class TMP_Compatibility

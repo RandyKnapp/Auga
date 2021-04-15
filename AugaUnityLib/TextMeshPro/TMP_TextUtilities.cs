@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 
-namespace TMProX
+namespace TMPro
 {
     public enum CaretPosition { None, Left, Right }
 

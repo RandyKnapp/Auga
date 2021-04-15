@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 
-namespace TMProX
+namespace TMPro
 {
 
     [DisallowMultipleComponent]

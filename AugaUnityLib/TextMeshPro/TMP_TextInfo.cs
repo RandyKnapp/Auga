@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Class which contains information about every element contained within the text object.

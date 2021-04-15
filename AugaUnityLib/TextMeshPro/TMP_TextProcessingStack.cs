@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using UnityEngine;
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Structure used to track basic XML tags which are binary (on / off)

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace TMProX.SpriteAssetUtilities
+namespace TMPro.SpriteAssetUtilities
 {
     public enum SpriteAssetImportFormats { None = 0, TexturePackerJsonArray = 0x1 };
 

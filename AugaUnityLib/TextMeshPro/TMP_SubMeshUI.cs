@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
-using Object = UnityEngine.Object;
 
 #pragma warning disable 0414 // Disabled a few warnings related to serialized variables not used in this script but used in the editor.
 
-namespace TMProX
+namespace TMPro
 {
     [ExecuteAlways]
     public class TMP_SubMeshUI : MaskableGraphic

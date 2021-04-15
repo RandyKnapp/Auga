@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace TMProX
+﻿namespace TMPro
 {
     public class TMP_TextParsingUtilities
     {

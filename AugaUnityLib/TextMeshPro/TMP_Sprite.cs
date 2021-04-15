@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     // Class which contains the Sprite Info for each sprite contained in the sprite asset.

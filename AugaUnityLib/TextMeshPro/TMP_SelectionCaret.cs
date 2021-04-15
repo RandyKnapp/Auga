@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// A simple component that can be added to a newly created object where inheriting from MaskableGraphic is needed.

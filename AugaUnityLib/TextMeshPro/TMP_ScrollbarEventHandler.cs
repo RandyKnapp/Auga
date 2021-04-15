@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using System;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     public class TMP_ScrollbarEventHandler : MonoBehaviour, IPointerClickHandler, ISelectHandler, IDeselectHandler

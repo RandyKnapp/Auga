@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 #pragma warning disable 0649 // Disabled warnings.
 
-namespace TMProX
+namespace TMPro
 {
     [System.Serializable]
     public class TMP_Style

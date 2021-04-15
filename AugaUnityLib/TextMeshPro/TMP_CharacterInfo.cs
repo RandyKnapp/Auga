@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace TMProX
+namespace TMPro
 {
     public struct TMP_Vertex
     {

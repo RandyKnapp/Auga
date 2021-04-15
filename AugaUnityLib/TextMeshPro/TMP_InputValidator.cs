@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Custom text input validator where user can implement their own custom character validation.

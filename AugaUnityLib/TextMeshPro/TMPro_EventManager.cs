@@ -1,8 +1,7 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
     public enum Compute_DistanceTransform_EventTypes { Processing, Completed };
 

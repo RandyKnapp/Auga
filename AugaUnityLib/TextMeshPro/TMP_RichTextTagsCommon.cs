@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace TMProX
+﻿namespace TMPro
 {
     /// <summary>
     /// Rich Text Tags and Attribute definitions and their respective HashCode values.

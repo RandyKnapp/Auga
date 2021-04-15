@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.TextCore;
 
-namespace TMProX
+namespace TMPro
 {
     public enum TextElementType : byte
     {

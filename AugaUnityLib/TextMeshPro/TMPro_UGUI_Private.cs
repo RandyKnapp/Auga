@@ -3,12 +3,11 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.TextCore;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 #pragma warning disable 0414 // Disabled a few warnings related to serialized variables not used in this script but used in the editor.
 #pragma warning disable 0618 // Disabled warning due to SetVertices being deprecated until new release with SetMesh() is available.
 
-namespace TMProX
+namespace TMPro
 {
 
     public partial class TextMeshProUGUI

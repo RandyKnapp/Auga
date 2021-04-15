@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     public class TMP_UpdateManager

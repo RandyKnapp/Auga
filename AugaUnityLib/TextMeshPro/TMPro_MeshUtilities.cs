@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.TextCore;
 using System;
 
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// Flags to control what vertex data is pushed to the mesh and renderer.

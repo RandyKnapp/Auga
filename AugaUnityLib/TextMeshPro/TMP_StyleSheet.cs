@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     [Serializable][ExcludeFromPresetAttribute]

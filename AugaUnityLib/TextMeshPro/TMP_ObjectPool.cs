@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     public class TMP_ObjectPool<T> where T : new()

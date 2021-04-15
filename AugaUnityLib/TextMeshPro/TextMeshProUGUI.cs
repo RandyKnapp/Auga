@@ -7,7 +7,7 @@ using UnityEngine.UI;
 #pragma warning disable 0414 // Disabled a few warnings related to serialized variables not used in this script but used in the editor.
 
 
-namespace TMProX
+namespace TMPro
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]

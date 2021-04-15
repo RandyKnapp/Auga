@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 
 
-namespace TMProX
+namespace TMPro
 {
 
     /// <summary>

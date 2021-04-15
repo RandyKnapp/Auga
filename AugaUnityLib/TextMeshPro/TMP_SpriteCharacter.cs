@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace TMProX
+namespace TMPro
 {
     /// <summary>
     /// A basic element of text representing a pictograph, image, sprite or emoji.
