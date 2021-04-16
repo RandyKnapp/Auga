@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6793292350187114068}
   - component: {fileID: 6046715273403342721}
   - component: {fileID: 4949918826941737402}
+  - component: {fileID: 3581539089428265467}
   m_Layer: 5
   m_Name: binding
   m_TagString: Untagged
@@ -93,6 +94,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 0.5, y: -1}
+  m_UseGraphicAlpha: 1
+--- !u!114 &3581539089428265467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762050222817433292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
 --- !u!1 &1107800481705492943
 GameObject:
@@ -267,14 +283,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.13333334, g: 0.13333334, b: 0.13333334, a: 0.5019608}
+    m_NormalColor: {r: 0.09411765, g: 0.078431375, b: 0.0627451, a: 0.5019608}
     m_HighlightedColor: {r: 0.3882353, g: 0.4, b: 0.4, a: 0.5019608}
     m_PressedColor: {r: 0.2784314, g: 0.2784314, b: 0.2784314, a: 1}
     m_SelectedColor: {r: 0.3882353, g: 0.4, b: 0.4, a: 0.5019608}
@@ -739,7 +755,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9176471, g: 0.882353, b: 0.85098046, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
