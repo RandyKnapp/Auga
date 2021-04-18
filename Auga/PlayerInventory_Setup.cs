@@ -2,6 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -31,6 +32,8 @@ namespace Auga
             __instance.m_containerGrid.m_onRightClick += __instance.OnRightClickItem;
             __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<Text>();
             containerInventory.Find("TakeAll").GetComponent<Button>().onClick.AddListener(__instance.OnTakeAll);
+
+            Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
 
             Localization.instance.Localize(__instance.transform);
         }
