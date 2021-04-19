@@ -1,4 +1,5 @@
 ﻿using System;
+using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
@@ -69,6 +70,21 @@ namespace Auga
             {
                 __instance.UpdateContainer(player);
             }
+        }
+    }
+
+    //CreateItemTooltip
+    [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
+    public static class InventoryGrid_CreateItemTooltip_Patch
+    {
+        public static bool Prefix(InventoryGrid __instance, ItemDrop.ItemData item, UITooltip tooltip)
+        {
+            var itemTooltip = tooltip.GetComponent<ItemTooltip>();
+            if (itemTooltip != null)
+            {
+                itemTooltip.Item = item;
+            }
+            return true;
         }
     }
 }

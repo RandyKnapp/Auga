@@ -22,11 +22,15 @@ namespace AugaUnity
         public Image StaminaIcon;
         public Image HealingIcon;
 
+        private UITooltip _tooltip;
+        private FoodTooltip _foodTooltip;
         private string _hightlightColor;
         private bool _hasFood;
 
         public void Start()
         {
+            _tooltip = GetComponent<UITooltip>();
+            _foodTooltip = GetComponent<FoodTooltip>();
             _hightlightColor = ColorUtility.ToHtmlStringRGB(HighlightColor);
             Show(false);
             Update();
@@ -45,6 +49,7 @@ namespace AugaUnity
             HealthIcon.enabled = hasFood;
             StaminaIcon.enabled = hasFood;
             HealingIcon.enabled = hasFood;
+            _tooltip.enabled = hasFood;
         }
 
         public void Update()
@@ -65,6 +70,7 @@ namespace AugaUnity
             if (_hasFood)
             {
                 var food = foods[Index];
+                _foodTooltip.Food = food;
 
                 var percent = food.m_health / food.m_item.m_shared.m_food;
                 var secondsRemaining = Mathf.CeilToInt(percent * food.m_item.m_shared.m_foodBurnTime);
@@ -80,6 +86,10 @@ namespace AugaUnity
                 HealthText.text = Mathf.CeilToInt(food.m_health).ToString();
                 StaminaText.text = Mathf.CeilToInt(food.m_stamina).ToString();
                 HealingText.text = food.m_item.m_shared.m_foodRegen.ToString("0.#");
+            }
+            else
+            {
+                _foodTooltip.Food = null;
             }
         }
     }

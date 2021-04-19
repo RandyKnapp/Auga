@@ -12,6 +12,10 @@ namespace Auga
         {
             if (__instance.GetComponent<AlwaysUpper>() != null && !string.IsNullOrEmpty(value))
             {
+                if (value.StartsWith("$"))
+                {
+                    value = Localization.instance.Localize(value);
+                }
                 value = value.ToUpper();
             }
             return true;

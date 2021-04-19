@@ -14,9 +14,11 @@ namespace AugaUnity
         public Text InfoText;
 
         private readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
+        private StatusTooltip _statusTooltip;
 
-        public void Start()
+        public void Awake()
         {
+            _statusTooltip = GetComponent<StatusTooltip>();
             Update();
         }
 
@@ -38,6 +40,8 @@ namespace AugaUnity
             if (Index < _playerStatusEffects.Count)
             {
                 var statusEffect = _playerStatusEffects[Index];
+                _statusTooltip.StatusEffect = statusEffect;
+
                 Icon.sprite = statusEffect.m_icon;
                 NameText.text = Localization.instance.Localize(statusEffect.m_name);
                 InfoText.text = Localization.instance.Localize(statusEffect.GetIconText());
@@ -52,6 +56,10 @@ namespace AugaUnity
                 }
 
                 // TODO: "new effect" flash?
+            }
+            else
+            {
+                _statusTooltip.StatusEffect = null;
             }
         }
 
