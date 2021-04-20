@@ -15,15 +15,15 @@ namespace AugaUnity
         public Image Background;
         public Image Icon;
 
-        private bool _selected;
+        protected bool _selected;
 
-        public void Awake()
+        public virtual void Awake()
         {
             SetSelected(false);
             SetColor();
         }
 
-        public void SetSelected(bool selected)
+        public virtual void SetSelected(bool selected)
         {
             if (_selected == selected)
             {
@@ -34,7 +34,7 @@ namespace AugaUnity
             SetColor();
         }
 
-        private void SetColor()
+        public virtual void SetColor()
         {
             Background.color = _selected ? SelectedBackgroundColor : BackgroundColor;
             Icon.color = _selected ? SelectedIconColor : IconColor;

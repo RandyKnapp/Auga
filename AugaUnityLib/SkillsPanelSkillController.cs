@@ -12,14 +12,14 @@ namespace AugaUnity
         public Text NameText;
         public Text LevelText;
 
-        private SkillTooltip _skillTooltip;
+        protected SkillTooltip _skillTooltip;
 
         public void Awake()
         {
             _skillTooltip = GetComponent<SkillTooltip>();
         }
 
-        public void Update()
+        public virtual void Update()
         {
             var player = Player.m_localPlayer;
             if (player == null)
@@ -35,14 +35,14 @@ namespace AugaUnity
                 Icon.sprite = skillData.m_info.m_icon;
                 NameText.text = Localization.instance.Localize("$skill_" + SkillType.ToString().ToLower());
                 LevelText.text = $"$level {skillData.m_level}";
-                const float start = 0.2f;
+                const float start = 0.02f;
                 const float end = 0.5f - start;
                 ProgressBarLevel.fillAmount = Mathf.Lerp(start, end, skillData.m_level / 100f);
                 ProgressBarAccumulator.fillAmount = Mathf.Lerp(start, end, skillData.GetLevelPercentage());
             }
         }
 
-        public void SetActive(bool active)
+        public virtual void SetActive(bool active)
         {
             gameObject.SetActive(active);
             if (active)

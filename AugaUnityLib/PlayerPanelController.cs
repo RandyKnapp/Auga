@@ -18,12 +18,12 @@ namespace AugaUnity
         public GameObject EffectsContainer;
         public PlayerPanelEffectController EffectPrefab;
 
-        private string _highlightColor1;
-        private string _highlightColor2;
-        private readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
-        private readonly List<PlayerPanelEffectController> _statusEffects = new List<PlayerPanelEffectController>();
+        protected string _highlightColor1;
+        protected string _highlightColor2;
+        protected readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
+        protected readonly List<PlayerPanelEffectController> _statusEffects = new List<PlayerPanelEffectController>();
 
-        public void Start()
+        public virtual void Start()
         {
             EffectPrefab.gameObject.SetActive(false);
             _highlightColor1 = ColorUtility.ToHtmlStringRGB(HighlightColor1);
@@ -31,7 +31,7 @@ namespace AugaUnity
             Update();
         }
 
-        public void Update()
+        public virtual void Update()
         {
             var player = Player.m_localPlayer;
             if (player == null)
@@ -53,7 +53,7 @@ namespace AugaUnity
             UpdateStatusEffects(player);
         }
 
-        private void UpdateStatusEffects(Player player)
+        public virtual void UpdateStatusEffects(Player player)
         {
             _playerStatusEffects.Clear();
             player.GetSEMan().GetHUDStatusEffects(_playerStatusEffects);

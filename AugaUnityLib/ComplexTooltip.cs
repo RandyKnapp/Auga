@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Text;
-using JoshH.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,7 +35,7 @@ namespace AugaUnity
         public Text Text;
         public Text RightColumnText;
 
-        public static void AddLine(Text t, object s, bool localize = true)
+        public virtual void AddLine(Text t, object s, bool localize = true)
         {
             if (!string.IsNullOrEmpty(t.text))
             {
@@ -47,18 +45,18 @@ namespace AugaUnity
             t.text += (localize ? Localization.instance.Localize(s.ToString()) : s).ToString().Trim();
         }
 
-        public void AddLine(object a, bool localize = true)
+        public virtual void AddLine(object a, bool localize = true)
         {
             AddLine(Text, a, localize);
         }
 
-        public void AddLine(object a, object b, bool localize = true)
+        public virtual void AddLine(object a, object b, bool localize = true)
         {
             AddLine(Text, a, localize);
             AddLine(RightColumnText, b, localize);
         }
 
-        public void AddLine(object a, object b, object parenthetical, bool localize = true)
+        public virtual void AddLine(object a, object b, object parenthetical, bool localize = true)
         {
             AddLine(Text, a, localize);
             AddLine(RightColumnText, $"{b} <color={ComplexTooltip.ParentheticalColor}>({parenthetical})</color>", localize);
@@ -89,8 +87,8 @@ namespace AugaUnity
         public static event Action<ComplexTooltip, StatusEffect> OnComplexTooltipGeneratedForStatusEffect;
         public static event Action<ComplexTooltip, Skills.Skill> OnComplexTooltipGeneratedForSkill;
 
-        private static readonly StringBuilder _sb = new StringBuilder();
-        private readonly List<TooltipTextBox> _textBoxes = new List<TooltipTextBox>();
+        protected static readonly StringBuilder _sb = new StringBuilder();
+        protected readonly List<TooltipTextBox> _textBoxes = new List<TooltipTextBox>();
 
         public virtual void Start()
         {
@@ -137,26 +135,35 @@ namespace AugaUnity
             OnComplexTooltipGeneratedForItem?.Invoke(this, item);
         }
 
-        public void GenerateItemSubtext(ItemDrop.ItemData item)
+        public virtual void GenerateItemSubtext(ItemDrop.ItemData item)
         {
             _sb.Clear();
+            _sb.Append($"$itemtype_{item.m_shared.m_itemType.ToString().ToLowerInvariant()}");
+
+            if (item.m_shared.m_food > 0)
+            {
+                _sb.Append(", $item_food");
+            }
+
             switch (item.m_shared.m_itemType)
             {
                 case ItemDrop.ItemData.ItemType.OneHandedWeapon:
                 case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
-                case ItemDrop.ItemData.ItemType.Bow:
-                case ItemDrop.ItemData.ItemType.Shield:
                 case ItemDrop.ItemData.ItemType.Torch:
-                    _sb.Append($"$skill_{item.m_shared.m_skillType.ToString().ToLowerInvariant()}");
                     _sb.Append(", ");
+                    _sb.Append($"$skill_singular_{item.m_shared.m_skillType.ToString().ToLowerInvariant()}");
                     break;
             }
 
-            _sb.Append($"${item.m_shared.m_itemType.ToString().ToLowerInvariant()}");
+            if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch)
+            {
+                _sb.Append(", $item_onehanded");
+            }
+
             Subtitle.text = Localization.instance.Localize(_sb.ToString());
         }
 
-        public void GenerateItemTooltip(ItemDrop.ItemData item)
+        public virtual void GenerateItemTooltip(ItemDrop.ItemData item)
         {
             switch (item.m_shared.m_dlc.Length > 0)
             {
@@ -260,7 +267,7 @@ namespace AugaUnity
                 {
                     var movementModifier = (item.m_shared.m_movementModifier * 100).ToString("+0;-0");
                     var totalEquipmentMovementModifier = (Player.m_localPlayer.GetEquipmentMovementModifier() * 100).ToString("+0;-0");
-                    textBox.AddLine($"$item_movement_modifier: <color=#D1C9C2>{movementModifier}%</color> ($item_total:<color={ParentheticalColor}>{totalEquipmentMovementModifier}%</color>)");
+                    textBox.AddLine($"$item_movement_modifier: <color=#D1C9C2>{movementModifier}%</color> ($item_total: <color={ParentheticalColor}>{totalEquipmentMovementModifier}%</color>)");
                 }
             }
 
@@ -288,23 +295,23 @@ namespace AugaUnity
             Player.m_localPlayer.GetSkills().GetRandomSkillRange(out var min, out var max, skillType);
 
             if (damage.m_damage != 0.0f)
-                textBox.AddLine("$inventory_damage", DamageRange(damage.m_damage, min, max));
+                textBox.AddLine("$inventory_damage", GetDamageRangeString(damage.m_damage, min, max));
             if (damage.m_blunt != 0.0f)
-                textBox.AddLine("$inventory_blunt", DamageRange(damage.m_blunt, min, max));
+                textBox.AddLine("$inventory_blunt", GetDamageRangeString(damage.m_blunt, min, max));
             if (damage.m_slash != 0.0f)
-                textBox.AddLine("$inventory_slash", DamageRange(damage.m_slash, min, max));
+                textBox.AddLine("$inventory_slash", GetDamageRangeString(damage.m_slash, min, max));
             if (damage.m_pierce != 0.0f)
-                textBox.AddLine("$inventory_pierce", DamageRange(damage.m_pierce, min, max));
+                textBox.AddLine("$inventory_pierce", GetDamageRangeString(damage.m_pierce, min, max));
             if (damage.m_fire != 0.0f)
-                textBox.AddLine("$inventory_fire", DamageRange(damage.m_fire, min, max));
+                textBox.AddLine("$inventory_fire", GetDamageRangeString(damage.m_fire, min, max));
             if (damage.m_frost != 0.0f)
-                textBox.AddLine("$inventory_frost", DamageRange(damage.m_frost, min, max));
+                textBox.AddLine("$inventory_frost", GetDamageRangeString(damage.m_frost, min, max));
             if (damage.m_lightning != 0.0f)
-                textBox.AddLine("$inventory_lightning", DamageRange(damage.m_lightning, min, max));
+                textBox.AddLine("$inventory_lightning", GetDamageRangeString(damage.m_lightning, min, max));
             if (damage.m_poison != 0.0f)
-                textBox.AddLine("$inventory_poison", DamageRange(damage.m_poison, min, max));
+                textBox.AddLine("$inventory_poison", GetDamageRangeString(damage.m_poison, min, max));
             if (damage.m_spirit != 0.0f)
-                textBox.AddLine("$inventory_spirit", DamageRange(damage.m_spirit, min, max));
+                textBox.AddLine("$inventory_spirit", GetDamageRangeString(damage.m_spirit, min, max));
 
             if (item.m_shared.m_attackForce > 0)
                 textBox.AddLine("$item_knockback", item.m_shared.m_attackForce);
@@ -354,7 +361,7 @@ namespace AugaUnity
             }
         }
 
-        private void AddArmorTextBox(ItemDrop.ItemData item, int quality)
+        public virtual void AddArmorTextBox(ItemDrop.ItemData item, int quality)
         {
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
             textBox.AddLine("$item_armor", item.GetArmor(quality));
@@ -367,7 +374,7 @@ namespace AugaUnity
             }
         }
 
-        public string DamageRange(float damage, float minFactor, float maxFactor)
+        public virtual string GetDamageRangeString(float damage, float minFactor, float maxFactor)
         {
             var min = Mathf.RoundToInt(damage * minFactor);
             var max = Mathf.RoundToInt(damage * maxFactor);
@@ -386,7 +393,7 @@ namespace AugaUnity
 
             textBox.AddLine("$item_food_health", healthText);
             textBox.AddLine("$item_food_stamina", staminaText);
-            textBox.AddLine("$item_food_regen", $"+{healingText}<color={subValueColor}> hp/10s</color>");
+            textBox.AddLine("$item_food_regen", $"+{healingText}<color={subValueColor}> $healing_tick</color>");
             textBox.AddLine("$item_food_duration", durationText);
         }
 

@@ -47,6 +47,9 @@
     <Reference Include="BepInEx">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
+    <Reference Include="fastJSON">
+      <HintPath>..\Libs\fastJSON.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -104,8 +107,17 @@
       <Name>AugaUnityLib</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Libs\fastJSON.dll">
+      <Link>fastJSON.dll</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="translations.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "C:\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "C:\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
+xcopy "$(ProjectDir)translations.json" "C:\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i</PostBuildEvent>
   </PropertyGroup>
 </Project>

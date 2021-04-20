@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using JoshH.UI;
 using UnityEngine;
 
@@ -16,7 +15,7 @@ namespace AugaUnity
     {
         public UIGradient Gradient;
 
-        private static readonly Dictionary<string, ColorPair> _colorConfig = new Dictionary<string, ColorPair>()
+        protected static Dictionary<string, ColorPair> _colorConfig = new Dictionary<string, ColorPair>()
         {
             { "Needle", new ColorPair { A = "#59927F", B = "#817777" } },
             { "BlackMetal", new ColorPair { A = "#175012", B = "#010401" } },
@@ -34,7 +33,7 @@ namespace AugaUnity
             { "Wood", new ColorPair { A = "#77583B", B = "#423221" } },
         };
 
-        public void Setup(ItemDrop.ItemData item)
+        public virtual void Setup(ItemDrop.ItemData item)
         {
             var shouldShow = false;
             switch (item.m_shared.m_itemType)
@@ -49,6 +48,7 @@ namespace AugaUnity
                 case ItemDrop.ItemData.ItemType.Legs:
                 case ItemDrop.ItemData.ItemType.Shoulder:
                 case ItemDrop.ItemData.ItemType.Tool:
+                case ItemDrop.ItemData.ItemType.Ammo:
                     shouldShow = true;
                     break;
             }

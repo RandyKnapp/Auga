@@ -57,6 +57,19 @@ namespace Auga
                     }
                 }
             }
+
+            /*foreach (var element in __instance.m_elements)
+            {
+                var qualityBackground = element.m_go.transform.Find("quality_bkg");
+                if (qualityBackground != null)
+                {
+                    var image = qualityBackground.GetComponent<Image>();
+                    if (image != null)
+                    {
+                        image.enabled = element.m_quality.enabled;
+                    }
+                }
+            }*/
         }
     }
 

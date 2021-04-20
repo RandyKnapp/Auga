@@ -7,9 +7,9 @@ namespace AugaUnity
         public Sprite PvpOnSprite;
         public Sprite PvpOffSprite;
 
-        private bool _pvpEnabled;
+        protected bool _pvpEnabled;
 
-        public void Update()
+        public virtual void Update()
         {
             var player = Player.m_localPlayer;
             if (player != null)

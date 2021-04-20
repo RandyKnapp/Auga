@@ -1,7 +1,10 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using fastJSON;
 using HarmonyLib;
 using UnityEngine;
 
@@ -11,6 +14,7 @@ namespace Auga
     {
         public GameObject AugaLogo;
         public GameObject InventoryScreen;
+        public Texture2D Cursor;
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -31,8 +35,11 @@ namespace Auga
             _instance = this;
 
             LoadDependencies();
+            LoadTranslations();
             LoadConfig();
             LoadAssets();
+
+            ApplyCursor();
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
         }
@@ -46,6 +53,7 @@ namespace Auga
         private void LoadDependencies()
         {
             var assembly = Assembly.GetCallingAssembly();
+            LoadEmbeddedAssembly(assembly, "fastJSON.dll");
             LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
         }
 
@@ -66,6 +74,24 @@ namespace Auga
             }
         }
 
+        private static void LoadTranslations()
+        {
+            var translationsJsonText = LoadJsonText("translations.json");
+            if (string.IsNullOrEmpty(translationsJsonText))
+            {
+                return;
+            }
+
+            var translations = (IDictionary<string, object>)JSON.Parse(translationsJsonText);
+            foreach (var translation in translations)
+            {
+                if (!string.IsNullOrEmpty(translation.Key) && !string.IsNullOrEmpty(translation.Value.ToString()))
+                {
+                    Localization.instance.AddWord(translation.Key, translation.Value.ToString());
+                }
+            }
+        }
+
         private void LoadConfig()
         {
             _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
@@ -77,6 +103,12 @@ namespace Auga
             var assetBundle = LoadAssetBundle("augaassets");
             Assets.AugaLogo = assetBundle.LoadAsset<GameObject>("AugaLogo");
             Assets.InventoryScreen = assetBundle.LoadAsset<GameObject>("Inventory_screen");
+            Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor");
+        }
+
+        private static void ApplyCursor()
+        {
+            Cursor.SetCursor(Assets.Cursor, new Vector2(1, 1), CursorMode.Auto);
         }
 
         public static AssetBundle LoadAssetBundle(string filename)
@@ -85,6 +117,29 @@ namespace Auga
             var assetBundle = AssetBundle.LoadFromStream(assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{filename}"));
 
             return assetBundle;
+        }
+
+        public static string LoadJsonText(string filename)
+        {
+            var jsonFileName = GetAssetPath(filename);
+            return !string.IsNullOrEmpty(jsonFileName) ? File.ReadAllText(jsonFileName) : null;
+        }
+
+        public static string GetAssetPath(string assetName)
+        {
+            var assetFileName = Path.Combine(Paths.PluginPath, "Auga", assetName);
+            if (!File.Exists(assetFileName))
+            {
+                var assembly = typeof(Auga).Assembly;
+                assetFileName = Path.Combine(Path.GetDirectoryName(assembly.Location) ?? string.Empty, assetName);
+                if (!File.Exists(assetFileName))
+                {
+                    LogError($"Could not find asset ({assetName})");
+                    return null;
+                }
+            }
+
+            return assetFileName;
         }
 
         public static void Log(string message)

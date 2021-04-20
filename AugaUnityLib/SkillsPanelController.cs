@@ -9,16 +9,16 @@ namespace AugaUnity
         public GameObject SkillsContainer;
         public SkillsPanelSkillController SkillPrefab;
 
-        private readonly Dictionary<Skills.SkillType, SkillsPanelSkillController> _skills = new Dictionary<Skills.SkillType, SkillsPanelSkillController>();
-        private int _skillsCount;
+        protected readonly Dictionary<Skills.SkillType, SkillsPanelSkillController> _skills = new Dictionary<Skills.SkillType, SkillsPanelSkillController>();
+        protected int _skillsCount;
 
-        public void Start()
+        public virtual void Start()
         {
             SkillPrefab.gameObject.SetActive(false);
             Update();
         }
 
-        public void Update()
+        public virtual void Update()
         {
             var player = Player.m_localPlayer;
             if (player != null)
@@ -27,7 +27,7 @@ namespace AugaUnity
             }
         }
 
-        private void UpdateSkills(Player player)
+        public virtual void UpdateSkills(Player player)
         {
             var skills = player.GetSkills();
 
@@ -61,7 +61,7 @@ namespace AugaUnity
             }
         }
 
-        public void SortSkillElements()
+        public virtual void SortSkillElements()
         {
             var children = SkillsContainer.transform.Cast<Transform>().Select(x => x.GetComponent<SkillsPanelSkillController>()).ToList();
             children.Sort((a, b) => a.SkillType.CompareTo(b.SkillType));

@@ -12,7 +12,7 @@ namespace AugaUnity
 
         private int _selectedIndex = -1;
 
-        public void Start()
+        public virtual void Start()
         {
             for (var index = 0; index < TabButtons.Count; index++)
             {
@@ -23,7 +23,7 @@ namespace AugaUnity
             SelectTab(0);
         }
 
-        public void SelectTab(int index)
+        public virtual void SelectTab(int index)
         {
             if (_selectedIndex == index)
             {

@@ -8,7 +8,7 @@ namespace AugaUnity
     {
         private Text _text;
 
-        public void Start()
+        public virtual void Start()
         {
             _text = GetComponent<Text>();
             if (_text != null)
@@ -17,7 +17,7 @@ namespace AugaUnity
             }
         }
 
-        public void Update()
+        public virtual void Update()
         {
             if (_text != null && string.IsNullOrEmpty(_text.text))
             {
