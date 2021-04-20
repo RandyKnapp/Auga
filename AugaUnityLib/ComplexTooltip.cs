@@ -72,6 +72,9 @@ namespace AugaUnity
         public Image Icon;
         public Image ItemBackground;
         public Image DiamondBackground;
+        public Image SkillBackground;
+        public GameObject NormalDivider;
+        public GameObject WideDivider;
         public Text Topic;
         public Text Subtitle;
         public Text DescriptionText;
@@ -118,6 +121,9 @@ namespace AugaUnity
             DiamondBackground.enabled = false;
             BottomDivider.SetActive(true);
             DescriptionText.gameObject.SetActive(true);
+            SkillBackground.enabled = false;
+            NormalDivider.SetActive(true);
+            WideDivider.SetActive(false);
 
             Icon.sprite = item.GetIcon();
 
@@ -356,7 +362,7 @@ namespace AugaUnity
             var modifiersTooltipString = SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var damageModifier in modifiersTooltipString)
             {
-                var fullString = damageModifier.Replace("$inventory_dmgmod: <color=orange>", "").Replace("</color>", "");
+                var fullString = damageModifier.Replace("<color=orange>", "").Replace("$inventory_dmgmod: ", "").Replace("</color>", "");
                 textBox.AddLine("$inventory_dmgmod", fullString);
             }
         }
@@ -391,6 +397,9 @@ namespace AugaUnity
             DiamondBackground.enabled = true;
             BottomDivider.SetActive(true);
             DescriptionText.gameObject.SetActive(true);
+            SkillBackground.enabled = false;
+            NormalDivider.SetActive(true);
+            WideDivider.SetActive(false);
 
             Icon.sprite = food.m_item.GetIcon();
             Topic.text = food.m_item.m_shared.m_name;
@@ -409,6 +418,9 @@ namespace AugaUnity
             ColoredItemBar.gameObject.SetActive(false);
             ItemBackground.enabled = false;
             DiamondBackground.enabled = true;
+            SkillBackground.enabled = false;
+            NormalDivider.SetActive(true);
+            WideDivider.SetActive(false);
 
             Icon.sprite = statusEffect.m_icon;
             Topic.text = statusEffect.m_name;
@@ -438,7 +450,26 @@ namespace AugaUnity
         {
             ColoredItemBar.gameObject.SetActive(false);
             ItemBackground.enabled = false;
-            DiamondBackground.enabled = true;
+            DiamondBackground.enabled = false;
+            SkillBackground.enabled = true;
+            NormalDivider.SetActive(false);
+            WideDivider.SetActive(true);
+            BottomDivider.SetActive(false);
+            DescriptionText.gameObject.SetActive(false);
+
+            Icon.sprite = skill.m_info.m_icon;
+            Topic.text = Localization.instance.Localize("$skill_" + skill.m_info.m_skill.ToString().ToLower());
+            Subtitle.text = "$skill";
+
+            var textBox = AddTextBox(TwoColumnTextBoxPrefab);
+            textBox.AddLine("$level", skill.m_level);
+            textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
+            textBox.AddLine("$to_next_level", Mathf.CeilToInt(skill.GetNextLevelRequirement()));
+
+            var textBox2 = AddTextBox(CenteredTextBoxPrefab);
+            textBox2.AddLine(skill.m_info.m_description);
+
+            // TODO: Advanced tooltip for skills
 
             Localization.instance.Localize(transform);
 
