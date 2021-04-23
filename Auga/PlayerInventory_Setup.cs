@@ -47,8 +47,9 @@ namespace Auga
 
                 var rightPanel = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
-                CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>();
+                CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
+                __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;
                 __instance.m_recipeListRoot = CraftingPanel.RecipeList;
                 __instance.m_recipeListScroll = CraftingPanel.RecipeListScrollbar;
@@ -83,7 +84,6 @@ namespace Auga
                 __instance.m_craftProgressBar = CraftingPanel.DummyCraftProgressBar;
                 __instance.m_qualityPanel = CraftingPanel.DummyQualityPanel;
                 __instance.m_minStationLevelIcon = CraftingPanel.DummyMinStationLevelIcon;
-                __instance.m_pvp = CraftingPanel.DummyPvpToggle;
                 CraftingPanel.Initialize(__instance);
 
                 var info = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/Info"), containerInventory.parent, false);

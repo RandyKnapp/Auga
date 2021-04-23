@@ -1,5 +1,27 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &4584521974569173754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7296945572257829079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1789764706, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BackgroundColor: {r: 0.09411766, g: 0.078431375, b: 0.0627451, a: 1}
+  SelectedBackgroundColor: {r: 0.8196079, g: 0.78823537, b: 0.7607844, a: 1}
+  IconColor: {r: 0.27450982, g: 0.23137257, b: 0.18823531, a: 1}
+  SelectedIconColor: {r: 0.09411766, g: 0.078431375, b: 0.0627451, a: 1}
+  Button: {fileID: 43872734998527605}
+  Background: {fileID: 4878843201663770984}
+  Icon: {fileID: 6694270580085322798}
+  PvpOnSprite: {fileID: 21300000, guid: 181fcb2dabdc7e24b8c4f2ec4ffb3790, type: 3}
+  PvpOnColor: {r: 0.7254902, g: 0.5411765, b: 0.07058824, a: 1}
+  PvpOffSprite: {fileID: 21300000, guid: d629f3806a91b304e87ecbadb93c9061, type: 3}
 --- !u!1001 &7483785649785645157
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11,6 +33,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TabButton_PVP
+      objectReference: {fileID: 0}
+    - target: {fileID: 3934108601105159015, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+        type: 3}
+      propertyPath: PvpOnColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3934108601105159015, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+        type: 3}
+      propertyPath: PvpOnColor.b
+      value: 0.07058824
+      objectReference: {fileID: 0}
+    - target: {fileID: 3934108601105159015, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+        type: 3}
+      propertyPath: PvpOnColor.g
+      value: 0.5411765
+      objectReference: {fileID: 0}
+    - target: {fileID: 3934108601105159015, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+        type: 3}
+      propertyPath: PvpOnColor.r
+      value: 0.7254902
       objectReference: {fileID: 0}
     - target: {fileID: 4268687843803978827, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
         type: 3}
@@ -123,5 +165,48 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3934108601105159015, guid: 94ac999d1b8aa8f4ab90ca237c99ba05, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 94ac999d1b8aa8f4ab90ca237c99ba05, type: 3}
+--- !u!1 &7296945572257829079 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 186980969677994162, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7483785649785645157}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4878843201663770984 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2625208733463742733, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7483785649785645157}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7296945572257829079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &43872734998527605 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7440053653358695952, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7483785649785645157}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7296945572257829079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6694270580085322798 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4268687843803978827, guid: 94ac999d1b8aa8f4ab90ca237c99ba05,
+    type: 3}
+  m_PrefabInstance: {fileID: 7483785649785645157}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -42,7 +42,6 @@ namespace AugaUnity
         public GuiBar DummyCraftProgressBar;
         public RectTransform DummyQualityPanel;
         public Image DummyMinStationLevelIcon;
-        public Toggle DummyPvpToggle;
 
         private static AugaCraftingPanel _instance;
 
