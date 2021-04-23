@@ -19,7 +19,6 @@ namespace AugaUnity
 
         public virtual void Awake()
         {
-            SetSelected(false);
             SetColor();
         }
 

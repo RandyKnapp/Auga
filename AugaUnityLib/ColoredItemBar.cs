@@ -18,6 +18,7 @@ namespace AugaUnity
         protected static Dictionary<string, ColorPair> _colorConfig = new Dictionary<string, ColorPair>()
         {
             { "Needle", new ColorPair { A = "#59927F", B = "#817777" } },
+            { "SerpentScale", new ColorPair { A = "#59927F", B = "#817777" } },
             { "BlackMetal", new ColorPair { A = "#175012", B = "#010401" } },
             { "Silver", new ColorPair { A = "#A6A6A6", B = "#5F5F5F" } },
             { "Obsidian", new ColorPair { A = "#31393E", B = "#000000" } },
@@ -26,9 +27,9 @@ namespace AugaUnity
             { "Bronze", new ColorPair { A = "#AE9164", B = "#4F4029" } },
             { "Copper", new ColorPair { A = "#AF7454", B = "#411F15" } },
             { "TrollHide", new ColorPair { A = "#559BBD", B = "#0D6DAB" } },
-            { "Flint", new ColorPair { A = "#FF80FF", B = "#80FF80" } },
+            { "Flint", new ColorPair { A = "#C1C0AA", B = "#96927F" } },
             { "Stone", new ColorPair { A = "#73797A", B = "#393B3E" } },
-            { "DeerHide", new ColorPair { A = "#FF80FF", B = "#80FF80" } },
+            { "DeerHide", new ColorPair { A = "#77583B", B = "#423221" } },
             { "LeatherScraps", new ColorPair { A = "#77583B", B = "#423221" } },
             { "Wood", new ColorPair { A = "#77583B", B = "#423221" } },
         };

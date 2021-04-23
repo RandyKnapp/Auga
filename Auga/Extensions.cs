@@ -81,6 +81,7 @@ namespace Auga
             if ((flags & ReplaceFlags.Instantiate) != 0)
             {
                 foundOther = Object.Instantiate(foundOther, parent);
+                foundOther.name = foundOther.name.Replace("(Clone)", "").Replace("(clone)", "");
             }
             else
             {

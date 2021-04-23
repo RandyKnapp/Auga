@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +11,9 @@ namespace AugaUnity
         public List<TabButton> TabButtons = new List<TabButton>();
         public List<GameObject> TabContents = new List<GameObject>();
 
-        private int _selectedIndex = -1;
+        public event Action<int, int> OnTabChanged;
+
+        public int SelectedIndex { get; private set; } = -1;
 
         public virtual void Start()
         {
@@ -25,24 +28,38 @@ namespace AugaUnity
 
         public virtual void SelectTab(int index)
         {
-            if (_selectedIndex == index)
+            if (SelectedIndex == index)
             {
                 return;
             }
 
-            _selectedIndex = index;
-            for (var tabIndex = 0; tabIndex < TabTitles.Count; tabIndex++)
+            var previousIndex = SelectedIndex;
+            SelectedIndex = index;
+            for (var tabIndex = 0; tabIndex < TabButtons.Count; tabIndex++)
             {
-                var selected = tabIndex == _selectedIndex;
+                var selected = tabIndex == SelectedIndex;
 
-                var tabTitle = TabTitles[tabIndex];
-                var tabButton = TabButtons[tabIndex];
-                var tabContent = TabContents[tabIndex];
+                var tabTitle = tabIndex < TabTitles.Count ? TabTitles[tabIndex] : null;
+                var tabButton = tabIndex < TabButtons.Count ? TabButtons[tabIndex] : null;
+                var tabContent = tabIndex < TabContents.Count ? TabContents[tabIndex] : null;
 
-                tabTitle.gameObject.SetActive(selected);
-                tabButton.SetSelected(selected);
-                tabContent.SetActive(selected);
+                if (tabTitle != null)
+                {
+                    tabTitle.gameObject.SetActive(selected);
+                }
+
+                if (tabButton != null)
+                {
+                    tabButton.SetSelected(selected);
+                }
+
+                if (tabContent != null)
+                {
+                    tabContent.SetActive(selected);
+                }
             }
+
+            OnTabChanged?.Invoke(previousIndex, SelectedIndex);
         }
     }
 }

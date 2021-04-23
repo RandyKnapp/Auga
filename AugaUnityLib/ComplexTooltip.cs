@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,17 +68,19 @@ namespace AugaUnity
     {
         public const string ParentheticalColor = "#A39689";
 
-        public Image Icon;
-        public Image ItemBackground;
-        public Image DiamondBackground;
-        public Image SkillBackground;
-        public GameObject NormalDivider;
-        public GameObject WideDivider;
+        public enum ObjectBackgroundType { Item, Diamond, Skill }
+
+        [CanBeNull] public Image Icon;
+        [CanBeNull] public Image ItemBackground;
+        [CanBeNull] public Image DiamondBackground;
+        [CanBeNull] public Image SkillBackground;
+        [CanBeNull] public GameObject NormalDivider;
+        [CanBeNull] public GameObject WideDivider;
         public Text Topic;
         public Text Subtitle;
-        public Text DescriptionText;
-        public GameObject BottomDivider;
-        public ColoredItemBar ColoredItemBar;
+        [CanBeNull] public Text DescriptionText;
+        [CanBeNull] public GameObject BottomDivider;
+        [CanBeNull] public ColoredItemBar ColoredItemBar;
         public RectTransform TextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
         public TooltipTextBox CenteredTextBoxPrefab;
@@ -87,8 +90,12 @@ namespace AugaUnity
         public static event Action<ComplexTooltip, StatusEffect> OnComplexTooltipGeneratedForStatusEffect;
         public static event Action<ComplexTooltip, Skills.Skill> OnComplexTooltipGeneratedForSkill;
 
-        protected static readonly StringBuilder _sb = new StringBuilder();
+        protected static readonly StringBuilder _stringBuilder = new StringBuilder();
         protected readonly List<TooltipTextBox> _textBoxes = new List<TooltipTextBox>();
+        protected ItemDrop.ItemData _item;
+        protected Player.Food _food;
+        protected StatusEffect _statusEffect;
+        protected Skills.Skill _skill;
 
         public virtual void Start()
         {
@@ -102,69 +109,153 @@ namespace AugaUnity
             {
                 Destroy(textBox.gameObject);
             }
+
             _textBoxes.Clear();
         }
 
         public virtual TooltipTextBox AddTextBox(TooltipTextBox prefab)
         {
             var textBox = Instantiate(prefab, TextBoxContainer, false);
+            textBox.gameObject.SetActive(true);
             _textBoxes.Add(textBox);
             return textBox;
         }
 
-        public virtual void SetItem(ItemDrop.ItemData item)
+        public virtual void ClearData()
         {
-            ColoredItemBar.Setup(item);
-            ItemBackground.enabled = true;
-            DiamondBackground.enabled = false;
-            BottomDivider.SetActive(true);
-            DescriptionText.gameObject.SetActive(true);
-            SkillBackground.enabled = false;
-            NormalDivider.SetActive(true);
-            WideDivider.SetActive(false);
+            _item = null;
+            _food = null;
+            _statusEffect = null;
+            _skill = null;
+        }
 
-            Icon.sprite = item.GetIcon();
+        public virtual void SetTopic(string topic)
+        {
+            Topic.text = topic;
+        }
 
-            Topic.text = Localization.instance.Localize(item.m_shared.m_name);
-            GenerateItemSubtext(item);
-            GenerateItemTooltip(item);
-            DescriptionText.text = Localization.instance.Localize(item.m_shared.m_description);
+        public virtual void SetSubtitle(string topic)
+        {
+            Subtitle.text = topic;
+        }
+
+        public virtual void SetItem(ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        {
+            ClearData();
+            _item = item;
+            quality = quality < 0 ? item.m_quality : quality;
+
+            SetupColoredItemBar(item);
+            EnableObjectBackground(ObjectBackgroundType.Item);
+
+            SetIcon(variant <0 ? item.GetIcon() : item.m_shared.m_icons[variant]);
+
+            SetTopic(Localization.instance.Localize(item.m_shared.m_name));
+            SetSubtitle(GenerateItemSubtext(item));
+            GenerateItemTextBoxes(item, quality);
+            SetDescription(Localization.instance.Localize(item.m_shared.m_description));
 
             Localization.instance.Localize(transform);
 
             OnComplexTooltipGeneratedForItem?.Invoke(this, item);
         }
 
-        public virtual void GenerateItemSubtext(ItemDrop.ItemData item)
+        public virtual void SetupColoredItemBar(ItemDrop.ItemData item)
         {
-            _sb.Clear();
-            _sb.Append($"$itemtype_{item.m_shared.m_itemType.ToString().ToLowerInvariant()}");
+            if (ColoredItemBar != null)
+            {
+                ColoredItemBar.gameObject.SetActive(item != null);
+                if (item != null)
+                {
+                    ColoredItemBar.Setup(item);
+                }
+            }
+        }
+
+        public virtual void EnableObjectBackground(ObjectBackgroundType type)
+        {
+            if (ItemBackground != null)
+            {
+                ItemBackground.enabled = type == ObjectBackgroundType.Item;
+            }
+            if (DiamondBackground != null)
+            {
+                DiamondBackground.enabled = type == ObjectBackgroundType.Diamond;
+            }
+            if (SkillBackground != null)
+            {
+                SkillBackground.enabled = type == ObjectBackgroundType.Skill;
+            }
+
+            if (NormalDivider != null)
+            {
+                NormalDivider.SetActive(type != ObjectBackgroundType.Skill);
+            }
+            if (WideDivider != null)
+            {
+                WideDivider.SetActive(type == ObjectBackgroundType.Skill);
+            }
+        }
+
+        public virtual void EnableDescription(bool enable)
+        {
+            if (BottomDivider != null)
+            {
+                BottomDivider.SetActive(enable);
+            }
+            if (DescriptionText != null)
+            {
+                DescriptionText.gameObject.SetActive(enable);
+            }
+        }
+
+        private void SetIcon(Sprite icon)
+        {
+            if (Icon != null)
+            {
+                Icon.sprite = icon;
+            }
+        }
+
+        private void SetDescription(string description)
+        {
+            var hasDescription = !string.IsNullOrEmpty(description);
+            EnableDescription(hasDescription);
+            if (hasDescription && DescriptionText != null)
+            {
+                DescriptionText.text = description;
+            }
+        }
+
+        public virtual string GenerateItemSubtext(ItemDrop.ItemData item)
+        {
+            _stringBuilder.Clear();
+            _stringBuilder.Append($"$itemtype_{item.m_shared.m_itemType.ToString().ToLowerInvariant()}");
 
             if (item.m_shared.m_food > 0)
             {
-                _sb.Append(", $item_food");
+                _stringBuilder.Append(", $item_food");
             }
 
-            switch (item.m_shared.m_itemType)
+            if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon 
+                || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon 
+                || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch)
             {
-                case ItemDrop.ItemData.ItemType.OneHandedWeapon:
-                case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
-                case ItemDrop.ItemData.ItemType.Torch:
-                    _sb.Append(", ");
-                    _sb.Append($"$skill_singular_{item.m_shared.m_skillType.ToString().ToLowerInvariant()}");
-                    break;
+                _stringBuilder.Append(", ");
+                _stringBuilder.Append($"$skill_singular_{item.m_shared.m_skillType.ToString().ToLowerInvariant()}");
             }
 
             if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch)
             {
-                _sb.Append(", $item_onehanded");
+                _stringBuilder.Append(", $item_onehanded");
             }
 
-            Subtitle.text = Localization.instance.Localize(_sb.ToString());
+            return Localization.instance.Localize(_stringBuilder.ToString());
         }
 
-        public virtual void GenerateItemTooltip(ItemDrop.ItemData item)
+        public virtual void GenerateItemTextBoxes(ItemDrop.ItemData item, int quality)
         {
+            ClearTextBoxes();
             switch (item.m_shared.m_dlc.Length > 0)
             {
                 case true:
@@ -181,7 +272,6 @@ namespace AugaUnity
                 textBox.AddLine("$item_crafter", item.m_crafterName);
             }
 
-            var quality = item.m_quality;
             var statusEffectTooltip = item.GetStatusEffectTooltip();
             switch (item.m_shared.m_itemType)
             {
@@ -399,75 +489,59 @@ namespace AugaUnity
 
         public virtual void SetFood(Player.Food food)
         {
-            ColoredItemBar.gameObject.SetActive(false);
-            ItemBackground.enabled = false;
-            DiamondBackground.enabled = true;
-            BottomDivider.SetActive(true);
-            DescriptionText.gameObject.SetActive(true);
-            SkillBackground.enabled = false;
-            NormalDivider.SetActive(true);
-            WideDivider.SetActive(false);
+            ClearData();
+            _food = food;
 
-            Icon.sprite = food.m_item.GetIcon();
-            Topic.text = food.m_item.m_shared.m_name;
-            Subtitle.text = "$item_food";
-            DescriptionText.text = food.m_item.m_shared.m_description;
+            SetupColoredItemBar(null);
+            EnableObjectBackground(ObjectBackgroundType.Diamond);
+
+            SetIcon(food.m_item.GetIcon());
+            SetTopic(food.m_item.m_shared.m_name);
+            SetSubtitle("$item_food");
+            SetDescription(food.m_item.m_shared.m_description);
 
             ClearTextBoxes();
             AddFoodTextBox(food.m_item);
-            Localization.instance.Localize(transform);
 
+            Localization.instance.Localize(transform);
             OnComplexTooltipGeneratedForFood?.Invoke(this, food);
         }
 
         public virtual void SetStatusEffect(StatusEffect statusEffect)
         {
-            ColoredItemBar.gameObject.SetActive(false);
-            ItemBackground.enabled = false;
-            DiamondBackground.enabled = true;
-            SkillBackground.enabled = false;
-            NormalDivider.SetActive(true);
-            WideDivider.SetActive(false);
+            ClearData();
+            _statusEffect = statusEffect;
 
-            Icon.sprite = statusEffect.m_icon;
-            Topic.text = statusEffect.m_name;
-            Subtitle.text = "$effect";
+            SetupColoredItemBar(null);
+            EnableObjectBackground(ObjectBackgroundType.Diamond);
 
-            DescriptionText.text = statusEffect.m_startMessage;
-            if (string.IsNullOrEmpty(DescriptionText.text))
-            {
-                BottomDivider.SetActive(false);
-                DescriptionText.gameObject.SetActive(false);
-            }
-            else
-            {
-                BottomDivider.SetActive(true);
-                DescriptionText.gameObject.SetActive(true);
-            }
+            SetIcon(statusEffect.m_icon);
+            SetTopic(statusEffect.m_name);
+            SetSubtitle("$effect");
+            SetDescription(statusEffect.m_startMessage);
 
+            ClearTextBoxes();
             var textBox = AddTextBox(CenteredTextBoxPrefab);
             textBox.Text.text = statusEffect.m_tooltip;
 
             Localization.instance.Localize(transform);
-
             OnComplexTooltipGeneratedForStatusEffect?.Invoke(this, statusEffect);
         }
 
         public virtual void SetSkill(Skills.Skill skill)
         {
-            ColoredItemBar.gameObject.SetActive(false);
-            ItemBackground.enabled = false;
-            DiamondBackground.enabled = false;
-            SkillBackground.enabled = true;
-            NormalDivider.SetActive(false);
-            WideDivider.SetActive(true);
-            BottomDivider.SetActive(false);
-            DescriptionText.gameObject.SetActive(false);
+            ClearData();
+            _skill = skill;
 
-            Icon.sprite = skill.m_info.m_icon;
-            Topic.text = Localization.instance.Localize("$skill_" + skill.m_info.m_skill.ToString().ToLower());
-            Subtitle.text = "$skill";
+            SetupColoredItemBar(null);
+            EnableObjectBackground(ObjectBackgroundType.Skill);
+            EnableDescription(false);
 
+            SetIcon(skill.m_info.m_icon);
+            SetTopic(Localization.instance.Localize("$skill_" + skill.m_info.m_skill.ToString().ToLower()));
+            SetSubtitle("$skill");
+
+            ClearTextBoxes();
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
             textBox.AddLine("$level", skill.m_level);
             textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
@@ -479,7 +553,6 @@ namespace AugaUnity
             // TODO: Advanced tooltip for skills
 
             Localization.instance.Localize(transform);
-
             OnComplexTooltipGeneratedForSkill?.Invoke(this, skill);
         }
     }
