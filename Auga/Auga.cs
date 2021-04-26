@@ -113,6 +113,13 @@ namespace Auga
 
         public static AssetBundle LoadAssetBundle(string filename)
         {
+            // Optionally load asset bundle from path, if it exists
+            var assetBundlePath = GetAssetPath(filename);
+            if (!string.IsNullOrEmpty(assetBundlePath))
+            {
+                return AssetBundle.LoadFromFile(assetBundlePath);
+            }
+
             var assembly = Assembly.GetCallingAssembly();
             var assetBundle = AssetBundle.LoadFromStream(assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{filename}"));
 
