@@ -116,5 +116,27 @@ namespace Auga
         {
             return go.transform.Replace(findPath, other.transform, otherFindPath, flags);
         }
+
+        public static T RequireComponent<T>(this Component c) where T : Component
+        {
+            var t = c.GetComponent<T>();
+            if (t == null)
+            {
+                t = c.gameObject.AddComponent<T>();
+            }
+
+            return t;
+        }
+
+        public static T RequireComponent<T>(this GameObject go) where T : Component
+        {
+            var t = go.GetComponent<T>();
+            if (t == null)
+            {
+                t = go.AddComponent<T>();
+            }
+
+            return t;
+        }
     }
 }

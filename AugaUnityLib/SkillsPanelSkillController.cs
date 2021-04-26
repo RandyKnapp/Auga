@@ -34,7 +34,7 @@ namespace AugaUnity
 
                 Icon.sprite = skillData.m_info.m_icon;
                 NameText.text = Localization.instance.Localize("$skill_" + SkillType.ToString().ToLower());
-                LevelText.text = $"$level {skillData.m_level}";
+                LevelText.text = $"$level {skillData.m_level:0}";
                 const float start = 0.02f;
                 const float end = 0.5f - start;
                 ProgressBarLevel.fillAmount = Mathf.Lerp(start, end, skillData.m_level / 100f);

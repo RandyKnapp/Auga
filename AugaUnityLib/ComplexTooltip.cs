@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -35,9 +36,15 @@ namespace AugaUnity
     {
         public Text Text;
         public Text RightColumnText;
+        public Text ThirdColumnText;
 
         public virtual void AddLine(Text t, object s, bool localize = true)
         {
+            if (t == null)
+            {
+                return;
+            }
+
             if (!string.IsNullOrEmpty(t.text))
             {
                 t.text += "\n";
@@ -49,24 +56,36 @@ namespace AugaUnity
         public virtual void AddLine(object a, bool localize = true)
         {
             AddLine(Text, a, localize);
+            AddLine(RightColumnText, "", false);
+            AddLine(ThirdColumnText, "", false);
         }
 
         public virtual void AddLine(object a, object b, bool localize = true)
         {
             AddLine(Text, a, localize);
             AddLine(RightColumnText, b, localize);
+            AddLine(ThirdColumnText, b, false);
         }
 
         public virtual void AddLine(object a, object b, object parenthetical, bool localize = true)
         {
             AddLine(Text, a, localize);
             AddLine(RightColumnText, $"{b} <color={ComplexTooltip.ParentheticalColor}>({parenthetical})</color>", localize);
+            AddLine(ThirdColumnText, b, false);
+        }
+
+        public virtual void AddUpgradeLine(object label, object value1, object value2, string color2, bool localize = true)
+        {
+            AddLine(Text, label, localize);
+            AddLine(RightColumnText, value1, localize);
+            AddLine(ThirdColumnText, string.IsNullOrEmpty(color2) ? value2 : $"<color={color2}>{value2}</color>", localize);
         }
     }
 
     public class ComplexTooltip : MonoBehaviour
     {
         public const string ParentheticalColor = "#A39689";
+        public const string UpgradeColor = "#1B9B37";
 
         public enum ObjectBackgroundType { Item, Diamond, Skill }
 
@@ -84,6 +103,8 @@ namespace AugaUnity
         public RectTransform TextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
         public TooltipTextBox CenteredTextBoxPrefab;
+        [CanBeNull] public TooltipTextBox UpgradeLabelsPrefab;
+        [CanBeNull] public TooltipTextBox UpgradeTwoColumnTextBoxPrefab;
 
         public static event Action<ComplexTooltip, ItemDrop.ItemData> OnComplexTooltipGeneratedForItem;
         public static event Action<ComplexTooltip, Player.Food> OnComplexTooltipGeneratedForFood;
@@ -101,6 +122,16 @@ namespace AugaUnity
         {
             TwoColumnTextBoxPrefab.gameObject.SetActive(false);
             CenteredTextBoxPrefab.gameObject.SetActive(false);
+
+            if (UpgradeLabelsPrefab != null)
+            {
+                UpgradeLabelsPrefab.gameObject.SetActive(false);
+            }
+
+            if (UpgradeTwoColumnTextBoxPrefab != null)
+            {
+                UpgradeTwoColumnTextBoxPrefab.gameObject.SetActive(false);
+            }
         }
 
         public virtual void ClearTextBoxes()
@@ -256,17 +287,21 @@ namespace AugaUnity
         public virtual void GenerateItemTextBoxes(ItemDrop.ItemData item, int quality)
         {
             ClearTextBoxes();
-            switch (item.m_shared.m_dlc.Length > 0)
+
+            var upgrade = item.m_quality != quality;
+            if (upgrade)
             {
-                case true:
-                {
-                    var textBox = AddTextBox(CenteredTextBoxPrefab);
-                    textBox.AddLine("<color=aqua>$item_dlc</color>");
-                    break;
-                }
+                var labels = AddTextBox(UpgradeLabelsPrefab);
+                labels.AddLine(item.m_quality, quality, false);
             }
 
-            if (item.m_crafterID != 0L)
+            if (!upgrade && item.m_shared.m_dlc.Length > 0)
+            {
+                var textBox = AddTextBox(CenteredTextBoxPrefab);
+                textBox.AddLine("<color=aqua>$item_dlc</color>");
+            }
+
+            if (!upgrade && item.m_crafterID != 0L)
             {
                 var textBox = AddTextBox(TwoColumnTextBoxPrefab);
                 textBox.AddLine("$item_crafter", item.m_crafterName);
@@ -292,27 +327,27 @@ namespace AugaUnity
                 case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
                 case ItemDrop.ItemData.ItemType.Torch:
                 case ItemDrop.ItemData.ItemType.Ammo:
-                    AddDamageTextbox(item, quality);
-                    AddBlockingTextBox(item, quality);
+                    AddDamageTextbox(item, quality, upgrade);
+                    AddBlockingTextBox(item, quality, upgrade);
                     AddProjectileTextBox(item, quality);
                     AddAttackStatusTextBox(item);
                     break;
 
                 case ItemDrop.ItemData.ItemType.Shield:
-                    AddBlockingTextBox(item, quality);
+                    AddBlockingTextBox(item, quality, upgrade);
                     break;
 
                 case ItemDrop.ItemData.ItemType.Helmet:
                 case ItemDrop.ItemData.ItemType.Chest:
                 case ItemDrop.ItemData.ItemType.Legs:
                 case ItemDrop.ItemData.ItemType.Shoulder:
-                    AddArmorTextBox(item, quality);
+                    AddArmorTextBox(item, quality, upgrade);
                     break;
             }
 
             // Other info
             {
-                var textBox = AddTextBox(TwoColumnTextBoxPrefab);
+                var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
 
                 if (item.m_shared.m_value > 0)
                 {
@@ -321,22 +356,31 @@ namespace AugaUnity
 
                 if (item.m_shared.m_maxQuality > 1)
                 {
-                    textBox.AddLine("$item_quality", quality);
+                    textBox.AddLine("$item_quality", quality, upgrade);
                 }
 
                 if (item.m_shared.m_useDurability)
                 {
-                    var maxDurability = item.GetMaxDurability(quality).ToString("0");
+                    var maxDurability = item.GetMaxDurability(quality);
                     var durability = item.m_durability.ToString("0");
                     var durabilityPercent = Mathf.CeilToInt(item.GetDurabilityPercentage() * 100);
 
-                    textBox.AddLine("$item_durability", $"{durabilityPercent}%", $"{durability}/{maxDurability}");
-                    if (item.m_shared.m_canBeReparied)
+                    if (upgrade)
                     {
-                        var recipe = ObjectDB.instance.GetRecipe(item);
-                        if (recipe != null)
+                        var prevMaxDurability = item.GetMaxDurability(item.m_quality);
+                        var better = prevMaxDurability < maxDurability;
+                        textBox.AddUpgradeLine("$item_durability", prevMaxDurability, maxDurability, better ? UpgradeColor : null);
+                    }
+                    else
+                    {
+                        textBox.AddLine("$item_durability", $"{durabilityPercent}%", $"{durability}/{maxDurability}");
+                        if (item.m_shared.m_canBeReparied)
                         {
-                            textBox.AddLine("$item_repairlevel", recipe.m_minStationLevel);
+                            var recipe = ObjectDB.instance.GetRecipe(item);
+                            if (recipe != null)
+                            {
+                                textBox.AddLine("$item_repairlevel", recipe.m_minStationLevel);
+                            }
                         }
                     }
                 }
@@ -370,38 +414,39 @@ namespace AugaUnity
             }
         }
 
-        public virtual void AddDamageTextbox(ItemDrop.ItemData item, int quality)
+        public virtual void AddDamageTextbox(ItemDrop.ItemData item, int quality, bool upgrade)
         {
             if (Player.m_localPlayer == null)
             {
                 return;
             }
 
-            var textBox = AddTextBox(TwoColumnTextBoxPrefab);
+            var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
 
             var damage = item.GetDamage(quality);
+            var previousDamage = item.GetDamage(item.m_quality);
             var skillType = item.m_shared.m_skillType;
 
             Player.m_localPlayer.GetSkills().GetRandomSkillRange(out var min, out var max, skillType);
 
             if (damage.m_damage != 0.0f)
-                textBox.AddLine("$inventory_damage", GetDamageRangeString(damage.m_damage, min, max));
+                AddDamageLine(textBox, "$inventory_damage", damage.m_damage, previousDamage.m_damage, min, max, upgrade);
             if (damage.m_blunt != 0.0f)
-                textBox.AddLine("$inventory_blunt", GetDamageRangeString(damage.m_blunt, min, max));
+                AddDamageLine(textBox, "$inventory_blunt", damage.m_blunt, previousDamage.m_blunt, min, max, upgrade);
             if (damage.m_slash != 0.0f)
-                textBox.AddLine("$inventory_slash", GetDamageRangeString(damage.m_slash, min, max));
+                AddDamageLine(textBox, "$inventory_slash", damage.m_slash, previousDamage.m_slash, min, max, upgrade);
             if (damage.m_pierce != 0.0f)
-                textBox.AddLine("$inventory_pierce", GetDamageRangeString(damage.m_pierce, min, max));
+                AddDamageLine(textBox, "$inventory_pierce", damage.m_pierce, previousDamage.m_pierce, min, max, upgrade);
             if (damage.m_fire != 0.0f)
-                textBox.AddLine("$inventory_fire", GetDamageRangeString(damage.m_fire, min, max));
+                AddDamageLine(textBox, "$inventory_fire", damage.m_fire, previousDamage.m_fire, min, max, upgrade);
             if (damage.m_frost != 0.0f)
-                textBox.AddLine("$inventory_frost", GetDamageRangeString(damage.m_frost, min, max));
+                AddDamageLine(textBox, "$inventory_frost", damage.m_frost, previousDamage.m_frost, min, max, upgrade);
             if (damage.m_lightning != 0.0f)
-                textBox.AddLine("$inventory_lightning", GetDamageRangeString(damage.m_lightning, min, max));
+                AddDamageLine(textBox, "$inventory_lightning",damage.m_lightning, previousDamage.m_lightning, min, max, upgrade);
             if (damage.m_poison != 0.0f)
-                textBox.AddLine("$inventory_poison", GetDamageRangeString(damage.m_poison, min, max));
+                AddDamageLine(textBox, "$inventory_poison", damage.m_poison, previousDamage.m_poison, min, max, upgrade);
             if (damage.m_spirit != 0.0f)
-                textBox.AddLine("$inventory_spirit", GetDamageRangeString(damage.m_spirit, min, max));
+                AddDamageLine(textBox, "$inventory_spirit", damage.m_spirit, previousDamage.m_spirit, min, max, upgrade);
 
             if (item.m_shared.m_attackForce > 0)
                 textBox.AddLine("$item_knockback", item.m_shared.m_attackForce);
@@ -409,24 +454,60 @@ namespace AugaUnity
                 textBox.AddLine("$item_backstab", $"{item.m_shared.m_backstabBonus}x");
         }
 
-        public virtual void AddBlockingTextBox(ItemDrop.ItemData item, int quality)
+        private void AddDamageLine(TooltipTextBox textBox, string label, float damage, float previousDamage, float min, float max, bool upgrade)
+        {
+            if (upgrade)
+            {
+                textBox.AddUpgradeLine(label, previousDamage, damage, damage > previousDamage ? UpgradeColor : null);
+            }
+            else
+            {
+                textBox.AddLine(label, GetDamageRangeString(damage, min, max));
+            }
+        }
+
+        public virtual string GetDamageRangeString(float damage, float minFactor, float maxFactor)
+        {
+            var min = Mathf.RoundToInt(damage * minFactor);
+            var max = Mathf.RoundToInt(damage * maxFactor);
+            return $"{Mathf.RoundToInt(damage)} <color={ParentheticalColor}>({min}-{max})</color>";
+        }
+
+        public virtual void AddBlockingTextBox(ItemDrop.ItemData item, int quality, bool upgrade)
         {
             var blockPower = item.GetBlockPowerTooltip(quality);
+            var previousBlockPower = item.GetBlockPowerTooltip(item.m_quality);
             if (blockPower <= 0 || item.m_shared.m_timedBlockBonus <= 0)
             {
                 return;
             }
 
-            var textBox = AddTextBox(TwoColumnTextBoxPrefab);
+            var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
 
             if (blockPower > 0)
             {
-                textBox.AddLine("$item_blockpower", blockPower.ToString("0"));
+                if (upgrade)
+                {
+                    textBox.AddUpgradeLine("$item_blockpower", previousBlockPower.ToString("0"), blockPower.ToString("0"), blockPower > previousBlockPower ? UpgradeColor : null);
+                }
+                else
+                {
+                    textBox.AddLine("$item_blockpower", blockPower.ToString("0"));
+                }
             }
 
             if (item.m_shared.m_timedBlockBonus > 1)
             {
-                textBox.AddLine("$item_deflection", item.GetDeflectionForce(quality));
+                var deflectForce = item.GetDeflectionForce(quality);
+                var previousDeflectForce = item.GetDeflectionForce(item.m_quality);
+                if (upgrade)
+                {
+                    textBox.AddUpgradeLine("$item_blockpower", previousDeflectForce.ToString("0"), deflectForce.ToString("0"), deflectForce > previousDeflectForce ? UpgradeColor : null);
+                }
+                else
+                {
+                    textBox.AddLine("$item_deflection", deflectForce);
+                }
                 textBox.AddLine("$item_parrybonus", $"{item.m_shared.m_timedBlockBonus}x");
             }
         }
@@ -451,10 +532,19 @@ namespace AugaUnity
             }
         }
 
-        public virtual void AddArmorTextBox(ItemDrop.ItemData item, int quality)
+        public virtual void AddArmorTextBox(ItemDrop.ItemData item, int quality, bool upgrade)
         {
-            var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-            textBox.AddLine("$item_armor", item.GetArmor(quality));
+            var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
+            var armor = item.GetArmor(quality);
+            var previousArmor = item.GetArmor(item.m_quality);
+            if (upgrade)
+            {
+                textBox.AddUpgradeLine("$item_armor", previousArmor, armor, armor > previousArmor ? UpgradeColor : null);
+            }
+            else
+            {
+                textBox.AddLine("$item_armor", armor);
+            }
 
             var modifiersTooltipString = SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var damageModifier in modifiersTooltipString)
@@ -462,13 +552,6 @@ namespace AugaUnity
                 var fullString = damageModifier.Replace("<color=orange>", "").Replace("$inventory_dmgmod: ", "").Replace("</color>", "");
                 textBox.AddLine("$inventory_dmgmod", fullString);
             }
-        }
-
-        public virtual string GetDamageRangeString(float damage, float minFactor, float maxFactor)
-        {
-            var min = Mathf.RoundToInt(damage * minFactor);
-            var max = Mathf.RoundToInt(damage * maxFactor);
-            return $"{Mathf.RoundToInt(damage)} <color={ParentheticalColor}>({min}-{max})</color>";
         }
 
         public virtual void AddFoodTextBox(ItemDrop.ItemData item)
@@ -521,8 +604,18 @@ namespace AugaUnity
             SetDescription(statusEffect.m_startMessage);
 
             ClearTextBoxes();
-            var textBox = AddTextBox(CenteredTextBoxPrefab);
-            textBox.Text.text = statusEffect.m_tooltip;
+            var tooltipString = statusEffect.GetTooltipString();
+            var parts = tooltipString.Split(new []{ "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 1)
+            {
+                var textBox = AddTextBox(CenteredTextBoxPrefab);
+                textBox.Text.text = $"<color=#D1C9C2>{string.Join("\n", parts.Skip(1))}</color>";
+            }
+            if (parts.Length > 0)
+            {
+                var textBox = AddTextBox(CenteredTextBoxPrefab);
+                textBox.Text.text = parts[0];
+            }
 
             Localization.instance.Localize(transform);
             OnComplexTooltipGeneratedForStatusEffect?.Invoke(this, statusEffect);
@@ -543,7 +636,7 @@ namespace AugaUnity
 
             ClearTextBoxes();
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-            textBox.AddLine("$level", skill.m_level);
+            textBox.AddLine("$level", skill.m_level.ToString("0"));
             textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
             textBox.AddLine("$to_next_level", Mathf.CeilToInt(skill.GetNextLevelRequirement()));
 

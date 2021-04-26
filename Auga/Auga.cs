@@ -108,7 +108,7 @@ namespace Auga
 
         private static void ApplyCursor()
         {
-            Cursor.SetCursor(Assets.Cursor, new Vector2(1, 1), CursorMode.Auto);
+            Cursor.SetCursor(Assets.Cursor, new Vector2(6, 5), CursorMode.Auto);
         }
 
         public static AssetBundle LoadAssetBundle(string filename)

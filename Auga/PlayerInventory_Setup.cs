@@ -68,7 +68,6 @@ namespace Auga
                 __instance.m_variantButton.onClick.AddListener(__instance.OnShowVariantSelection);
                 __instance.m_variantDialog = CraftingPanel.VariantDialog;
                 __instance.m_variantDialog.m_selected += __instance.OnVariantSelected;
-                __instance.m_itemCraftType = CraftingPanel.ItemCraftType;
 
                 __instance.m_repairButton = CraftingPanel.RepairButton;
                 __instance.m_repairButtonGlow = CraftingPanel.RepairGlow;
@@ -91,6 +90,15 @@ namespace Auga
                 info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);
 
                 Localization.instance.Localize(__instance.transform);
+            }
+        }
+
+        [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.Awake))]
+        public static class MessageHud_Awake_Patch
+        {
+            public static void Postfix(MessageHud __instance)
+            {
+                __instance.gameObject.AddComponent<AugaMessageLog>();
             }
         }
 
@@ -194,7 +202,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.UpdateUpgradeWireFrame(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, quality, player, allowedQuality);
+                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, quality, player, allowedQuality);
                 }
             }
         }
@@ -215,6 +223,24 @@ namespace Auga
                         selectedObject.gameObject.SetActive(selected);
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(TextsDialog))]
+        public static class TextsDialog_Patch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(TextsDialog.AddActiveEffects))]
+            public static bool AddActiveEffects_Prefix()
+            {
+                return false;
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(TextsDialog.AddLog))]
+            public static bool AddLog_Prefix()
+            {
+                return false;
             }
         }
     }

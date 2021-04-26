@@ -33,6 +33,7 @@ namespace AugaUnity
                 else if (_rememberTabIndex >= 0)
                 {
                     tabController.SelectTab(_rememberTabIndex);
+                    WorkbenchContent.GetComponent<AugaTabController>().SelectTab(0);
                 }
             }
         }

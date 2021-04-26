@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -16,27 +17,40 @@ namespace AugaUnity
         public Image FinalWire;
         public Color HaveColor = Color.white;
         public Color DontHaveColor = Color.white;
+        public Color AbsentColor = Color.white;
+        public bool HideIfAbsent = true;
 
         public void Awake()
         {
             Set(new [] { WireState.Absent, WireState.Absent, WireState.Absent, WireState.Absent}, true);
         }
 
-        public virtual void Set(WireState[] wireStates, bool canUpgrade)
+        public virtual void Set(IReadOnlyList<WireState> wireStates, bool canUpgrade)
         {
             for (var index = 0; index < Wires.Length; index++)
             {
                 var wire = Wires[index];
                 var state = wireStates[index];
-                wire.enabled = state != WireState.Absent;
+                wire.enabled = !HideIfAbsent || state != WireState.Absent;
+
                 wire.color = state == WireState.Have ? HaveColor : DontHaveColor;
+                if (!HideIfAbsent && state == WireState.Absent)
+                {
+                    wire.color = AbsentColor;
+                    wire.transform.SetAsFirstSibling();
+                }
+
                 if (state == WireState.DontHave)
                 {
                     wire.transform.SetAsLastSibling();
                 }
             }
 
-            FinalWire.enabled = !canUpgrade;
+            FinalWire.enabled = !HideIfAbsent || !canUpgrade;
+            if (!HideIfAbsent)
+            {
+                FinalWire.color = canUpgrade ? HaveColor : DontHaveColor;
+            }
         }
     }
 }

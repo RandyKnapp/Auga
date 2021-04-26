@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,8 +16,7 @@ namespace AugaUnity
         public AugaTabController TabController;
         public CraftingRequirementsPanel CraftingRequirementsPanel;
         public CraftingRequirementsPanel UpgradeRequirementsPanel;
-        public UpgradeRequirementsWireFrame UpgradeWireFrame;
-        public Text ItemCraftType;
+        public CraftingRequirementsPanel MaxQualityUpgradeRequirementsPanel;
         public RectTransform RecipeList;
         public Scrollbar RecipeListScrollbar;
         public ScrollRectEnsureVisible RecipeListEnsureVisible;
@@ -44,12 +44,12 @@ namespace AugaUnity
         public Image DummyMinStationLevelIcon;
 
         private static AugaCraftingPanel _instance;
+        private CraftingRequirementsPanel _currentPanel;
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
             TabController.OnTabChanged += OnTabChanged;
-            CraftingRequirementsPanel.Activate(inventoryGui, ItemInfo);
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            ActivatePanel(CraftingRequirementsPanel);
         }
 
         private void OnTabChanged(int previousTabIndex, int currentTabIndex)
@@ -61,17 +61,26 @@ namespace AugaUnity
             {
                 if (currentTabIndex == 0)
                 {
-                    CraftingRequirementsPanel.Activate(InventoryGui.instance, ItemInfo);
+                    ActivatePanel(CraftingRequirementsPanel);
                     inventoryGui.OnTabCraftPressed();
                 }
                 else if (currentTabIndex == 1)
                 {
-                    UpgradeRequirementsPanel.Activate(InventoryGui.instance, ItemInfo);
+                    ActivatePanel(UpgradeRequirementsPanel);
                     inventoryGui.OnTabUpgradePressed();
                 }
             }
         }
 
+        public virtual void ActivatePanel(CraftingRequirementsPanel panel)
+        {
+            var inventoryGui = InventoryGui.instance;
+            _currentPanel = panel;
+            panel.Activate(inventoryGui, ItemInfo);
+            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+        }
+
+        [UsedImplicitly]
         public virtual void OnEnable()
         {
             if (_instance != null)
@@ -84,6 +93,7 @@ namespace AugaUnity
             SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
         }
 
+        [UsedImplicitly]
         public virtual void OnDisable()
         {
             _instance = null;
@@ -98,8 +108,15 @@ namespace AugaUnity
             }
             else
             {
-                var quality = item == null ? 1 : item.m_quality + 1;
-                ItemInfo.SetItem(recipe.m_item.m_itemData, quality, variant);
+                if (item != null)
+                {
+                    var quality = Mathf.Min(item.m_quality + 1, item.m_shared.m_maxQuality);
+                    ItemInfo.SetItem(item, quality, variant);
+                }
+                else
+                {
+                    ItemInfo.SetItem(recipe.m_item.m_itemData, 1, variant);
+                }
                 ItemInfo.gameObject.SetActive(true);
             }
 
@@ -130,25 +147,44 @@ namespace AugaUnity
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);
         }
 
-        public virtual void UpdateUpgradeWireFrame(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedQuality)
+        public virtual void PostSetupRequirementList(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedWorkbenchQuality)
         {
-            if (item == null || UpgradeWireFrame == null)
+            if (item != null)
+            {
+                var maxQuality = item.m_shared.m_maxQuality == item.m_quality;
+                UpgradeRequirementsPanel.gameObject.SetActive(!maxQuality);
+                MaxQualityUpgradeRequirementsPanel.gameObject.SetActive(maxQuality);
+                if (maxQuality)
+                {
+                    ActivatePanel(MaxQualityUpgradeRequirementsPanel);
+                    return;
+                }
+                else
+                {
+                    ActivatePanel(UpgradeRequirementsPanel);
+                    SetRecipe(recipe, item, item.m_variant);
+                }
+            }
+
+            if (_currentPanel == null || _currentPanel.WireFrame == null)
             {
                 return;
             }
 
-            var canCraft = allowedQuality;
+            //Debug.LogWarning($"UpdateWireframe Input: recipe={recipe}, item={item}, quality={quality}, allowedWorkbenchQuality={allowedWorkbenchQuality}");
+            var canCraft = allowedWorkbenchQuality;
             var states = new List<WireState>();
-            int index = 0;
-            if (allowedQuality)
+            var index = 0;
+            if (allowedWorkbenchQuality)
             {
-                foreach (Piece.Requirement resource in recipe.m_resources)
+                foreach (var resource in recipe.m_resources)
                 {
-                    if (resource.m_resItem != null)
+                    var amountRequired = resource.GetAmount(quality);
+                    if (resource.m_resItem != null && amountRequired > 0)
                     {
                         var playerInventoryAmount = player.GetInventory().CountItems(resource.m_resItem.m_itemData.m_shared.m_name);
-                        var amountRequired = resource.GetAmount(quality);
                         var have = playerInventoryAmount >= amountRequired;
+                        //Debug.Log($"  {index}: res={resource.m_resItem.m_itemData.m_shared.m_name}, amountRequired={amountRequired}, playerInventoryAmount={playerInventoryAmount}");
                         states.Add(have ? WireState.Have : WireState.DontHave);
                         canCraft = canCraft && have;
                         ++index;
@@ -156,16 +192,20 @@ namespace AugaUnity
                 }
             }
 
-            for (; index < UpgradeWireFrame.Wires.Length; ++index)
+            for (; index < _currentPanel.WireFrame.Wires.Length; ++index)
             {
                 states.Add(WireState.Absent);
             }
 
             var currentCraftingStation = player.GetCurrentCraftingStation();
+            var requiredCraftingStation = recipe.GetRequiredStation(quality);
             var requiredStationLevel = recipe.GetRequiredStationLevel(quality);
-            canCraft = canCraft && currentCraftingStation != null && currentCraftingStation.GetLevel() >= requiredStationLevel;
+            var hasStation = requiredCraftingStation == null || currentCraftingStation == null || currentCraftingStation.m_name == requiredCraftingStation.m_name;
+            var stationLevel = requiredCraftingStation == null || currentCraftingStation == null || currentCraftingStation.GetLevel() >= requiredStationLevel;
+            canCraft = canCraft && hasStation && stationLevel;
 
-            UpgradeWireFrame.Set(states.ToArray(), canCraft);
+            //Debug.LogWarning($"UpdateWireframe Values: states={string.Join(",", states)}, canCraft={canCraft}");
+            _currentPanel.WireFrame.Set(states, canCraft);
         }
     }
 }

@@ -13,6 +13,8 @@ namespace AugaUnity
         public Text WorkbenchLevel;
         [CanBeNull] public Text OriginalQualityLevel;
         [CanBeNull] public Text NewQualityLevel;
+        public Text ItemCraftType;
+        [CanBeNull] public UpgradeRequirementsWireFrame WireFrame;
 
         public void Activate(InventoryGui inventoryGui, ComplexTooltip itemInfo)
         {
@@ -20,6 +22,7 @@ namespace AugaUnity
             itemInfo.Icon = Icon;
             ColorUtility.TryParseHtmlString("#EAE1D9", out inventoryGui.m_minStationLevelBasecolor);
             inventoryGui.m_minStationLevelText = WorkbenchLevel;
+            inventoryGui.m_itemCraftType = ItemCraftType;
             Update();
         }
 
@@ -27,7 +30,7 @@ namespace AugaUnity
         {
             var inventoryGui = InventoryGui.instance;
 
-            if (UpgradedIcon != null)
+            if (UpgradedIcon != null && Icon != null)
             {
                 UpgradedIcon.enabled = Icon.enabled;
                 UpgradedIcon.sprite = Icon.sprite;
@@ -47,10 +50,17 @@ namespace AugaUnity
                 }
 
                 var itemData = inventoryGui.m_selectedRecipe.Value;
-                if (itemData != null && OriginalQualityLevel != null && NewQualityLevel != null)
+                if (itemData != null)
                 {
-                    OriginalQualityLevel.text = itemData.m_quality.ToString();
-                    NewQualityLevel.text = (itemData.m_quality + 1).ToString();
+                    if (OriginalQualityLevel != null)
+                    {
+                        OriginalQualityLevel.text = itemData.m_quality.ToString();
+                    }
+
+                    if (NewQualityLevel != null)
+                    {
+                        NewQualityLevel.text = (itemData.m_quality + 1).ToString();
+                    }
                 }
             }
         }
