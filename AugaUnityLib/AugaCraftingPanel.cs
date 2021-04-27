@@ -62,6 +62,7 @@ namespace AugaUnity
                 if (currentTabIndex == 0)
                 {
                     ActivatePanel(CraftingRequirementsPanel);
+                    MaxQualityUpgradeRequirementsPanel.gameObject.SetActive(false);
                     inventoryGui.OnTabCraftPressed();
                 }
                 else if (currentTabIndex == 1)

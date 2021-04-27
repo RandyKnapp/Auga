@@ -37,7 +37,7 @@ public class AugaLauncher : EditorWindow
         GUILayout.Space(4);
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button(new GUIContent("Build & Launch"), GUILayout.Height(40)))
+        if (GUILayout.Button(new GUIContent("▶ Build & Launch"), GUILayout.Height(40)))
         {
             BuildAndLaunch();
         }
@@ -50,7 +50,7 @@ public class AugaLauncher : EditorWindow
         GUILayout.Space(4);
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button(new GUIContent("Build Asset Bundle"), GUILayout.Height(40)))
+        if (GUILayout.Button(new GUIContent("▷ Build Asset Bundle"), GUILayout.Height(40)))
         {
             BuildAssetBundles();
         }
@@ -71,7 +71,7 @@ public class AugaLauncher : EditorWindow
         }
     }
 
-    [MenuItem("Auga/Build && Launch")]
+    [MenuItem("Auga/▶ Build && Launch")]
     public static void BuildAndLaunch()
     {
         EditorUtility.DisplayProgressBar("Auga", "Checking Valheim Path...", 0.1f);
@@ -128,7 +128,7 @@ public class AugaLauncher : EditorWindow
         return Path.GetFullPath(Path.Combine(GetValheimPath(), "BepInEx/plugins/Auga/augaassets"));
     }
 
-    [MenuItem("Auga/Build Asset Bundles")]
+    [MenuItem("Auga/▷ Build Asset Bundles")]
     public static void BuildAssetBundles()
     {
         var stagePath = GetStagePath();

@@ -100,7 +100,9 @@ namespace AugaUnity
         [CanBeNull] public Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
         [CanBeNull] public ColoredItemBar ColoredItemBar;
+        [CanBeNull] public Text ItemQuality;
         public RectTransform TextBoxContainer;
+        [CanBeNull] public RectTransform LowerTextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
         public TooltipTextBox CenteredTextBoxPrefab;
         [CanBeNull] public TooltipTextBox UpgradeLabelsPrefab;
@@ -142,11 +144,21 @@ namespace AugaUnity
             }
 
             _textBoxes.Clear();
+            if (LowerTextBoxContainer != null)
+            {
+                LowerTextBoxContainer.gameObject.SetActive(false);
+            }
         }
 
-        public virtual TooltipTextBox AddTextBox(TooltipTextBox prefab)
+        public virtual TooltipTextBox AddTextBox(TooltipTextBox prefab, RectTransform container = null)
         {
-            var textBox = Instantiate(prefab, TextBoxContainer, false);
+            if (container == null)
+            {
+                container = TextBoxContainer;
+            }
+
+            container.gameObject.SetActive(true);
+            var textBox = Instantiate(prefab, container, false);
             textBox.gameObject.SetActive(true);
             _textBoxes.Add(textBox);
             return textBox;
@@ -176,10 +188,16 @@ namespace AugaUnity
             _item = item;
             quality = quality < 0 ? item.m_quality : quality;
 
+            if (ItemQuality != null)
+            {
+                ItemQuality.transform.parent.gameObject.SetActive(item.m_shared.m_maxQuality > 1);
+                ItemQuality.text = quality.ToString();
+            }
+
             SetupColoredItemBar(item);
             EnableObjectBackground(ObjectBackgroundType.Item);
 
-            SetIcon(variant <0 ? item.GetIcon() : item.m_shared.m_icons[variant]);
+            SetIcon(variant < 0 ? item.GetIcon() : item.m_shared.m_icons[variant]);
 
             SetTopic(Localization.instance.Localize(item.m_shared.m_name));
             SetSubtitle(GenerateItemSubtext(item));

@@ -89,6 +89,13 @@ namespace Auga
                 info.Find("Texts").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTexts);
                 info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);
 
+                __instance.m_uiGroups = new UIGroupHandler[] {
+                    containerInventory.GetComponent<UIGroupHandler>(),
+                    playerInventory.GetComponent<UIGroupHandler>(),
+                    info.GetComponent<UIGroupHandler>(),
+                    rightPanel.GetComponent<UIGroupHandler>()
+                };
+
                 Localization.instance.Localize(__instance.transform);
             }
         }
@@ -114,7 +121,7 @@ namespace Auga
                     {
                         if (element.m_pos.y != 0)
                         {
-                            Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 18);
+                            Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 26);
                             element.m_go.RectTransform().anchoredPosition = startPos + currentPosition;
                         }
                     }
