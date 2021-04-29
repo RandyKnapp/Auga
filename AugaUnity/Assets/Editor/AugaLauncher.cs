@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class AugaLauncher : EditorWindow
 {
@@ -50,19 +51,26 @@ public class AugaLauncher : EditorWindow
         GUILayout.Space(4);
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button(new GUIContent("▷ Build Asset Bundle"), GUILayout.Height(40)))
+        if (GUILayout.Button(new GUIContent("▷ Build Asset Bundles"), GUILayout.Height(40)))
         {
             BuildAssetBundles();
         }
+
+        var assetBundlePath = GetAssetBundleSourcePath();
+        GUI.enabled = File.Exists(assetBundlePath);
         if (GUILayout.Button(new GUIContent("Deploy"), GUILayout.Height(40)))
         {
             DeployAssetFile();
         }
+
+        var assetBundleDestinationPath = GetAssetBundleDestinationPath();
+        GUI.enabled = File.Exists(assetBundleDestinationPath);
         if (GUILayout.Button(new GUIContent("Clear"), GUILayout.Height(40)))
         {
             RemoveDeployedAssetFile();
         }
 
+        GUI.enabled = true;
         EditorGUILayout.EndHorizontal();
 
         if (GUI.Button(position, "", GUIStyle.none))
@@ -133,6 +141,7 @@ public class AugaLauncher : EditorWindow
     {
         var stagePath = GetStagePath();
         BuildPipeline.BuildAssetBundles(stagePath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
+        Debug.Log("Finished building Auga asset bundles");
     }
 
     [MenuItem("Auga/Deploy Asset Bundle")]

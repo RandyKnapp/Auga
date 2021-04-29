@@ -43,7 +43,12 @@ namespace Auga
                 var oldCraftingPanel = __instance.transform.Find("root/Crafting");
                 var craftingPanelSiblingIndex = oldCraftingPanel.GetSiblingIndex();
                 Object.Destroy(oldCraftingPanel.gameObject);
-                Object.Destroy(__instance.transform.Find("root/Info").gameObject);
+
+                var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                __instance.m_variantDialog = variantDialog.GetComponent<VariantDialog>();
+
+                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                __instance.m_skillsDialog = skillsDialog.GetComponent<SkillsDialog>();
 
                 var rightPanel = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
@@ -85,9 +90,23 @@ namespace Auga
                 __instance.m_minStationLevelIcon = CraftingPanel.DummyMinStationLevelIcon;
                 CraftingPanel.Initialize(__instance);
 
+                Object.Destroy(__instance.transform.Find("root/Info").gameObject);
                 var info = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/Info"), containerInventory.parent, false);
                 info.Find("Texts").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTexts);
                 info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);
+
+                var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                __instance.m_splitPanel = splitDialog;
+                __instance.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
+                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<Text>();
+                __instance.m_splitCancelButton = splitDialog.Find("Dialog/ButtonCancel").GetComponent<Button>();
+                __instance.m_splitOkButton = splitDialog.Find("Dialog/ButtonOk").GetComponent<Button>();
+                __instance.m_splitIcon = splitDialog.Find("Dialog/InventoryElement/icon").GetComponent<Image>();
+                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<Text>();
+
+                __instance.m_splitSlider.onValueChanged.AddListener(__instance.OnSplitSliderChanged);
+                __instance.m_splitCancelButton.onClick.AddListener(__instance.OnSplitCancel);
+                __instance.m_splitOkButton.onClick.AddListener(__instance.OnSplitOk);
 
                 __instance.m_uiGroups = new UIGroupHandler[] {
                     containerInventory.GetComponent<UIGroupHandler>(),
