@@ -16,6 +16,7 @@ namespace Auga
         public GameObject InventoryScreen;
         public Texture2D Cursor;
         public GameObject MenuPrefab;
+        public GameObject TextViewerPrefab;
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -106,6 +107,7 @@ namespace Auga
             Assets.InventoryScreen = assetBundle.LoadAsset<GameObject>("Inventory_screen");
             Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor");
             Assets.MenuPrefab = assetBundle.LoadAsset<GameObject>("AugaMenu");
+            Assets.TextViewerPrefab = assetBundle.LoadAsset<GameObject>("AugaTextViewer");
         }
 
         private static void ApplyCursor()
