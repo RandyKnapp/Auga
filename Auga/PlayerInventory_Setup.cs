@@ -49,6 +49,11 @@ namespace Auga
 
                 var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
                 __instance.m_skillsDialog = skillsDialog.GetComponent<SkillsDialog>();
+                var dummyContainer = new GameObject("DummyDialogs", typeof(RectTransform));
+                dummyContainer.transform.SetParent(skillsDialog.parent);
+                variantDialog.SetParent(dummyContainer.transform);
+                skillsDialog.SetParent(dummyContainer.transform);
+                dummyContainer.SetActive(false);
 
                 var rightPanel = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
