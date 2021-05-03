@@ -31,6 +31,19 @@ namespace Auga
                 __instance.m_loadingImage = loadingScreen.Find("Loading/Image").GetComponent<Image>();
                 __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
                 __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
+
+                var minimap = __instance.GetComponentInChildren<Minimap>();
+                var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
+
+                var newMiniMap = __instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud, "hudroot/MiniMap/small", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                minimap.m_smallRoot = newMiniMap.gameObject;
+                minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
+                minimap.m_mapImageSmall.material = originalMiniMapMaterial;
+                minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("MapMask/map/pin_root");
+                minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
+                minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("MapMask/map/ship_marker");
+                minimap.m_smallMarker = (RectTransform)newMiniMap.Find("MapMask/map/player_marker");
+                minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
             }
         }
 
