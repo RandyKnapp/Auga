@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +11,7 @@ namespace AugaUnity
         public Image Icon;
         public Image CountdownBG;
         public Image CountdownImage;
-        public Text NameText;
+        [CanBeNull] public Text NameText;
         public Text InfoText;
 
         protected readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
@@ -44,16 +45,25 @@ namespace AugaUnity
             }
             else
             {
-                _statusTooltip.StatusEffect = null;
+                if (_statusTooltip != null)
+                {
+                    _statusTooltip.StatusEffect = null;
+                }
             }
         }
 
         public virtual void UpdateStatusEffect(StatusEffect statusEffect)
         {
-            _statusTooltip.StatusEffect = statusEffect;
+            if (_statusTooltip != null)
+            {
+                _statusTooltip.StatusEffect = statusEffect;
+            }
 
             Icon.sprite = statusEffect.m_icon;
-            NameText.text = Localization.instance.Localize(statusEffect.m_name);
+            if (NameText != null)
+            {
+                NameText.text = Localization.instance.Localize(statusEffect.m_name);
+            }
             InfoText.text = Localization.instance.Localize(statusEffect.GetIconText());
 
             var hasTimer = statusEffect.m_ttl > 0;

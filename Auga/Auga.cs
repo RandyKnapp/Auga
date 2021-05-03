@@ -14,6 +14,7 @@ namespace Auga
     {
         public GameObject AugaLogo;
         public GameObject InventoryScreen;
+        public GameObject Hud;
         public Texture2D Cursor;
         public GameObject MenuPrefab;
         public GameObject TextViewerPrefab;
@@ -108,6 +109,7 @@ namespace Auga
             Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor");
             Assets.MenuPrefab = assetBundle.LoadAsset<GameObject>("AugaMenu");
             Assets.TextViewerPrefab = assetBundle.LoadAsset<GameObject>("AugaTextViewer");
+            Assets.Hud = assetBundle.LoadAsset<GameObject>("HUD");
         }
 
         private static void ApplyCursor()
