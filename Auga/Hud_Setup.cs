@@ -1,6 +1,7 @@
 ﻿using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Auga
 {
@@ -20,6 +21,16 @@ namespace Auga
 
                 __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud, "hudroot/SaveIcon", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal).gameObject;
                 __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud, "hudroot/BadConnectionIcon", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal).gameObject;
+
+                var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
+                var loadingScreen = __instance.Replace("LoadingBlack", Auga.Assets.Hud, "LoadingBlack", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                __instance.m_loadingScreen = loadingScreen.GetComponent<CanvasGroup>();
+                __instance.m_loadingProgress = loadingScreen.Find("Loading").gameObject;
+                __instance.m_sleepingProgress = loadingScreen.Find("Sleeping").gameObject;
+                __instance.m_teleportingProgress = loadingScreen.Find("Teleporting").gameObject;
+                __instance.m_loadingImage = loadingScreen.Find("Loading/Image").GetComponent<Image>();
+                __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
+                __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
             }
         }
 
