@@ -85,6 +85,10 @@ namespace Auga
             __instance.m_staminaBar2Root = null;
             __instance.m_staminaBar2Fast = null;
             __instance.m_staminaBar2Slow = null;
+
+            __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
+            __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
+            __instance.m_actionProgress = __instance.m_actionBarRoot.GetComponent<GuiBar>();
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
