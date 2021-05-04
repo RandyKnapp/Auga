@@ -60,6 +60,13 @@ namespace Auga
                 __instance.m_targeted = newCrosshair.Find("Sneak/Detected").gameObject;
                 __instance.m_hidden = newCrosshair.Find("Sneak/Hidden").gameObject;
                 __instance.m_stealthBar = newCrosshair.Find("Sneak/StealthBar").GetComponent<GuiBar>();
+
+                var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
+                __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
+                __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<Text>();
+                __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
+                __instance.m_gpIcon.material = originalGuardianPowerMaterial;
+                __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
             }
         }
 
