@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,18 +12,19 @@ namespace AugaUnity
         public Color HighlightColor = Color.white;
 
         public int Index;
-        public Text NameText;
+        public bool FlashOnCanEatAgain;
+        [CanBeNull] public Text NameText;
         public Image Icon;
         public Image CountdownImage;
-        public Text TimeRemainingText;
-        public Text HealthText;
-        public Text StaminaText;
-        public Text HealingText;
-        public Image HealthIcon;
-        public Image StaminaIcon;
-        public Image HealingIcon;
+        [CanBeNull] public Text TimeRemainingText;
+        [CanBeNull] public Text HealthText;
+        [CanBeNull] public Text StaminaText;
+        [CanBeNull] public Text HealingText;
+        [CanBeNull] public Image HealthIcon;
+        [CanBeNull] public Image StaminaIcon;
+        [CanBeNull] public Image HealingIcon;
 
-        protected UITooltip _tooltip;
+        [CanBeNull] protected UITooltip _tooltip;
         protected FoodTooltip _foodTooltip;
         protected string _hightlightColor;
         protected bool _hasFood;
@@ -39,17 +41,52 @@ namespace AugaUnity
         public virtual void Show(bool hasFood)
         {
             _hasFood = hasFood;
-            NameText.enabled = hasFood;
+            if (NameText != null)
+            {
+                NameText.enabled = hasFood;
+            }
+
             Icon.enabled = hasFood;
             CountdownImage.enabled = hasFood;
-            TimeRemainingText.enabled = hasFood;
-            HealthText.enabled = hasFood;
-            StaminaText.enabled = hasFood;
-            HealingText.enabled = hasFood;
-            HealthIcon.enabled = hasFood;
-            StaminaIcon.enabled = hasFood;
-            HealingIcon.enabled = hasFood;
-            _tooltip.enabled = hasFood;
+            if (TimeRemainingText != null)
+            {
+                TimeRemainingText.enabled = hasFood;
+            }
+
+            if (HealthText != null)
+            {
+                HealthText.enabled = hasFood;
+            }
+
+            if (StaminaText != null)
+            {
+                StaminaText.enabled = hasFood;
+            }
+
+            if (HealingText != null)
+            {
+                HealingText.enabled = hasFood;
+            }
+
+            if (HealthIcon != null)
+            {
+                HealthIcon.enabled = hasFood;
+            }
+
+            if (StaminaIcon != null)
+            {
+                StaminaIcon.enabled = hasFood;
+            }
+
+            if (HealingIcon != null)
+            {
+                HealingIcon.enabled = hasFood;
+            }
+
+            if (_tooltip != null)
+            {
+                _tooltip.enabled = hasFood;
+            }
         }
 
         public virtual void Update()
@@ -85,17 +122,47 @@ namespace AugaUnity
             var percent = food.m_health / food.m_item.m_shared.m_food;
             var secondsRemaining = Mathf.CeilToInt(percent * food.m_item.m_shared.m_foodBurnTime);
 
-            NameText.text = Localization.instance.Localize(food.m_item.m_shared.m_name);
+            if (NameText != null)
+            {
+                NameText.text = Localization.instance.Localize(food.m_item.m_shared.m_name);
+            }
+
             var timeDisplay = TimeSpan.FromSeconds(secondsRemaining).ToString(TimeFormat);
             var totalTimeDisplay = TimeSpan.FromSeconds(Mathf.CeilToInt(food.m_item.m_shared.m_foodBurnTime)).ToString(TimeFormat);
-            TimeRemainingText.text = $"<color={_hightlightColor}>{timeDisplay}</color> / {totalTimeDisplay}";
+            if (TimeRemainingText != null)
+            {
+                TimeRemainingText.text = $"<color={_hightlightColor}>{timeDisplay}</color> / {totalTimeDisplay}";
+            }
 
             Icon.sprite = food.m_item.GetIcon();
             CountdownImage.fillAmount = percent;
 
-            HealthText.text = Mathf.CeilToInt(food.m_health).ToString();
-            StaminaText.text = Mathf.CeilToInt(food.m_stamina).ToString();
-            HealingText.text = food.m_item.m_shared.m_foodRegen.ToString("0.#");
+            if (FlashOnCanEatAgain)
+            {
+                if (food.CanEatAgain())
+                {
+                    Icon.color = new Color(1f, 1f, 1f, 0.6f + Mathf.Sin(Time.time * 10.0f) * 0.4f);
+                }
+                else
+                {
+                    Icon.color = Color.white;
+                }
+            }
+
+            if (HealthText != null)
+            {
+                HealthText.text = Mathf.CeilToInt(food.m_health).ToString();
+            }
+
+            if (StaminaText != null)
+            {
+                StaminaText.text = Mathf.CeilToInt(food.m_stamina).ToString();
+            }
+
+            if (HealingText != null)
+            {
+                HealingText.text = food.m_item.m_shared.m_foodRegen.ToString("0.#");
+            }
         }
     }
 }

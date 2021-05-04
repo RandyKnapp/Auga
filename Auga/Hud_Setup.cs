@@ -5,104 +5,154 @@ using UnityEngine.UI;
 
 namespace Auga
 {
-    [HarmonyPatch]
+    [HarmonyPatch(typeof(Hud))]
     public static class Hud_Setup
     {
-        [HarmonyPatch(typeof(Hud), nameof(Hud.Awake))]
-        public static class Hud_Awake_Patch
+        [HarmonyPatch(nameof(Hud.Awake))]
+        [HarmonyPostfix]
+        public static void Hud_Awake_Postfix(Hud __instance)
         {
-            public static void Postfix(Hud __instance)
-            {
-                __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+            __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
 
-                __instance.m_statusEffectListRoot = null;
-                __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
-                __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
+            __instance.m_statusEffectListRoot = null;
+            __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
+            __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
 
-                __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
-                __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
+            __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
+            __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
 
-                var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
-                var loadingScreen = __instance.Replace("LoadingBlack", Auga.Assets.Hud);
-                __instance.m_loadingScreen = loadingScreen.GetComponent<CanvasGroup>();
-                __instance.m_loadingProgress = loadingScreen.Find("Loading").gameObject;
-                __instance.m_sleepingProgress = loadingScreen.Find("Sleeping").gameObject;
-                __instance.m_teleportingProgress = loadingScreen.Find("Teleporting").gameObject;
-                __instance.m_loadingImage = loadingScreen.Find("Loading/Image").GetComponent<Image>();
-                __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
-                __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
+            var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
+            var loadingScreen = __instance.Replace("LoadingBlack", Auga.Assets.Hud);
+            __instance.m_loadingScreen = loadingScreen.GetComponent<CanvasGroup>();
+            __instance.m_loadingProgress = loadingScreen.Find("Loading").gameObject;
+            __instance.m_sleepingProgress = loadingScreen.Find("Sleeping").gameObject;
+            __instance.m_teleportingProgress = loadingScreen.Find("Teleporting").gameObject;
+            __instance.m_loadingImage = loadingScreen.Find("Loading/Image").GetComponent<Image>();
+            __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
+            __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
 
-                var minimap = __instance.GetComponentInChildren<Minimap>();
-                var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
+            var minimap = __instance.GetComponentInChildren<Minimap>();
+            var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
 
-                var newMiniMap = __instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
-                minimap.m_smallRoot = newMiniMap.gameObject;
-                minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
-                minimap.m_mapImageSmall.material = originalMiniMapMaterial;
-                minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("MapMask/map/pin_root");
-                minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
-                minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("MapMask/map/ship_marker");
-                minimap.m_smallMarker = (RectTransform)newMiniMap.Find("MapMask/map/player_marker");
-                minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
+            var newMiniMap = __instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
+            minimap.m_smallRoot = newMiniMap.gameObject;
+            minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
+            minimap.m_mapImageSmall.material = originalMiniMapMaterial;
+            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("MapMask/map/pin_root");
+            minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
+            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("MapMask/map/ship_marker");
+            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("MapMask/map/player_marker");
+            minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
 
-                __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
-                __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
+            __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
+            __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
 
-                __instance.m_damageScreen = __instance.Replace("hudroot/Damaged", Auga.Assets.Hud).GetComponent<Image>();
+            __instance.m_damageScreen = __instance.Replace("hudroot/Damaged", Auga.Assets.Hud).GetComponent<Image>();
 
-                var newCrosshair = __instance.Replace("hudroot/crosshair", Auga.Assets.Hud);
-                __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
-                __instance.m_crosshairBow = newCrosshair.Find("crosshair_bow").GetComponent<Image>();
-                __instance.m_hoverName = newCrosshair.Find("HoverName").GetComponent<Text>();
-                __instance.m_pieceHealthRoot = (RectTransform) newCrosshair.Find("PieceHealthRoot");
-                __instance.m_pieceHealthBar = newCrosshair.Find("PieceHealthRoot/PieceHealthBar").GetComponent<GuiBar>();
-                __instance.m_targetedAlert = newCrosshair.Find("Sneak/Alert").gameObject;
-                __instance.m_targeted = newCrosshair.Find("Sneak/Detected").gameObject;
-                __instance.m_hidden = newCrosshair.Find("Sneak/Hidden").gameObject;
-                __instance.m_stealthBar = newCrosshair.Find("Sneak/StealthBar").GetComponent<GuiBar>();
+            var newCrosshair = __instance.Replace("hudroot/crosshair", Auga.Assets.Hud);
+            __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
+            __instance.m_crosshairBow = newCrosshair.Find("crosshair_bow").GetComponent<Image>();
+            __instance.m_hoverName = newCrosshair.Find("HoverName").GetComponent<Text>();
+            __instance.m_pieceHealthRoot = (RectTransform) newCrosshair.Find("PieceHealthRoot");
+            __instance.m_pieceHealthBar = newCrosshair.Find("PieceHealthRoot/PieceHealthBar").GetComponent<GuiBar>();
+            __instance.m_targetedAlert = newCrosshair.Find("Sneak/Alert").gameObject;
+            __instance.m_targeted = newCrosshair.Find("Sneak/Detected").gameObject;
+            __instance.m_hidden = newCrosshair.Find("Sneak/Hidden").gameObject;
+            __instance.m_stealthBar = newCrosshair.Find("Sneak/StealthBar").GetComponent<GuiBar>();
 
-                var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
-                __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
-                __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<Text>();
-                __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
-                __instance.m_gpIcon.material = originalGuardianPowerMaterial;
-                __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
-            }
+            var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
+            __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
+            __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<Text>();
+            __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
+            __instance.m_gpIcon.material = originalGuardianPowerMaterial;
+            __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
+
+            var newHealthPanel = __instance.Replace("hudroot/healthpanel", Auga.Assets.Hud);
+            Object.Destroy(__instance.m_staminaBar2Root.gameObject);
+            __instance.m_healthBarRoot = null;
+            __instance.m_healthPanel = null;
+            __instance.m_healthAnimator = newHealthPanel.Find("HealthBar").GetComponent<Animator>();
+            __instance.m_healthBarFast = null;
+            __instance.m_healthBarSlow = null;
+            __instance.m_healthText = null;
+            __instance.m_healthMaxText = null;
+            __instance.m_foodBars = new Image[0];
+            __instance.m_foodIcons = new Image[0];
+            __instance.m_foodBarRoot = null;
+            __instance.m_foodBaseBar = null;
+            __instance.m_foodText = null;
+            __instance.m_staminaAnimator = newHealthPanel.Find("StaminaBar").GetComponent<Animator>();
+            __instance.m_staminaBar2Root = null;
+            __instance.m_staminaBar2Fast = null;
+            __instance.m_staminaBar2Slow = null;
         }
 
-        [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateStatusEffects))]
-        public static class Hud_UpdateStatusEffects_Patch
+        [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
+        [HarmonyPrefix]
+        public static bool Hud_UpdateStatusEffects_Prefix()
         {
-            public static bool Prefix()
-            {
-                return false;
-            }
+            return false;
         }
 
-        [HarmonyPatch(typeof(HotkeyBar), nameof(HotkeyBar.UpdateIcons))]
-        public static class HotkeyBar_UpdateIcons_Patch
+        [HarmonyPatch(nameof(Hud.UpdateFood))]
+        [HarmonyPrefix]
+        public static bool Hud_UpdateFood_Prefix()
         {
-            public static void Postfix(HotkeyBar __instance)
+            return false;
+        }
+
+        [HarmonyPatch(nameof(Hud.SetHealthBarSize))]
+        [HarmonyPrefix]
+        public static bool Hud_SetHealthBarSize_Prefix()
+        {
+            return false;
+        }
+
+        [HarmonyPatch(nameof(Hud.SetStaminaBarSize))]
+        [HarmonyPrefix]
+        public static bool Hud_SetStaminaBarSize_Prefix()
+        {
+            return false;
+        }
+
+        [HarmonyPatch(nameof(Hud.UpdateHealth))]
+        [HarmonyPrefix]
+        public static bool Hud_UpdateHealth_Prefix()
+        {
+            return false;
+        }
+
+        [HarmonyPatch(nameof(Hud.UpdateStamina))]
+        [HarmonyPrefix]
+        public static bool Hud_UpdateStamina_Prefix()
+        {
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(HotkeyBar), nameof(HotkeyBar.UpdateIcons))]
+    public static class HotkeyBar_UpdateIcons_Patch
+    {
+        public static void Postfix(HotkeyBar __instance)
+        {
+            if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
             {
-                if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
+                return;
+            }
+
+            for (var index = 0; index < __instance.m_items.Count; ++index)
+            {
+                var itemData = __instance.m_items[index];
+                if (itemData.m_gridPos.x < 0 || itemData.m_gridPos.x >= __instance.m_elements.Count)
                 {
-                    return;
+                    continue;
                 }
 
-                for (var index = 0; index < __instance.m_items.Count; ++index)
+                var element = __instance.m_elements[itemData.m_gridPos.x];
+                var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
+                if (itemTooltip != null)
                 {
-                    var itemData = __instance.m_items[index];
-                    if (itemData.m_gridPos.x < 0 || itemData.m_gridPos.x >= __instance.m_elements.Count)
-                    {
-                        continue;
-                    }
-
-                    var element = __instance.m_elements[itemData.m_gridPos.x];
-                    var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
-                    if (itemTooltip != null)
-                    {
-                        itemTooltip.Item = itemData;
-                    }
+                    itemTooltip.Item = itemData;
                 }
             }
         }

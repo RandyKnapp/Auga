@@ -58,15 +58,17 @@ namespace AugaUnity
         public string Message { get; private set; }
         public string Subtext { get; private set; }
 
-        public string MessageLocId;
+        public string SingularLocId;
+        public string PluralLocid;
         public DateTime CreationTimeStamp;
         public DateTime LastUpdatedTimeStamp;
         public readonly Dictionary<string, int> Values = new Dictionary<string, int>();
 
-        public GroupedLogData(LogType type, DateTime timeStamp, string messageLocId, IDictionary<string, int> values)
+        public GroupedLogData(LogType type, DateTime timeStamp, string singularLocId, string pluralLocid, IDictionary<string, int> values)
         {
             Type = type;
-            MessageLocId = messageLocId;
+            SingularLocId = singularLocId;
+            PluralLocid = pluralLocid;
             CreationTimeStamp = timeStamp;
             AddValues(values);
         }
@@ -90,7 +92,7 @@ namespace AugaUnity
                 }
 
                 var itemCount = Values.Sum(x => x.Value);
-                Message = Localization.instance.Localize(MessageLocId, itemCount.ToString());
+                Message = Localization.instance.Localize(itemCount == 1 ? SingularLocId : PluralLocid, itemCount.ToString());
                 var valueStrings = Values.Select(x => x.Value > 1 ? $"{x.Key} x{x.Value}" : x.Key);
                 Subtext = Localization.instance.Localize(string.Join(", ", valueStrings));
             }
@@ -341,7 +343,7 @@ namespace AugaUnity
 
         public void AddItemPickupLog(ItemDrop.ItemData item, int amount)
         {
-            AddGroupedLog(new GroupedLogData(LogType.PickUp, DateTime.Now, amount == 1 ? "$log_pickup_one" : "$log_pickup", new Dictionary<string, int>() { { item.m_shared.m_name, amount } }));
+            AddGroupedLog(new GroupedLogData(LogType.PickUp, DateTime.Now, "$log_pickup_one", "$log_pickup", new Dictionary<string, int>() { { item.m_shared.m_name, amount } }));
         }
     }
 }
