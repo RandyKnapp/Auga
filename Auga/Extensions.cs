@@ -59,7 +59,7 @@ namespace Auga
             HideElement(c);
         }
 
-        public static Transform Replace(this Transform c, string findPath, Transform other, string otherFindPath, ReplaceFlags flags = ReplaceFlags.None)
+        public static Transform Replace(this Transform c, string findPath, Transform other, string otherFindPath = null, ReplaceFlags flags = ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal)
         {
             var foundOriginal = c.Find(findPath);
             if (foundOriginal == null)
@@ -67,6 +67,7 @@ namespace Auga
                 return null;
             }
 
+            otherFindPath = otherFindPath ?? findPath;
             var foundOther = other.Find(otherFindPath);
             if (foundOther == null)
             {
@@ -97,22 +98,22 @@ namespace Auga
             return foundOther;
         }
 
-        public static Transform Replace(this Component c, string findPath, GameObject other, string otherFindPath, ReplaceFlags flags = ReplaceFlags.None)
+        public static Transform Replace(this Component c, string findPath, GameObject other, string otherFindPath = null, ReplaceFlags flags = ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal)
         {
             return c.transform.Replace(findPath, other.transform, otherFindPath, flags);
         }
 
-        public static Transform Replace(this Transform c, string findPath, GameObject other, string otherFindPath, ReplaceFlags flags = ReplaceFlags.None)
+        public static Transform Replace(this Transform c, string findPath, GameObject other, string otherFindPath = null, ReplaceFlags flags = ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal)
         {
             return c.Replace(findPath, other.transform, otherFindPath, flags);
         }
 
-        public static Transform Replace(this GameObject go, string findPath, Transform other, string otherFindPath, ReplaceFlags flags = ReplaceFlags.None)
+        public static Transform Replace(this GameObject go, string findPath, Transform other, string otherFindPath = null, ReplaceFlags flags = ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal)
         {
             return go.transform.Replace(findPath, other, otherFindPath, flags);
         }
 
-        public static Transform Replace(this GameObject go, string findPath, GameObject other, string otherFindPath, ReplaceFlags flags = ReplaceFlags.None)
+        public static Transform Replace(this GameObject go, string findPath, GameObject other, string otherFindPath = null, ReplaceFlags flags = ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal)
         {
             return go.transform.Replace(findPath, other.transform, otherFindPath, flags);
         }
