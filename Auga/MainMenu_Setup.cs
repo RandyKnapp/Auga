@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace Auga
 {
@@ -22,6 +23,8 @@ namespace Auga
             /*__instance.m_loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab, "Loading", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal).gameObject;
             __instance.m_loading.SetActive(false);
             Localization.instance.Localize(__instance.m_loading.transform);*/
+
+            __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
         }
     }
 }

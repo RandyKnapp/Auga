@@ -16,11 +16,11 @@ namespace Auga
                     return;
                 }
 
-                var settingsPrefab = __instance.m_settingsPrefab;
+                //var settingsPrefab = __instance.m_settingsPrefab;
                 var parent = __instance.transform.parent;
 
                 var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
-                newMenu.m_settingsPrefab = settingsPrefab;
+                //newMenu.m_settingsPrefab = settingsPrefab;
 
                 Object.Destroy(__instance.gameObject);
             }
