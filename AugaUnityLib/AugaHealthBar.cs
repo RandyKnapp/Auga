@@ -101,13 +101,13 @@ namespace AugaUnity
 
         private void SetupTicks()
         {
-            var tickCount = MaxPotentialValue / UnitsPerTick;
+            var tickCount = Mathf.CeilToInt(MaxPotentialValue / UnitsPerTick) - 1;
             for (var index = 0; index < tickCount; ++index)
             {
                 if (index >= _ticks.Count)
                 {
                     var tick = Instantiate(TickPrefab, TickContainer);
-                    tick.anchoredPosition = new Vector2(UnitsPerTick * index * PixelsPerUnit, 0);
+                    tick.anchoredPosition = new Vector2(UnitsPerTick * (index + 1) * PixelsPerUnit, 0);
                     _ticks.Add(tick);
                 }
             }

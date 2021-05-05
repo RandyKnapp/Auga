@@ -29,8 +29,9 @@ namespace AugaUnity
             }
 
             var percent = _itemTooltip.Item.GetDurabilityPercentage();
-            Bar.fillAmount = percent;
-            Bar.color = percent <= 0.2f ? Color.red : Color.white;
+            var broken = percent <= 0.001f;
+            Bar.fillAmount = broken ? 1 : percent;
+            Bar.color = broken ? Mathf.Sin(Time.time * 10f) > 0.0f ? Color.red : new Color(0.0f, 0.0f, 0.0f, 0.0f) : (percent <= 0.2f ? Color.red : Color.white);
         }
     }
 }

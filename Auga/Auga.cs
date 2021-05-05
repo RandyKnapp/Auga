@@ -19,6 +19,7 @@ namespace Auga
         public GameObject MenuPrefab;
         public GameObject TextViewerPrefab;
         public GameObject MainMenuPrefab;
+        public GameObject BuildHudElement;
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -112,6 +113,7 @@ namespace Auga
             Assets.TextViewerPrefab = assetBundle.LoadAsset<GameObject>("AugaTextViewer");
             Assets.Hud = assetBundle.LoadAsset<GameObject>("HUD");
             Assets.MainMenuPrefab = assetBundle.LoadAsset<GameObject>("MainMenu");
+            Assets.BuildHudElement = assetBundle.LoadAsset<GameObject>("BuildHudElement");
         }
 
         private static void ApplyCursor()

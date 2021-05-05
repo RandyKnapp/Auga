@@ -90,6 +90,12 @@ namespace AugaUnity
             }
             _instance = this;
 
+            var player = Player.m_localPlayer;
+            if (player != null && player.m_currentStation == null)
+            {
+                OnTabChanged(-1, 0);
+            }
+
             var inventoryGui = InventoryGui.instance;
             SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
         }

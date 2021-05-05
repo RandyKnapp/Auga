@@ -89,6 +89,48 @@ namespace Auga
             __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
             __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
             __instance.m_actionProgress = __instance.m_actionBarRoot.GetComponent<GuiBar>();
+
+            // Setup the icon material to grayscale the piece icons
+            var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
+            Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
+
+            __instance.m_buildHud = __instance.Replace("hudroot/BuildHud/", Auga.Assets.Hud).gameObject;
+            var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs");
+            __instance.m_pieceCategoryTabs = new[] {
+                tabContainer.Find("Misc").gameObject,
+                tabContainer.Find("Crafting").gameObject,
+                tabContainer.Find("Building").gameObject,
+                tabContainer.Find("Furniture").gameObject,
+            };
+            Localization.instance.Localize(tabContainer);
+
+            for (var index = 0; index < __instance.m_pieceCategoryTabs.Length; index++)
+            {
+                var categoryTab = __instance.m_pieceCategoryTabs[index];
+                var i = index;
+                categoryTab.GetComponent<Button>().onClick.AddListener(() => SetBuildCategory(i));
+            }
+
+            __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
+            __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge").gameObject;
+            __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
+            __instance.m_pieceListMask = null;
+            __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
+            __instance.m_closePieceSelectionButton = __instance.m_buildHud.transform.Find("CloseButton").GetComponent<UIInputHandler>();
+
+            var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
+            __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
+            __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
+            __instance.m_buildIcon = selectedPiece.Find("IconBG/PieceIcon").GetComponent<Image>();
+            var requirements = selectedPiece.Find("Requirements");
+            __instance.m_requirementItems = new []{
+                requirements.GetChild(0).gameObject,
+                requirements.GetChild(1).gameObject,
+                requirements.GetChild(2).gameObject,
+                requirements.GetChild(3).gameObject,
+                requirements.GetChild(4).gameObject,
+                requirements.GetChild(5).gameObject,
+            };
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
@@ -131,6 +173,14 @@ namespace Auga
         public static bool Hud_UpdateStamina_Prefix()
         {
             return false;
+        }
+
+        public static void SetBuildCategory(int index)
+        {
+            if (Player.m_localPlayer != null)
+            {
+                Player.m_localPlayer.SetBuildCategory(index);
+            }
         }
     }
 
