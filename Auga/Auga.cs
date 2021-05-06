@@ -25,6 +25,7 @@ namespace Auga
         public GameObject TextInput;
         public GameObject AugaChat;
         public GameObject DamageText;
+        public GameObject EnemyHud;
     }
 
     public class AugaColors
@@ -139,6 +140,7 @@ namespace Auga
             Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
+            Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
         }
 
         private static void ApplyCursor()
