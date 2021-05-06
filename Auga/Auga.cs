@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Auga
 {
-    public class Assets
+    public class AugaAssets
     {
         public GameObject AugaLogo;
         public GameObject InventoryScreen;
@@ -22,6 +22,14 @@ namespace Auga
         public GameObject BuildHudElement;
         public GameObject SettingsPrefab;
         public GameObject MessageHud;
+        public GameObject TextInput;
+        public GameObject AugaChat;
+    }
+
+    public class AugaColors
+    {
+        public string Topic = "#3CB9FF";
+        public string Emphasis = "#B98A12";
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -33,7 +41,8 @@ namespace Auga
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
 
-        public static readonly Assets Assets = new Assets();
+        public static readonly AugaAssets Assets = new AugaAssets();
+        public static readonly AugaColors Colors = new AugaColors();
         private static Auga _instance;
         private Harmony _harmony;
 
@@ -118,6 +127,8 @@ namespace Auga
             Assets.BuildHudElement = assetBundle.LoadAsset<GameObject>("BuildHudElement");
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
+            Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
+            Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
         }
 
         private static void ApplyCursor()
