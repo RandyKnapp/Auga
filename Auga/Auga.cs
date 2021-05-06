@@ -26,6 +26,7 @@ namespace Auga
         public GameObject AugaChat;
         public GameObject DamageText;
         public GameObject EnemyHud;
+        public GameObject StoreGui;
     }
 
     public class AugaColors
@@ -141,6 +142,7 @@ namespace Auga
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
             Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
+            Assets.StoreGui = assetBundle.LoadAsset<GameObject>("AugaStoreScreen");
         }
 
         private static void ApplyCursor()

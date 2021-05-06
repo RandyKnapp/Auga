@@ -286,9 +286,10 @@ namespace AugaUnity
                 _stringBuilder.Append(", $item_food");
             }
 
-            if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon 
+            if ((item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon 
                 || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon 
                 || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch)
+                && item.m_shared.m_skillType != Skills.SkillType.None)
             {
                 _stringBuilder.Append(", ");
                 _stringBuilder.Append($"$skill_singular_{item.m_shared.m_skillType.ToString().ToLowerInvariant()}");

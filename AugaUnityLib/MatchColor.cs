@@ -47,4 +47,30 @@ namespace AugaUnity
             }
         }
     }
+
+    public class ColorIfDisabled : MonoBehaviour
+    {
+        public Graphic Graphic;
+        public Selectable Other;
+        public Color IfDisabledColor = new Color(1f, 0.0f, 1f, 0.0f);
+
+        private Color _original;
+
+        public void Start()
+        {
+            _original = Graphic.color;
+        }
+
+        public void Update()
+        {
+            if (Other == null || !Other.interactable)
+            {
+                Graphic.color = IfDisabledColor;
+            }
+            else
+            {
+                Graphic.color = _original;
+            }
+        }
+    }
 }

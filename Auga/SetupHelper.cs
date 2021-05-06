@@ -6,8 +6,14 @@ namespace Auga
     {
         public static bool DirectObjectReplace(Transform original, GameObject prefab, string originalName)
         {
+            return DirectObjectReplace(original, prefab, originalName, out _);
+        }
+
+        public static bool DirectObjectReplace(Transform original, GameObject prefab, string originalName, out GameObject newObject)
+        {
             if (original.name != originalName)
             {
+                newObject = null;
                 return false;
             }
 
@@ -15,7 +21,7 @@ namespace Auga
             var siblingIndex = original.GetSiblingIndex();
             Object.DestroyImmediate(original.gameObject);
 
-            var newObject = Object.Instantiate(prefab, parent, false);
+            newObject = Object.Instantiate(prefab, parent, false);
             newObject.transform.SetSiblingIndex(siblingIndex);
             return true;
         }
