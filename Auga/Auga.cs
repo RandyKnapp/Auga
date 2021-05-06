@@ -24,12 +24,21 @@ namespace Auga
         public GameObject MessageHud;
         public GameObject TextInput;
         public GameObject AugaChat;
+        public GameObject DamageText;
     }
 
     public class AugaColors
     {
         public string Topic = "#3CB9FF";
         public string Emphasis = "#B98A12";
+        public Color Healing = new Color(0.5f, 1.0f, 0.5f, 0.7f);
+        public Color PlayerDamage = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        public Color PlayerNoDamage = new Color(0.5f, 0.5f, 0.5f, 1f);
+        public Color NormalDamage = new Color(1f, 1f, 1f, 1f);
+        public Color ResistDamage = new Color(0.6f, 0.6f, 0.6f, 1f);
+        public Color WeakDamage = new Color(1f, 1f, 0.0f, 1f);
+        public Color ImmuneDamage = new Color(0.6f, 0.6f, 0.6f, 1f);
+        public Color TooHard = new Color(0.8f, 0.7f, 0.7f, 1f);
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -129,6 +138,7 @@ namespace Auga
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
             Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
+            Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
         }
 
         private static void ApplyCursor()
