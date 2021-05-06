@@ -124,15 +124,6 @@ namespace Auga
             }
         }
 
-        [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.Awake))]
-        public static class MessageHud_Awake_Patch
-        {
-            public static void Postfix(MessageHud __instance)
-            {
-                __instance.gameObject.AddComponent<AugaMessageLog>();
-            }
-        }
-
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.UpdateGui))]
         public static class InventoryGrid_UpdateGui_Patch
         {

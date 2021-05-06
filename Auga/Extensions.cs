@@ -79,6 +79,11 @@ namespace Auga
 
             foundOriginal.SetParent(null);
 
+            if ((flags & ReplaceFlags.DestroyOriginal) != 0)
+            {
+                Object.Destroy(foundOriginal.gameObject);
+            }
+
             if ((flags & ReplaceFlags.Instantiate) != 0)
             {
                 foundOther = Object.Instantiate(foundOther, parent);
@@ -89,11 +94,6 @@ namespace Auga
                 foundOther.SetParent(parent);
             }
             foundOther.SetSiblingIndex(siblingIndex);
-
-            if ((flags & ReplaceFlags.DestroyOriginal) != 0)
-            {
-                Object.Destroy(foundOriginal.gameObject);
-            }
 
             return foundOther;
         }

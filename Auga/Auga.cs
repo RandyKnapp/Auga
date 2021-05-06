@@ -21,6 +21,7 @@ namespace Auga
         public GameObject MainMenuPrefab;
         public GameObject BuildHudElement;
         public GameObject SettingsPrefab;
+        public GameObject MessageHud;
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
@@ -116,6 +117,7 @@ namespace Auga
             Assets.MainMenuPrefab = assetBundle.LoadAsset<GameObject>("MainMenu");
             Assets.BuildHudElement = assetBundle.LoadAsset<GameObject>("BuildHudElement");
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
+            Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
         }
 
         private static void ApplyCursor()
