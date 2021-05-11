@@ -23,7 +23,7 @@ namespace Auga
                 __instance.m_containerGrid.m_onSelected = null;
                 __instance.m_containerGrid.m_onRightClick = null;
 
-                var playerInventory = __instance.Replace("root/Player", Auga.Assets.InventoryScreen, "root/Player", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                var playerInventory = __instance.Replace("root/Player", Auga.Assets.InventoryScreen, "root/Player");
                 __instance.m_player = playerInventory.RectTransform();
                 __instance.m_playerGrid = playerInventory.Find("PlayerGrid").GetComponent<InventoryGrid>();
                 __instance.m_playerGrid.m_onSelected += __instance.OnSelectedItem;
@@ -31,7 +31,7 @@ namespace Auga
                 __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<Text>();
                 __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<Text>();
 
-                var containerInventory = __instance.Replace("root/Container", Auga.Assets.InventoryScreen, "root/Container", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                var containerInventory = __instance.Replace("root/Container", Auga.Assets.InventoryScreen, "root/Container");
                 __instance.m_container = containerInventory.RectTransform();
                 __instance.m_containerName = containerInventory.Find("ContainerHeader/Name").GetComponent<Text>();
                 __instance.m_containerGrid = containerInventory.Find("ContainerGrid").GetComponent<InventoryGrid>();
@@ -44,10 +44,10 @@ namespace Auga
                 var craftingPanelSiblingIndex = oldCraftingPanel.GetSiblingIndex();
                 Object.Destroy(oldCraftingPanel.gameObject);
 
-                var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog");
                 __instance.m_variantDialog = variantDialog.GetComponent<VariantDialog>();
 
-                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog");
                 __instance.m_skillsDialog = skillsDialog.GetComponent<SkillsDialog>();
                 var dummyContainer = new GameObject("DummyDialogs", typeof(RectTransform));
                 dummyContainer.transform.SetParent(skillsDialog.parent);
@@ -56,6 +56,7 @@ namespace Auga
                 dummyContainer.SetActive(false);
 
                 var rightPanel = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
+                rightPanel.gameObject.name = "RightPanel";
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
@@ -97,10 +98,12 @@ namespace Auga
 
                 Object.Destroy(__instance.transform.Find("root/Info").gameObject);
                 var info = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/Info"), containerInventory.parent, false);
+                info.SetSiblingIndex(3);
+                info.gameObject.name = "Info";
                 info.Find("Texts").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTexts);
                 info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);
 
-                var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal);
+                var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog");
                 __instance.m_splitPanel = splitDialog;
                 __instance.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
                 __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<Text>();
@@ -113,12 +116,17 @@ namespace Auga
                 __instance.m_splitCancelButton.onClick.AddListener(__instance.OnSplitCancel);
                 __instance.m_splitOkButton.onClick.AddListener(__instance.OnSplitOk);
 
-                __instance.m_uiGroups = new UIGroupHandler[] {
+                __instance.m_uiGroups = new [] {
                     containerInventory.GetComponent<UIGroupHandler>(),
                     playerInventory.GetComponent<UIGroupHandler>(),
                     info.GetComponent<UIGroupHandler>(),
                     rightPanel.GetComponent<UIGroupHandler>()
                 };
+
+                var animator = __instance.GetComponent<Animator>();
+                var newAnimator = Auga.Assets.InventoryScreen.GetComponent<Animator>();
+                animator.runtimeAnimatorController = newAnimator.runtimeAnimatorController;
+                animator.Rebind();
 
                 Localization.instance.Localize(__instance.transform);
             }
