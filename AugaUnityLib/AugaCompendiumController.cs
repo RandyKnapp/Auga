@@ -242,6 +242,7 @@ namespace AugaUnity
 
             for (var index = 0; index < trophies.Count; ++index)
             {
+                // TODO: Fix bug with some kind of ordering issue in the list
                 var trophyName = trophies[index];
                 var trophyItemPrefab = ObjectDB.instance.GetItemPrefab(trophyName);
                 _trophyToMonsterCache.TryGetValue(trophyName, out var humanoidPrefab);
@@ -318,7 +319,7 @@ namespace AugaUnity
             foreach (var drop in humanoidPrefab.GetComponent<CharacterDrop>().m_drops)
             {
                 var dropElement = Instantiate(TrophyIcon, DropsContainer);
-                var amountText = (drop.m_amountMin == drop.m_amountMax ? $"{drop.m_amountMin}" : $"{drop.m_amountMin}-{drop.m_amountMax}") + $" ({Mathf.CeilToInt(drop.m_chance * 100)})";
+                var amountText = (drop.m_amountMin == drop.m_amountMax ? $"{drop.m_amountMin}" : $"{drop.m_amountMin}-{drop.m_amountMax}") + $" ({Mathf.CeilToInt(drop.m_chance * 100)}%)";
                 dropElement.SetItem(drop.m_prefab.GetComponent<ItemDrop>().m_itemData, amountText);
             }
 

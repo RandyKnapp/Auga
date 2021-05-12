@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using AugaUnity;
+using HarmonyLib;
+using UnityEngine;
 
 namespace Auga
 {
@@ -6,11 +8,26 @@ namespace Auga
     public static class MessageHud_Setup
     {
         [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.Awake))]
-        public static class MessageHud_Awake_Patch
+        [HarmonyPrefix]
+        public static bool MessageHud_Awake_Prefix(MessageHud __instance)
         {
-            public static bool Prefix(MessageHud __instance)
+            return !SetupHelper.IndirectTwoObjectReplace(__instance.transform, Auga.Assets.MessageHud, "HudMessage", "TopLeftMessage", "AugaMessageHud");
+        }
+
+        [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.ShowMessage))]
+        [HarmonyPostfix]
+        public static void MessageHud_ShowMessage_Postfix(MessageHud __instance, MessageHud.MessageType type, string text, int amount, Sprite icon)
+        {
+            if (Hud.IsUserHidden())
             {
-                return !SetupHelper.IndirectTwoObjectReplace(__instance.transform, Auga.Assets.MessageHud, "HudMessage", "TopLeftMessage", "AugaMessageHud");
+                return;
+            }
+
+            text = Localization.instance.Localize(text);
+            if (type == MessageHud.MessageType.TopLeft)
+            {
+                var controller = __instance.GetComponent<AugaTopLeftMessageController>();
+                controller.AddMessage(text, icon, amount);
             }
         }
     }
