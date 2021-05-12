@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,9 +7,10 @@ namespace AugaUnity
 {
     public class AugaTopLeftMessage : MonoBehaviour
     {
-        public const float FadeTime = 6.0f;
-        public const float MoveSpeed = 3.0f;
-        public const float Spacing = 0;
+        public const float WaitTime = 2.0f;
+        public const float FadeTime = 1.0f;
+        public const float MoveSpeed = 4.0f;
+        public const float Spacing = -4;
 
         public Text MessageText;
         public Image Icon;
@@ -19,6 +21,8 @@ namespace AugaUnity
         public int Amount;
 
         protected RectTransform _rt;
+        protected bool _isFadingOut;
+        protected Coroutine _fadeCoroutine;
 
         public virtual void Awake()
         {
@@ -36,14 +40,16 @@ namespace AugaUnity
             Amount = amount;
             SetAtTargetPosition();
             RefreshText();
-            RefreshFade();
         }
 
         public virtual void AddAmount(int amount)
         {
             Amount += amount;
             RefreshText();
-            RefreshFade();
+            if (_isFadingOut)
+            {
+                StartFade();
+            }
         }
 
         protected virtual void RefreshText()
@@ -51,25 +57,40 @@ namespace AugaUnity
             MessageText.text = $"{Message}{(Amount > 0 ? $" x{Amount}" : "")}";
         }
 
-        protected virtual void RefreshFade()
+        protected virtual void StartFade()
         {
+            if (_fadeCoroutine != null)
+            {
+                StopCoroutine(_fadeCoroutine);
+            }
+
+            _isFadingOut = true;
+            _fadeCoroutine = StartCoroutine(FadeCoroutine());
+        }
+
+        protected virtual IEnumerator FadeCoroutine()
+        {
+            yield return new WaitForSeconds(WaitTime);
+
             MessageText.canvasRenderer.SetAlpha(1);
             MessageText.CrossFadeAlpha(0, FadeTime, true);
             Icon.canvasRenderer.SetAlpha(1);
             Icon.CrossFadeAlpha(0, FadeTime, true);
+
+            yield return new WaitForSeconds(FadeTime);
+
+            Destroy(gameObject);
         }
 
         public virtual void Update()
         {
-            var shouldDestroy = MessageText.canvasRenderer.GetAlpha() == 0;
-            if (shouldDestroy)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             var targetPosition = GetTargetPosition();
             _rt.anchoredPosition = Vector2.Lerp(_rt.anchoredPosition, targetPosition, Time.deltaTime * MoveSpeed);
+
+            if (transform.GetSiblingIndex() == 0 && !_isFadingOut)
+            {
+                StartFade();
+            }
         }
 
         public virtual Vector2 GetTargetPosition()
@@ -96,7 +117,7 @@ namespace AugaUnity
         {
             if (LogContainer.childCount >= MaxMessageCount)
             {
-                Destroy(LogContainer.GetChild(0));
+                Destroy(LogContainer.GetChild(0).gameObject);
             }
 
             if (amount > 0)
