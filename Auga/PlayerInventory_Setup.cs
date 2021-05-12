@@ -97,11 +97,11 @@ namespace Auga
                 CraftingPanel.Initialize(__instance);
 
                 Object.Destroy(__instance.transform.Find("root/Info").gameObject);
-                var info = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/Info"), containerInventory.parent, false);
+                /*var info = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/Info"), containerInventory.parent, false);
                 info.SetSiblingIndex(3);
                 info.gameObject.name = "Info";
                 info.Find("Texts").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTexts);
-                info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);
+                info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);*/
 
                 var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog");
                 __instance.m_splitPanel = splitDialog;
@@ -119,7 +119,7 @@ namespace Auga
                 __instance.m_uiGroups = new [] {
                     containerInventory.GetComponent<UIGroupHandler>(),
                     playerInventory.GetComponent<UIGroupHandler>(),
-                    info.GetComponent<UIGroupHandler>(),
+                    //info.GetComponent<UIGroupHandler>(),
                     rightPanel.GetComponent<UIGroupHandler>()
                 };
 
