@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -126,9 +127,10 @@ namespace AugaUnity
         public RectTransform DropsContainer;
         public List<BestiaryStatBlock> StatBlocks;
 
-        protected readonly List<GameObject> _bestiaryItems = new List<GameObject>();
+        protected readonly List<KeyValuePair<string, GameObject>> _bestiaryItems = new List<KeyValuePair<string, GameObject>>();
         protected int _selectedBestiaryItem = -1;
         protected Dictionary<string, Humanoid> _trophyToMonsterCache;
+        protected Dictionary<string, string> _monsterToLocationStringCache;
 
         protected virtual void SetupTrophyToMonsterCache()
         {
@@ -178,6 +180,66 @@ namespace AugaUnity
             }
         }
 
+        public virtual void SetupMonsterToLocationStringCache()
+        {
+            if (ZoneSystem.instance == null || _trophyToMonsterCache == null)
+            {
+                return;
+            }
+
+            _monsterToLocationStringCache = new Dictionary<string, string>();
+            var monsters = _trophyToMonsterCache.Values;
+
+            foreach (var monsterPrefab in monsters)
+            {
+                var monsterPrefabName = monsterPrefab.name;
+                var locations = new HashSet<string>();
+                foreach (var location in ZoneSystem.instance.m_locations)
+                {
+                    if (location.m_prefab == null)
+                    {
+                        continue;
+                    }
+
+                    var spawners = location.m_prefab.GetComponentsInChildren<CreatureSpawner>(true);
+                    foreach (var spawner in spawners)
+                    {
+                        if (spawner.m_creaturePrefab != null && spawner.m_creaturePrefab.name == monsterPrefabName)
+                        {
+                            var teleports = location.m_prefab.GetComponentsInChildren<Teleport>(true).Where(x => !string.IsNullOrEmpty(x.m_enterText));
+                            if (teleports.Any())
+                            {
+                                foreach (var teleport in teleports)
+                                {
+                                    locations.Add(teleport.m_enterText);
+                                }
+                            }
+                            else
+                            {
+                                locations.Add($"$biome_{location.m_biome.ToString().ToLowerInvariant()}");
+                            }
+                        }
+                    }
+
+                    var offeringBowls = location.m_prefab.GetComponentsInChildren<OfferingBowl>();
+                    foreach (var offeringBowl in offeringBowls)
+                    {
+                        if (offeringBowl.m_bossPrefab != null && offeringBowl.m_bossPrefab.name == monsterPrefabName)
+                        {
+                            locations.Add($"$biome_{location.m_biome.ToString().ToLowerInvariant()}");
+                        }
+                    }
+                }
+
+                if (locations.Count > 0)
+                {
+                    var locationsString = string.Join(", ", locations);
+                    Debug.LogWarning($"{monsterPrefabName}: {locationsString}");
+                    _monsterToLocationStringCache.Add(monsterPrefabName, locationsString);
+                }
+            } 
+        }
+
         public virtual void Awake()
         {
             TabController.OnTabChanged += OnTabChanged;
@@ -217,7 +279,8 @@ namespace AugaUnity
         public virtual void SetupBestiary()
         {
             SetupTrophyToMonsterCache();
-            if (_trophyToMonsterCache == null)
+            SetupMonsterToLocationStringCache();
+            if (_trophyToMonsterCache == null || _monsterToLocationStringCache == null)
             {
                 return;
             }
@@ -234,35 +297,51 @@ namespace AugaUnity
 
             foreach (var bestiaryItem in _bestiaryItems)
             {
-                Destroy(bestiaryItem);
+                Destroy(bestiaryItem.Value);
             }
             _bestiaryItems.Clear();
             
             var trophies = player.GetTrophies();
+            var tempList = new List<Tuple<int, string, GameObject>>();
 
             for (var index = 0; index < trophies.Count; ++index)
             {
                 // TODO: Fix bug with some kind of ordering issue in the list
                 var trophyName = trophies[index];
                 var trophyItemPrefab = ObjectDB.instance.GetItemPrefab(trophyName);
+                if (trophyItemPrefab == null)
+                {
+                    continue;
+                }
+
+                var trophyItem = trophyItemPrefab.GetComponent<ItemDrop>();
+                var position2d = trophyItem.m_itemData.m_shared.m_trophyPos;
+                var position = position2d.y * 10 + position2d.x;
+
                 _trophyToMonsterCache.TryGetValue(trophyName, out var humanoidPrefab);
-                if (trophyItemPrefab != null && humanoidPrefab != null)
+                if (humanoidPrefab != null)
                 {
                     var listItem = Instantiate(BestiaryListElementPrefab, BestiaryList);
                     listItem.SetActive(true);
-                    var i = index;
-                    listItem.GetComponent<Button>().onClick.AddListener(() => OnBestiaryItemClicked(i));
-
                     var t = listItem.transform;
-
                     var creatureName = Localization.instance.Localize(humanoidPrefab.m_name);
                     t.Find("name").GetComponent<Text>().text = creatureName;
-
-                    _bestiaryItems.Add(listItem);
+                    tempList.Add(new Tuple<int, string, GameObject>(position, trophyName, listItem));
                 }
             }
 
-            OnBestiaryItemClicked(_selectedBestiaryItem);
+            var orderedList = tempList.OrderBy(x => x.Item1).ToList();
+            for (var index = 0; index < orderedList.Count; index++)
+            {
+                var entry = orderedList[index];
+                var listItem = entry.Item3;
+                listItem.transform.SetSiblingIndex(index);
+                var i = index;
+                listItem.GetComponent<Button>().onClick.AddListener(() => OnBestiaryItemClicked(i));
+                _bestiaryItems.Add(new KeyValuePair<string, GameObject>(entry.Item2, listItem));
+            }
+
+            OnBestiaryItemClicked(0);
         }
 
         private void OnBestiaryItemClicked(int index)
@@ -272,7 +351,7 @@ namespace AugaUnity
             for (var i = 0; i < _bestiaryItems.Count; i++)
             {
                 var bestiaryItem = _bestiaryItems[i];
-                bestiaryItem.transform.Find("selected").gameObject.SetActive(i == _selectedBestiaryItem);
+                bestiaryItem.Value.transform.Find("selected").gameObject.SetActive(i == _selectedBestiaryItem);
             }
 
             if (_selectedBestiaryItem < 0)
@@ -286,9 +365,9 @@ namespace AugaUnity
                 return;
             }
 
-            var trophies = player.GetTrophies();
-            _selectedBestiaryItem = Mathf.Clamp(_selectedBestiaryItem, 0, trophies.Count - 1);
-            var trophy = trophies[_selectedBestiaryItem];
+            _selectedBestiaryItem = Mathf.Clamp(_selectedBestiaryItem, 0, _bestiaryItems.Count - 1);
+            var selectedEntry = _bestiaryItems[_selectedBestiaryItem];
+            var trophy = selectedEntry.Key;
             _trophyToMonsterCache.TryGetValue(trophy, out var humanoidPrefab);
             if (humanoidPrefab == null)
             {
@@ -306,7 +385,8 @@ namespace AugaUnity
             BestiaryContent.SetActive(true);
             BestiaryName.text = humanoidPrefab.m_name;
             BestiaryHostility.text = humanoidPrefab.GetComponent<MonsterAI>() != null ? "$aggressive" : "$passive";
-            BestiaryBiome.text = "???";
+            _monsterToLocationStringCache.TryGetValue(humanoidPrefab.name, out var locations);
+            BestiaryBiome.text = string.IsNullOrEmpty(locations) ? "???" : locations;
             BestiaryTameable.text = humanoidPrefab.GetComponent<Tameable>() != null ? "$tameable" : "$untameable";
             BestiaryDescription.text = trophyItem.m_itemData.m_shared.m_name + "_lore";
             TrophyIcon.SetItem(trophyItem.m_itemData);
