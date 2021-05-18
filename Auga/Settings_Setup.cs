@@ -64,7 +64,7 @@ namespace Auga
         [HarmonyPrefix]
         public static bool UpdateBindings_Prefix(Settings __instance)
         {
-            foreach (Settings.KeySetting key in __instance.m_keys)
+            foreach (var key in __instance.m_keys)
             {
                 var bindingDisplay = key.m_keyTransform.GetComponent<AugaBindingDisplay>();
                 bindingDisplay.SetBinding(key.m_keyName);
