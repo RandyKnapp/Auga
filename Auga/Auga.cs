@@ -31,8 +31,8 @@ namespace Auga
 
     public class AugaColors
     {
-        public string Topic = "#3CB9FF";
-        public string Emphasis = "#B98A12";
+        public string Topic = "#EAA800";
+        public string Emphasis = "#1AACEF";
         public Color Healing = new Color(0.5f, 1.0f, 0.5f, 0.7f);
         public Color PlayerDamage = new Color(1.0f, 0.0f, 0.0f, 1.0f);
         public Color PlayerNoDamage = new Color(0.5f, 0.5f, 0.5f, 1f);
