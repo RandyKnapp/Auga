@@ -5,6 +5,8 @@ namespace AugaUnity
 {
     public class AugaBindingDisplay : MonoBehaviour
     {
+        public string AutomaticKeyName;
+
         public Text KeybindText;
         public GameObject KeybindBox;
         public Text LongKeybindText;
@@ -14,6 +16,14 @@ namespace AugaUnity
         public GameObject Mouse3;
         public GameObject MouseX;
         public Text MouseXText;
+
+        public void Update()
+        {
+            if (!string.IsNullOrEmpty(AutomaticKeyName))
+            {
+                SetBinding(AutomaticKeyName);
+            }
+        }
 
         public void SetBinding(string keyName)
         {

@@ -131,6 +131,15 @@ namespace Auga
                 requirements.GetChild(4).gameObject,
                 requirements.GetChild(5).gameObject,
             };
+
+            __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
+
+            var shipPowerIcon = (RectTransform)__instance.m_shipHudRoot.transform.Find("PowerIcon").transform;
+            shipPowerIcon.localScale = new Vector3(0.7f, 0.7f, 1);
+            shipPowerIcon.anchoredPosition = new Vector2(-316, -242);
+
+            var shipWindIndicator = (RectTransform)__instance.m_shipHudRoot.transform.Find("WindIndicator").transform;
+            shipWindIndicator.anchoredPosition = new Vector2(-395, -161);
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
