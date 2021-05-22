@@ -38,10 +38,10 @@ namespace Auga
             minimap.m_smallRoot = newMiniMap.gameObject;
             minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
             minimap.m_mapImageSmall.material = originalMiniMapMaterial;
-            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("MapMask/map/pin_root");
+            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/pin_root");
             minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
-            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("MapMask/map/ship_marker");
-            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("MapMask/map/player_marker");
+            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/ship_marker");
+            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
 
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;

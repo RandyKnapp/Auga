@@ -130,7 +130,7 @@ namespace Auga
             var assetBundle = LoadAssetBundle("augaassets");
             Assets.AugaLogo = assetBundle.LoadAsset<GameObject>("AugaLogo");
             Assets.InventoryScreen = assetBundle.LoadAsset<GameObject>("Inventory_screen");
-            Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor");
+            Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor2");
             Assets.MenuPrefab = assetBundle.LoadAsset<GameObject>("AugaMenu");
             Assets.TextViewerPrefab = assetBundle.LoadAsset<GameObject>("AugaTextViewer");
             Assets.Hud = assetBundle.LoadAsset<GameObject>("HUD");
