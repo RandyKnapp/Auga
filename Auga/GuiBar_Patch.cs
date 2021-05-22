@@ -8,7 +8,7 @@ namespace Auga
     {
         public static bool Prefix(GuiBar __instance, float i)
         {
-            if (__instance.m_barImage.type == Image.Type.Filled)
+            if (__instance != null && __instance.m_barImage != null && __instance.m_barImage.type == Image.Type.Filled)
             {
                 __instance.m_barImage.fillAmount = i;
                 return false;

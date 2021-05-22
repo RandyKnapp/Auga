@@ -298,6 +298,11 @@ namespace AugaUnity
 
         public void AddNewBiomeLog(Heightmap.Biome biome)
         {
+            if (biome == Heightmap.Biome.None)
+            {
+                return;
+            }
+
             var biomeColor = GetBiomeColor(biome);
             AddLog(new SimpleLogData(LogType.NewBiome, DateTime.Now, Loc("$log_newbiome", Loc($"$biome_{biome.ToString().ToLowerInvariant()}"), biomeColor)));
         }

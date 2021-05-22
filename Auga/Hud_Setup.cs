@@ -134,12 +134,23 @@ namespace Auga
 
             __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
 
-            var shipPowerIcon = (RectTransform)__instance.m_shipHudRoot.transform.Find("PowerIcon").transform;
-            shipPowerIcon.localScale = new Vector3(0.7f, 0.7f, 1);
-            shipPowerIcon.anchoredPosition = new Vector2(-316, -242);
-
-            var shipWindIndicator = (RectTransform)__instance.m_shipHudRoot.transform.Find("WindIndicator").transform;
-            shipWindIndicator.anchoredPosition = new Vector2(-395, -161);
+            var shipHud = __instance.transform.Replace("hudroot/ShipHud", Auga.Assets.Hud);
+            __instance.m_shipHudRoot = shipHud.gameObject;
+            __instance.m_shipControlsRoot = shipHud.Find("Controls").gameObject;
+            __instance.m_rudderLeft = shipHud.Find("Dummy").gameObject;
+            __instance.m_rudderRight = shipHud.Find("Dummy").gameObject;
+            __instance.m_rudderSlow = shipHud.Find("WindIndicator/Ship/Slow").gameObject;
+            __instance.m_rudderForward = shipHud.Find("WindIndicator/Ship/Forward").gameObject;
+            __instance.m_rudderFastForward = shipHud.Find("WindIndicator/Ship/FastForward").gameObject;
+            __instance.m_rudderBackward = shipHud.Find("WindIndicator/Ship/Backward").gameObject;
+            __instance.m_halfSail = shipHud.Find("PowerIcon/SailRotation/HalfSail").gameObject;
+            __instance.m_fullSail = shipHud.Find("PowerIcon/SailRotation/FullSail").gameObject;
+            __instance.m_rudder = shipHud.Find("PowerIcon/Rudder").gameObject;
+            __instance.m_shipWindIndicatorRoot = (RectTransform)shipHud.Find("WindIndicator");
+            __instance.m_shipWindIcon = shipHud.Find("WindIndicator/Wind/WindIcon").GetComponent<Image>();
+            __instance.m_shipWindIconRoot = (RectTransform)shipHud.Find("WindIndicator/Wind");
+            __instance.m_shipRudderIndicator = shipHud.Find("Controls/RudderIndicatorBG/RudderIndicatorMask/RudderIndicator").GetComponent<Image>();
+            __instance.m_shipRudderIcon = shipHud.Find("Controls/RudderIcon").GetComponent<Image>();
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
@@ -217,6 +228,34 @@ namespace Auga
                 {
                     itemTooltip.Item = itemData;
                 }
+            }
+        }
+    }
+
+    // Hud.UpdateShipHud (0.145 either way)
+    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateShipHud))]
+    public static class Hud_UpdateShipHud_Patch
+    {
+        public const float RudderMinMax = 0.145f;
+
+        public static void Postfix(Hud __instance, Player player, float dt)
+        {
+            var ship = player.GetControlledShip();
+            if (ship == null || !__instance.m_shipRudderIndicator.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            var rudderValue = ship.GetRudderValue();
+            if (rudderValue > 0)
+            {
+                __instance.m_shipRudderIndicator.fillClockwise = true;
+                __instance.m_shipRudderIndicator.fillAmount = rudderValue * RudderMinMax;
+            }
+            else
+            {
+                __instance.m_shipRudderIndicator.fillClockwise = false;
+                __instance.m_shipRudderIndicator.fillAmount = -rudderValue * RudderMinMax;
             }
         }
     }
