@@ -34,6 +34,7 @@ namespace AugaUnity
             _playerCustomizaton = FejdStartup.instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
 
             _camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
+            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
             _camera.fieldOfView = _fov;
             _camera.targetTexture = RenderTexture;
             _camera.GetComponent<DepthOfField>().enabled = false;
@@ -43,23 +44,30 @@ namespace AugaUnity
             _camera.transform.rotation = FejdStartup.instance.m_cameraMarkerCharacter.rotation;
         }
 
-        [UsedImplicitly]
-        public void Start()
+        public void InitializeChraracterPortraits()
         {
-            _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
+            foreach (var characterPortrait in _characterPortraits)
+            {
+                Destroy(characterPortrait.gameObject);
+            }
+            _characterPortraits.Clear();
 
             var count = Mode == PortraitMode.Hair ? _playerCustomizaton.m_hairs.Count : _playerCustomizaton.m_beards.Count;
             for (var i = 0; i < count; i++)
             {
                 var characterPortrait = Instantiate(PortraitPrefab, PortraitList);
                 var index = i;
-                characterPortrait.Button.onClick.AddListener(() => OnClick(index));
+                characterPortrait.Button.onClick.AddListener(() => OnPortraitClick(index));
+                if (index == 1)
+                {
+                    Debug.LogWarning("Portrait 1: Setup");
+                }
                 characterPortrait.Setup(_playerCustomizaton, Mode, index);
                 _characterPortraits.Add(characterPortrait);
             }
         }
 
-        public void OnClick(int index)
+        public void OnPortraitClick(int index)
         {
             switch (Mode)
             {
@@ -75,61 +83,25 @@ namespace AugaUnity
 
         public void Update()
         {
+            var newLookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");;
+            if (_characterPortraits.Count == 0 || _lookTarget != newLookTarget)
+            {
+                InitializeChraracterPortraits();
+            }
+
+            _lookTarget = newLookTarget;
             _camera.transform.LookAt(_lookTarget.position + _offset);
 
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                _offset += Vector3.down * 0.05f;
-                PrintOffset();
-            }
-            else if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                _offset += Vector3.up * 0.05f;
-                PrintOffset();
-            }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                _offset += Vector3.forward * 0.05f;
-                PrintOffset();
-            }
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                _offset += Vector3.back * 0.05f;
-                PrintOffset();
-            }
-
-            if (Input.GetKeyDown(KeyCode.KeypadPlus))
-            {
-                _camera.fieldOfView -= 0.5f;
-                PrintFOV();
-            }
-            else if (Input.GetKeyDown(KeyCode.KeypadMinus))
-            {
-                _camera.fieldOfView += 0.5f;
-                PrintFOV();
-            }
-        }
-
-        public void PrintOffset()
-        {
-            Debug.Log($"Offset: {_offset}");
-        }
-
-        public void PrintFOV()
-        {
-            Debug.Log($"FOV: {_camera.fieldOfView:0.0}");
-        }
-
-        [UsedImplicitly]
-        public void LateUpdate()
-        {
             var player = _playerCustomizaton.GetPlayer();
             var visEquip = player.m_visEquipment;
             var itemInstance = Mode == PortraitMode.Hair ? visEquip.m_hairItemInstance : visEquip.m_beardItemInstance;
             itemInstance?.SetActive(false);
 
-            foreach (var characterPortrait in _characterPortraits)
+            var currentIndex = Mode == PortraitMode.Hair ? _playerCustomizaton.GetHairIndex() : _playerCustomizaton.GetBeardIndex();
+            for (var index = 0; index < _characterPortraits.Count; index++)
             {
+                var characterPortrait = _characterPortraits[index];
+                characterPortrait.Selected.SetActive(index == currentIndex);
                 characterPortrait.DoRender(visEquip, _camera);
             }
 
@@ -141,6 +113,7 @@ namespace AugaUnity
     {
         public RawImage Image;
         public Button Button;
+        public GameObject Selected;
 
         private Texture _texture;
         private GameObject _attachedItem;

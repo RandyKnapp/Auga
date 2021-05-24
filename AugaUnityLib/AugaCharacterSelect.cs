@@ -45,6 +45,7 @@ namespace AugaUnity
         [UsedImplicitly]
         public void Update()
         {
+            _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
             _camera.transform.LookAt(_lookTarget.position + _offset);
         }
 

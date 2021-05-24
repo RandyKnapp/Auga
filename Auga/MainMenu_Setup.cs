@@ -80,6 +80,34 @@ namespace Auga
             SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonYes", FejdStartup.instance.OnButtonRemoveCharacterYes);
             SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonNo", FejdStartup.instance.OnButtonRemoveCharacterNo);
 
+            var oldPlayerCustomizaton = __instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
+            var originalNoHair = oldPlayerCustomizaton.m_noHair;
+            var originalNoBeard = oldPlayerCustomizaton.m_noBeard;
+
+            var newCharacter = __instance.Replace("CharacterSelection/NewCharacterPanel", Auga.Assets.MainMenuPrefab);
+            var newPlayerCustomization = newCharacter.GetComponent<PlayerCustomizaton>();
+            newPlayerCustomization.m_noHair = originalNoHair;
+            newPlayerCustomization.m_noBeard = originalNoBeard;
+            __instance.m_newCharacterPanel = newCharacter.gameObject;
+            __instance.m_csNewCharacterDone = newCharacter.Find("Panel/Done").GetComponent<Button>();
+            __instance.m_newCharacterError = newCharacter.Find("Panel/Content/NameExistsWarning").gameObject;
+            __instance.m_csNewCharacterName = newCharacter.Find("Panel/Content/CharacterName").GetComponent<InputField>();
+            SetButtonListener(newCharacter, "Panel/Done", FejdStartup.instance.OnNewCharacterDone);
+            SetButtonListener(newCharacter, "Panel/Cancel", FejdStartup.instance.OnNewCharacterCancel);
+
+            {
+                var toggle = newCharacter.Find("Panel/Content/ToggleGroup/Toggle_Female").GetComponent<Toggle>();
+                toggle.onValueChanged = new Toggle.ToggleEvent();
+                toggle.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization.SetPlayerModel(1); });
+                toggle.onValueChanged.AddListener((on) => toggle.transform.GetChild(1).gameObject.SetActive(on));
+            }
+            {
+                var toggle = newCharacter.Find("Panel/Content/ToggleGroup/Toggle_Male").GetComponent<Toggle>();
+                toggle.onValueChanged = new Toggle.ToggleEvent();
+                toggle.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization.SetPlayerModel(0); });
+                toggle.onValueChanged.AddListener((on) => toggle.transform.GetChild(1).gameObject.SetActive(on));
+            }
+
             Localization.instance.Localize(__instance.transform);
         }
 

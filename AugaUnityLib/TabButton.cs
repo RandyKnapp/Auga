@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace AugaUnity
 {
-    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(Selectable))]
     public class TabButton : MonoBehaviour
     {
         public Color BackgroundColor = Color.white;
