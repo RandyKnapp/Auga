@@ -1,15 +1,16 @@
 ﻿using HarmonyLib;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Auga
 {
-    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Start))]
-    public static class FejdStartup_Start_Patch
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
+    public static class FejdStartup_Awake_Patch
     {
         public static void Postfix(FejdStartup __instance)
         {
-            var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>().m_changeLog;
+            var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
             /*var callOriginal = !SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.MainMenuPrefab, "TextInput", out var newMainMenu);
 
@@ -18,7 +19,7 @@ namespace Auga
 
             return callOriginal;*/
 
-            __instance.HideElementByType<ChangeLog>();
+            /*__instance.HideElementByType<ChangeLog>();
             __instance.m_versionLabel.HideElement();
             __instance.m_mainMenu.HideElementByName("showlog");
             __instance.m_mainMenu.HideElementByName("Embers");
@@ -27,25 +28,41 @@ namespace Auga
             __instance.m_mainMenu.HideElementByName("Embers (3)");
             __instance.m_mainMenu.HideElementByName("LOGO");
 
-            Object.Instantiate(Auga.Assets.AugaLogo, __instance.m_mainMenu.transform);
-
-            /*__instance.m_loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab, "Loading", ReplaceFlags.Instantiate | ReplaceFlags.DestroyOriginal).gameObject;
-            __instance.m_loading.SetActive(false);
-            Localization.instance.Localize(__instance.m_loading.transform);*/
-
+            Object.Instantiate(Auga.Assets.AugaLogo, __instance.m_mainMenu.transform);*/
 
             __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
-            /*var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
+            var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
             __instance.m_mainMenu = mainMenu.gameObject;
             __instance.m_versionLabel = mainMenu.Find("Version").GetComponent<Text>();
             __instance.m_betaText = mainMenu.Find("DummyObjects/Dummy").gameObject;
             __instance.m_ndaPanel = mainMenu.Find("DummyObjects/Dummy").gameObject;
-            mainMenu.GetComponentInChildren<ChangeLog>().m_changeLog = originalChangeLogAsset;
-            Localization.instance.Localize(mainMenu);*/
+            UpdateButtonListener(__instance.m_mainMenu.transform, "MenuList/StartGame", __instance.OnStartGame);
+            UpdateButtonListener(__instance.m_mainMenu.transform, "MenuList/Settings", __instance.OnButtonSettings);
+            UpdateButtonListener(__instance.m_mainMenu.transform, "MenuList/Credits", __instance.OnCredits);
+            UpdateButtonListener(__instance.m_mainMenu.transform, "MenuList/Exit", __instance.OnAbort);
+            __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog = originalChangeLogAsset;
+
+            var connectionFailedDialog = __instance.Replace("ConnectionFailed", Auga.Assets.MainMenuPrefab);
+            __instance.m_connectionFailedPanel = connectionFailedDialog.gameObject;
+            __instance.m_connectionFailedError = connectionFailedDialog.Find("Text").GetComponent<Text>();
+
+            var black = __instance.Replace("BLACK", Auga.Assets.MainMenuPrefab);
+
+            __instance.m_loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab).gameObject;
+            __instance.m_loading.SetActive(false);
 
             //var newCharacterScreen = __instance.transform.Find("CharacterSelection/NewCharacterPanel");
             //Object.Instantiate(Auga.Assets.MainMenuPrefab.transform.Find("CustomTest").gameObject, newCharacterScreen, false);
+
+            Localization.instance.Localize(__instance.transform);
+        }
+
+        private static void UpdateButtonListener(Transform root, string childName, UnityAction listener)
+        {
+            var button = root.Find(childName).GetComponent<Button>();
+            button.onClick = new Button.ButtonClickedEvent();
+            button.onClick.AddListener(listener);
         }
     }
 }
