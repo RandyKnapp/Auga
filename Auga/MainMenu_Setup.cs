@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using AugaUnity;
+using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -60,6 +61,25 @@ namespace Auga
             //var newCharacterScreen = __instance.transform.Find("CharacterSelection/NewCharacterPanel");
             //Object.Instantiate(Auga.Assets.MainMenuPrefab.transform.Find("CustomTest").gameObject, newCharacterScreen, false);
 
+            var charSelect = __instance.Replace("CharacterSelection/SelectCharacter", Auga.Assets.MainMenuPrefab);
+            __instance.m_selectCharacterPanel = charSelect.gameObject;
+            __instance.m_removeCharacterDialog = charSelect.Find("RemoveCharacterDialog").gameObject;
+            __instance.m_removeCharacterName = charSelect.Find("RemoveCharacterDialog/Text").GetComponent<Text>();
+            __instance.m_csRemoveButton = charSelect.Find("Panel/RemoveButton").GetComponent<Button>();
+            __instance.m_csStartButton = charSelect.Find("Panel/Start").GetComponent<Button>();
+            __instance.m_csNewButton = charSelect.Find("Panel/NewButton").GetComponent<Button>();
+            __instance.m_csNewBigButton = charSelect.Find("Panel/NewButtonBig").GetComponent<Button>();
+            __instance.m_csLeftButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
+            __instance.m_csRightButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
+            __instance.m_csName = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
+            SetButtonListener(charSelect, "Panel/RemoveButton", FejdStartup.instance.OnCharacterRemove);
+            SetButtonListener(charSelect, "Panel/NewButton", FejdStartup.instance.OnCharacterNew);
+            SetButtonListener(charSelect, "Panel/NewButtonBig", FejdStartup.instance.OnCharacterNew);
+            SetButtonListener(charSelect, "Panel/Back", FejdStartup.instance.OnSelelectCharacterBack);
+            SetButtonListener(charSelect, "Panel/Start", FejdStartup.instance.OnCharacterStart);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonYes", FejdStartup.instance.OnButtonRemoveCharacterYes);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonNo", FejdStartup.instance.OnButtonRemoveCharacterNo);
+
             Localization.instance.Localize(__instance.transform);
         }
 
@@ -68,6 +88,20 @@ namespace Auga
             var button = root.Find(childName).GetComponent<Button>();
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(listener);
+        }
+    }
+
+    //UpdateCharacterList
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateCharacterList))]
+    public static class FejdStartup_UpdateCharacterList_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+        {
+            var characterSelect = __instance.GetComponentInChildren<AugaCharacterSelect>(true);
+            if (characterSelect != null)
+            {
+                characterSelect.UpdateCharacterList();
+            }
         }
     }
 }
