@@ -3,16 +3,52 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
+using UnityStandardAssets.ImageEffects;
 
 namespace AugaUnity
 {
     public class AugaCharacterSelect : MonoBehaviour
     {
+        private const float FOV = 11;
+
         public CharacterSelectPortrait CharacterPortraitPrefab;
         public RectTransform CharacterList;
+        public RenderTexture RenderTexture;
+
+        private Camera _camera;
+        private Transform _lookTarget;
+        private readonly Vector3 _offset = new Vector3(0, -0.05f, 0);
 
         private readonly List<CharacterSelectPortrait> _portraits = new List<CharacterSelectPortrait>();
 
+        [UsedImplicitly]
+        public void Awake()
+        {
+            _camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
+            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
+            _camera.fieldOfView = FOV;
+            _camera.targetTexture = RenderTexture;
+            _camera.GetComponent<DepthOfField>().enabled = false;
+            _camera.enabled = false;
+
+            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
+            _camera.transform.rotation = FejdStartup.instance.m_cameraMarkerCharacter.rotation;
+        }
+
+        [UsedImplicitly]
+        public void Start()
+        {
+            _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
+            _camera.transform.LookAt(_lookTarget.position + _offset);
+        }
+
+        [UsedImplicitly]
+        public void Update()
+        {
+            _camera.transform.LookAt(_lookTarget.position + _offset);
+        }
+
+        [UsedImplicitly]
         public void OnEnable()
         {
             UpdateCharacterList();
@@ -26,13 +62,26 @@ namespace AugaUnity
             }
             _portraits.Clear();
 
+            //PlayerProfile selectedProfile = null;
             for (var index = 0; index < FejdStartup.instance.m_profiles.Count; index++)
             {
                 var profile = FejdStartup.instance.m_profiles[index];
+                //if (index == FejdStartup.instance.m_profileIndex)
+                //{
+                //    selectedProfile = profile;
+                //}
+
                 var portrait = Instantiate(CharacterPortraitPrefab, CharacterList, false);
-                portrait.Setup(profile, index);
+                portrait.Setup(profile, index, _camera);
                 _portraits.Add(portrait);
             }
+
+            /*if (selectedProfile != null)
+            {
+                FejdStartup.instance.SetupCharacterPreview(selectedProfile);
+            }*/
+
+            _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
         }
     }
 
@@ -47,7 +96,7 @@ namespace AugaUnity
         private PlayerProfile _profile;
         private int _index;
 
-        public void Setup(PlayerProfile profile, int index)
+        public void Setup(PlayerProfile profile, int index, Camera camera)
         {
             _profile = profile;
             _index = index;
@@ -55,7 +104,8 @@ namespace AugaUnity
             Selected.SetActive(_index == FejdStartup.instance.m_profileIndex);
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
 
-
+            //FejdStartup.instance.SetupCharacterPreview(_profile);
+            //DoRender(camera);
         }
 
         public void Update()
@@ -63,7 +113,7 @@ namespace AugaUnity
             Selected.SetActive(_index == FejdStartup.instance.m_profileIndex);
         }
 
-        public void DoRender(VisEquipment visEquip, Camera camera)
+        public void DoRender(Camera camera)
         {
             camera.Render();
             SetTexture(camera.targetTexture);
