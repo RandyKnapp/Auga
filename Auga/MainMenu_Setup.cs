@@ -1,5 +1,6 @@
 ﻿using AugaUnity;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -72,13 +73,13 @@ namespace Auga
             __instance.m_csLeftButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
             __instance.m_csRightButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
             __instance.m_csName = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
-            SetButtonListener(charSelect, "Panel/RemoveButton", FejdStartup.instance.OnCharacterRemove);
-            SetButtonListener(charSelect, "Panel/NewButton", FejdStartup.instance.OnCharacterNew);
-            SetButtonListener(charSelect, "Panel/NewButtonBig", FejdStartup.instance.OnCharacterNew);
-            SetButtonListener(charSelect, "Panel/Back", FejdStartup.instance.OnSelelectCharacterBack);
-            SetButtonListener(charSelect, "Panel/Start", FejdStartup.instance.OnCharacterStart);
-            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonYes", FejdStartup.instance.OnButtonRemoveCharacterYes);
-            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonNo", FejdStartup.instance.OnButtonRemoveCharacterNo);
+            SetButtonListener(charSelect, "Panel/RemoveButton", __instance.OnCharacterRemove);
+            SetButtonListener(charSelect, "Panel/NewButton", __instance.OnCharacterNew);
+            SetButtonListener(charSelect, "Panel/NewButtonBig", __instance.OnCharacterNew);
+            SetButtonListener(charSelect, "Panel/Back", __instance.OnSelelectCharacterBack);
+            SetButtonListener(charSelect, "Panel/Start", __instance.OnCharacterStart);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonYes", __instance.OnButtonRemoveCharacterYes);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonNo", __instance.OnButtonRemoveCharacterNo);
 
             var oldPlayerCustomizaton = __instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
             var originalNoHair = oldPlayerCustomizaton.m_noHair;
@@ -92,8 +93,8 @@ namespace Auga
             __instance.m_csNewCharacterDone = newCharacter.Find("Panel/Done").GetComponent<Button>();
             __instance.m_newCharacterError = newCharacter.Find("Panel/Content/NameExistsWarning").gameObject;
             __instance.m_csNewCharacterName = newCharacter.Find("Panel/Content/CharacterName").GetComponent<InputField>();
-            SetButtonListener(newCharacter, "Panel/Done", FejdStartup.instance.OnNewCharacterDone);
-            SetButtonListener(newCharacter, "Panel/Cancel", FejdStartup.instance.OnNewCharacterCancel);
+            SetButtonListener(newCharacter, "Panel/Done", __instance.OnNewCharacterDone);
+            SetButtonListener(newCharacter, "Panel/Cancel", __instance.OnNewCharacterCancel);
 
             {
                 var toggle = newCharacter.Find("Panel/Content/ToggleGroup/Toggle_Female").GetComponent<Toggle>();
@@ -108,6 +109,68 @@ namespace Auga
                 toggle.onValueChanged.AddListener((on) => toggle.transform.GetChild(1).gameObject.SetActive(on));
             }
 
+            Object.Destroy(__instance.m_joinIPPanel);
+            var startGame = __instance.Replace("StartGame", Auga.Assets.MainMenuPrefab);
+            __instance.m_startGamePanel = startGame.gameObject;
+            __instance.m_createWorldPanel = startGame.Find("NewWorldDialog").gameObject;
+            __instance.m_serverListPanel = startGame.Find("Panel/JoinPanel").gameObject;
+            __instance.m_publicServerToggle = startGame.Find("Panel/WorldPanel/CheckboxRow/StartPublicGameToggle").GetComponent<Toggle>();
+            __instance.m_openServerToggle = startGame.Find("Panel/WorldPanel/CheckboxRow/StartServerToggle").GetComponent<Toggle>();
+            __instance.m_serverPassword = startGame.Find("Panel/WorldPanel/ServerPassword").GetComponent<InputField>();
+            __instance.m_serverListRoot = startGame.Find("Panel/JoinPanel/ScrollRect/ItemList").GetComponent<RectTransform>();
+            __instance.m_serverListElement = Auga.Assets.ServerListElement;
+            __instance.m_serverListEnsureVisible = startGame.Find("Panel/JoinPanel/ScrollRect").GetComponent<ScrollRectEnsureVisible>();
+            __instance.m_serverListElementStep = 30;
+            __instance.m_serverCount = startGame.Find("Panel/JoinPanel/ServerCount").GetComponent<Text>();
+            __instance.m_serverRefreshButton = startGame.Find("Panel/JoinPanel/RefreshButton").GetComponent<Button>();
+            __instance.m_filterInputField = startGame.Find("Panel/JoinPanel/Filter").GetComponent<InputField>();
+            __instance.m_passwordError = startGame.Find("Panel/WorldPanel/ServerPassword/ErrorText").GetComponent<Text>();
+            __instance.m_manualIPButton = startGame.Find("Panel/JoinPanel/JoinIPButton").GetComponent<Button>();
+            __instance.m_joinIPPanel = startGame.Find("JoinIP").gameObject;
+            __instance.m_joinIPJoinButton = startGame.Find("JoinIP/Connect").GetComponent<Button>();
+            __instance.m_joinIPAddress = startGame.Find("JoinIP/Address").GetComponent<InputField>();
+            __instance.m_joinGameButton = startGame.Find("Panel/JoinPanel/Connect").GetComponent<Button>();
+            __instance.m_worldListPanel = startGame.Find("Panel/WorldPanel").gameObject;
+            __instance.m_worldListRoot = startGame.Find("Panel/WorldPanel/ScrollRect/ItemList").GetComponent<RectTransform>();
+            __instance.m_worldListElement = Auga.Assets.WorldListElement;
+            __instance.m_worldListEnsureVisible = startGame.Find("Panel/WorldPanel/ScrollRect").GetComponent<ScrollRectEnsureVisible>();
+            __instance.m_worldListElementStep = 30;
+            __instance.m_newWorldName = startGame.Find("NewWorldDialog/WorldName").GetComponent<InputField>();
+            __instance.m_newWorldSeed = startGame.Find("NewWorldDialog/WorldSeed").GetComponent<InputField>();
+            __instance.m_newWorldDone = startGame.Find("NewWorldDialog/Done").GetComponent<Button>();
+            __instance.m_worldStart = startGame.Find("Panel/WorldPanel/Start").GetComponent<Button>();
+            __instance.m_worldRemove = startGame.Find("Panel/WorldPanel/RemoveButton").GetComponent<Button>();
+            __instance.m_removeWorldDialog = startGame.Find("RemoveWorldDialog").gameObject;
+            __instance.m_removeWorldName = startGame.Find("RemoveWorldDialog/Text").GetComponent<Text>();
+            __instance.m_friendFilterSwitch = startGame.Find("Panel/JoinPanel/CheckboxRow/FriendsFilter").GetComponent<Toggle>();
+            __instance.m_publicFilterSwitch = startGame.Find("Panel/JoinPanel/CheckboxRow/PublicFilter").GetComponent<Toggle>();
+
+            SetButtonListener(startGame, "Panel/WorldPanel/RemoveButton", __instance.OnWorldRemove);
+            SetButtonListener(startGame, "Panel/WorldPanel/NewButton", __instance.OnWorldNew);
+            SetButtonListener(startGame, "Panel/WorldPanel/Back", __instance.OnStartGameBack);
+            SetButtonListener(startGame, "Panel/WorldPanel/Start", __instance.OnWorldStart);
+            SetButtonListener(startGame, "Panel/JoinPanel/RefreshButton", __instance.RequestServerList);
+            SetInputFieldListener(startGame, "Panel/JoinPanel/Filter", (_) => __instance.OnServerFilterChanged());
+            SetToggleListener(startGame, "Panel/JoinPanel/CheckboxRow/FriendsFilter", (_) => __instance.OnServerFilterChanged());
+            SetToggleListener(startGame, "Panel/JoinPanel/CheckboxRow/PublicFilter", (_) => __instance.OnServerFilterChanged());
+            SetButtonListener(startGame, "Panel/JoinPanel/JoinIPButton", __instance.OnJoinIPOpen);
+            SetButtonListener(startGame, "Panel/JoinPanel/Back", __instance.OnStartGameBack);
+            SetButtonListener(startGame, "Panel/JoinPanel/Connect", __instance.OnJoinStart);
+            SetButtonListener(startGame, "RemoveWorldDialog/DividerMedium/Content/ButtonYes", __instance.OnButtonRemoveWorldYes);
+            SetButtonListener(startGame, "RemoveWorldDialog/DividerMedium/Content/ButtonNo", __instance.OnButtonRemoveWorldNo);
+            SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
+            SetButtonListener(startGame, "NewWorldDialog/Done", __instance.OnNewWorldDone);
+            SetButtonListener(startGame, "JoinIP/Cancel", __instance.OnJoinIPBack);
+            SetButtonListener(startGame, "JoinIP/Connect", __instance.OnJoinIPConnect);
+
+            var tabHandler = startGame.GetComponentInChildren<TabHandler>(true);
+            tabHandler.m_tabs[0].m_onClick = new Button.ButtonClickedEvent();
+            tabHandler.m_tabs[0].m_onClick.AddListener(__instance.OnSelectWorldTab);
+            tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
+            tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
+
+            __instance.UpdateWorldList(false);
+
             Localization.instance.Localize(__instance.transform);
         }
 
@@ -117,12 +180,26 @@ namespace Auga
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(listener);
         }
-    }
 
-    //UpdateCharacterList
+        private static void SetInputFieldListener(Transform root, string childName, UnityAction<string> listener)
+        {
+            var inputField = root.Find(childName).GetComponent<InputField>();
+            inputField.onValueChanged = new InputField.OnChangeEvent();
+            inputField.onValueChanged.AddListener(listener);
+        }
+
+        private static void SetToggleListener(Transform root, string childName, UnityAction<bool> listener)
+        {
+            var toggle = root.Find(childName).GetComponent<Toggle>();
+            toggle.onValueChanged = new Toggle.ToggleEvent();
+            toggle.onValueChanged.AddListener(listener);
+        }
+    }
+    
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateCharacterList))]
     public static class FejdStartup_UpdateCharacterList_Patch
     {
+        [UsedImplicitly]
         public static void Postfix(FejdStartup __instance)
         {
             var characterSelect = __instance.GetComponentInChildren<AugaCharacterSelect>(true);

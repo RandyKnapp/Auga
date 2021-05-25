@@ -27,6 +27,8 @@ namespace Auga
         public GameObject DamageText;
         public GameObject EnemyHud;
         public GameObject StoreGui;
+        public GameObject WorldListElement;
+        public GameObject ServerListElement;
     }
 
     public class AugaColors
@@ -143,6 +145,8 @@ namespace Auga
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
             Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
             Assets.StoreGui = assetBundle.LoadAsset<GameObject>("AugaStoreScreen");
+            Assets.WorldListElement = assetBundle.LoadAsset<GameObject>("WorldListElement");
+            Assets.ServerListElement = assetBundle.LoadAsset<GameObject>("ServerListElement");
         }
 
         private static void ApplyCursor()
