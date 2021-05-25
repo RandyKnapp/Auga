@@ -4,15 +4,15 @@ using System.IO;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.PostProcessing;
 using UnityEngine.UI;
-using UnityStandardAssets.ImageEffects;
 
 namespace AugaUnity
 {
     public class AugaCharacterSelectPhotoBooth : MonoBehaviour
     {
-        private const float FOV = 11;
         public RenderTexture RenderTexture;
+        public PostProcessingProfile Profile;
 
         public static bool TakingPhotos;
 
@@ -25,12 +25,8 @@ namespace AugaUnity
         [UsedImplicitly]
         public void Awake()
         {
-            _camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
-            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
-            _camera.fieldOfView = FOV;
-            _camera.targetTexture = RenderTexture;
-            _camera.GetComponent<DepthOfField>().enabled = false;
-            _camera.enabled = false;
+            _camera = CharacterPortraitsController.GetCamera(RenderTexture, Profile);
+            _camera.name = "AugaCamera PhotoBooth";
 
             _profileIndex = 0;
         }
@@ -44,7 +40,12 @@ namespace AugaUnity
         [UsedImplicitly]
         public void Update()
         {
-            //_camera.Render();
+            _camera.Render();
+            if (Input.GetKeyDown(KeyCode.Backspace))
+            {
+                _profileIndex = 0;
+                StartCoroutine(PhotoBoothCoroutine());
+            }
         }
 
         public IEnumerator PhotoBoothCoroutine()
@@ -75,6 +76,11 @@ namespace AugaUnity
             var profile = FejdStartup.instance.m_profiles[profileIndex];
             FejdStartup.instance.SetupCharacterPreview(profile);
 
+            //yield return new WaitForSeconds(1);
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
             yield return null;
 
             _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");

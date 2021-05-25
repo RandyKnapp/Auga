@@ -2,8 +2,8 @@
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.PostProcessing;
 using UnityEngine.UI;
 using UnityStandardAssets.ImageEffects;
 
@@ -21,10 +21,11 @@ namespace AugaUnity
         public RectTransform PortraitList;
         public RenderTexture RenderTexture;
         public PortraitMode Mode;
+        public PostProcessingProfile Profile;
 
         private Camera _camera;
         private Transform _lookTarget;
-        private float _fov = 11;
+        private const float FOV = 11;
         private Vector3 _offset = new Vector3(0, -0.05f, 0);
         private PlayerCustomizaton _playerCustomizaton;
         private readonly List<CharacterPortrait> _characterPortraits = new List<CharacterPortrait>();
@@ -35,15 +36,25 @@ namespace AugaUnity
         {
             _playerCustomizaton = FejdStartup.instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
 
-            _camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
-            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
-            _camera.fieldOfView = _fov;
-            _camera.targetTexture = RenderTexture;
-            _camera.GetComponent<DepthOfField>().enabled = false;
-            _camera.enabled = false;
+            _camera = GetCamera(RenderTexture, Profile);
+            _camera.name = "AugaCamera NewCharPortraits";
+        }
 
-            _camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
-            _camera.transform.rotation = FejdStartup.instance.m_cameraMarkerCharacter.rotation;
+        public static Camera GetCamera(RenderTexture renderTexture, PostProcessingProfile profile)
+        {
+            var camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
+            camera.fieldOfView = FOV;
+            camera.targetTexture = renderTexture;
+            camera.GetComponent<DepthOfField>().enabled = false;
+            camera.enabled = false;
+
+            camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
+            camera.transform.rotation = FejdStartup.instance.m_cameraMarkerCharacter.rotation;
+
+            var postProcessing = camera.GetComponent<PostProcessingBehaviour>();
+            postProcessing.profile = profile;
+
+            return camera;
         }
 
         public void InitializeChraracterPortraits()
@@ -81,7 +92,7 @@ namespace AugaUnity
 
         public void Update()
         {
-            var newLookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");;
+            var newLookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
             if (_characterPortraits.Count == 0 || _lookTarget != newLookTarget)
             {
                 InitializeChraracterPortraits();
