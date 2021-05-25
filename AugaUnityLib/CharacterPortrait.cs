@@ -2,6 +2,7 @@
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
 using UnityStandardAssets.ImageEffects;
@@ -27,6 +28,7 @@ namespace AugaUnity
         private Vector3 _offset = new Vector3(0, -0.05f, 0);
         private PlayerCustomizaton _playerCustomizaton;
         private readonly List<CharacterPortrait> _characterPortraits = new List<CharacterPortrait>();
+        private readonly Renderer[] _noRenderers = new Renderer[0];
 
         [UsedImplicitly]
         public void Awake()
@@ -58,10 +60,6 @@ namespace AugaUnity
                 var characterPortrait = Instantiate(PortraitPrefab, PortraitList);
                 var index = i;
                 characterPortrait.Button.onClick.AddListener(() => OnPortraitClick(index));
-                if (index == 1)
-                {
-                    Debug.LogWarning("Portrait 1: Setup");
-                }
                 characterPortrait.Setup(_playerCustomizaton, Mode, index);
                 _characterPortraits.Add(characterPortrait);
             }
@@ -95,7 +93,11 @@ namespace AugaUnity
             var player = _playerCustomizaton.GetPlayer();
             var visEquip = player.m_visEquipment;
             var itemInstance = Mode == PortraitMode.Hair ? visEquip.m_hairItemInstance : visEquip.m_beardItemInstance;
-            itemInstance?.SetActive(false);
+            var renderers = itemInstance?.GetComponentsInChildren<Renderer>() ?? _noRenderers;
+            foreach (var renderer in renderers)
+            {
+                renderer.forceRenderingOff = true;
+            }
 
             var currentIndex = Mode == PortraitMode.Hair ? _playerCustomizaton.GetHairIndex() : _playerCustomizaton.GetBeardIndex();
             for (var index = 0; index < _characterPortraits.Count; index++)
@@ -105,7 +107,10 @@ namespace AugaUnity
                 characterPortrait.DoRender(visEquip, _camera);
             }
 
-            itemInstance?.SetActive(true);
+            foreach (var renderer in renderers)
+            {
+                renderer.forceRenderingOff = false;
+            }
         }
     }
 

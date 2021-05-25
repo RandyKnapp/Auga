@@ -14,24 +14,6 @@ namespace Auga
         {
             var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
-            /*var callOriginal = !SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.MainMenuPrefab, "TextInput", out var newMainMenu);
-
-            newMainMenu.GetComponentInChildren<ChangeLog>().m_changeLog = originalChangeLogAsset;
-            Localization.instance.Localize(newMainMenu.transform);
-
-            return callOriginal;*/
-
-            /*__instance.HideElementByType<ChangeLog>();
-            __instance.m_versionLabel.HideElement();
-            __instance.m_mainMenu.HideElementByName("showlog");
-            __instance.m_mainMenu.HideElementByName("Embers");
-            __instance.m_mainMenu.HideElementByName("Embers (1)");
-            __instance.m_mainMenu.HideElementByName("Embers (2)");
-            __instance.m_mainMenu.HideElementByName("Embers (3)");
-            __instance.m_mainMenu.HideElementByName("LOGO");
-
-            Object.Instantiate(Auga.Assets.AugaLogo, __instance.m_mainMenu.transform);*/
-
             __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
             var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
@@ -48,6 +30,7 @@ namespace Auga
             var connectionFailedDialog = __instance.Replace("ConnectionFailed", Auga.Assets.MainMenuPrefab);
             __instance.m_connectionFailedPanel = connectionFailedDialog.gameObject;
             __instance.m_connectionFailedError = connectionFailedDialog.Find("Text").GetComponent<Text>();
+            SetButtonListener(connectionFailedDialog, "ButtonYes", __instance.OnConnectionFailedOk);
 
             var credits = __instance.Replace("Credits", Auga.Assets.MainMenuPrefab);
             __instance.m_creditsPanel = credits.gameObject;
@@ -58,9 +41,6 @@ namespace Auga
 
             __instance.m_loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab).gameObject;
             __instance.m_loading.SetActive(false);
-
-            //var newCharacterScreen = __instance.transform.Find("CharacterSelection/NewCharacterPanel");
-            //Object.Instantiate(Auga.Assets.MainMenuPrefab.transform.Find("CustomTest").gameObject, newCharacterScreen, false);
 
             var charSelect = __instance.Replace("CharacterSelection/SelectCharacter", Auga.Assets.MainMenuPrefab);
             __instance.m_selectCharacterPanel = charSelect.gameObject;
@@ -78,8 +58,8 @@ namespace Auga
             SetButtonListener(charSelect, "Panel/NewButtonBig", __instance.OnCharacterNew);
             SetButtonListener(charSelect, "Panel/Back", __instance.OnSelelectCharacterBack);
             SetButtonListener(charSelect, "Panel/Start", __instance.OnCharacterStart);
-            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonYes", __instance.OnButtonRemoveCharacterYes);
-            SetButtonListener(charSelect, "RemoveCharacterDialog/DividerMedium/Content/ButtonNo", __instance.OnButtonRemoveCharacterNo);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonYes", __instance.OnButtonRemoveCharacterYes);
+            SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonNo", __instance.OnButtonRemoveCharacterNo);
 
             var oldPlayerCustomizaton = __instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
             var originalNoHair = oldPlayerCustomizaton.m_noHair;
@@ -124,7 +104,7 @@ namespace Auga
             __instance.m_serverCount = startGame.Find("Panel/JoinPanel/ServerCount").GetComponent<Text>();
             __instance.m_serverRefreshButton = startGame.Find("Panel/JoinPanel/RefreshButton").GetComponent<Button>();
             __instance.m_filterInputField = startGame.Find("Panel/JoinPanel/Filter").GetComponent<InputField>();
-            __instance.m_passwordError = startGame.Find("Panel/WorldPanel/ServerPassword/ErrorText").GetComponent<Text>();
+            __instance.m_passwordError = startGame.Find("Panel/WorldPanel/ServerPassword/Tooltip/ErrorText").GetComponent<Text>();
             __instance.m_manualIPButton = startGame.Find("Panel/JoinPanel/JoinIPButton").GetComponent<Button>();
             __instance.m_joinIPPanel = startGame.Find("JoinIP").gameObject;
             __instance.m_joinIPJoinButton = startGame.Find("JoinIP/Connect").GetComponent<Button>();
@@ -156,8 +136,8 @@ namespace Auga
             SetButtonListener(startGame, "Panel/JoinPanel/JoinIPButton", __instance.OnJoinIPOpen);
             SetButtonListener(startGame, "Panel/JoinPanel/Back", __instance.OnStartGameBack);
             SetButtonListener(startGame, "Panel/JoinPanel/Connect", __instance.OnJoinStart);
-            SetButtonListener(startGame, "RemoveWorldDialog/DividerMedium/Content/ButtonYes", __instance.OnButtonRemoveWorldYes);
-            SetButtonListener(startGame, "RemoveWorldDialog/DividerMedium/Content/ButtonNo", __instance.OnButtonRemoveWorldNo);
+            SetButtonListener(startGame, "RemoveWorldDialog/ButtonYes", __instance.OnButtonRemoveWorldYes);
+            SetButtonListener(startGame, "RemoveWorldDialog/ButtonNo", __instance.OnButtonRemoveWorldNo);
             SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
             SetButtonListener(startGame, "NewWorldDialog/Done", __instance.OnNewWorldDone);
             SetButtonListener(startGame, "JoinIP/Cancel", __instance.OnJoinIPBack);
@@ -168,6 +148,8 @@ namespace Auga
             tabHandler.m_tabs[0].m_onClick.AddListener(__instance.OnSelectWorldTab);
             tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
             tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
+
+            __instance.m_menuAnimator.runtimeAnimatorController = Auga.Assets.MainMenuPrefab.GetComponent<Animator>().runtimeAnimatorController;
 
             __instance.UpdateWorldList(false);
 
@@ -207,6 +189,17 @@ namespace Auga
             {
                 characterSelect.UpdateCharacterList();
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdatePasswordError))]
+    public static class FejdStartup_UpdatePasswordError_Patch
+    {
+        [UsedImplicitly]
+        public static void Postfix(FejdStartup __instance)
+        {
+            var hasErrorText = !string.IsNullOrEmpty(__instance.m_passwordError.text);
+            __instance.m_passwordError.transform.parent.gameObject.SetActive(hasErrorText);
         }
     }
 }

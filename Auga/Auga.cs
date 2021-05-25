@@ -29,6 +29,8 @@ namespace Auga
         public GameObject StoreGui;
         public GameObject WorldListElement;
         public GameObject ServerListElement;
+        public GameObject PasswordDialog;
+        public GameObject ConnectingDialog;
     }
 
     public class AugaColors
@@ -147,6 +149,8 @@ namespace Auga
             Assets.StoreGui = assetBundle.LoadAsset<GameObject>("AugaStoreScreen");
             Assets.WorldListElement = assetBundle.LoadAsset<GameObject>("WorldListElement");
             Assets.ServerListElement = assetBundle.LoadAsset<GameObject>("ServerListElement");
+            Assets.PasswordDialog = assetBundle.LoadAsset<GameObject>("AugaPassword");
+            Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
         }
 
         private static void ApplyCursor()
