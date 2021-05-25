@@ -1,4 +1,5 @@
-﻿using AugaUnity;
+﻿using System.Collections;
+using AugaUnity;
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -153,6 +154,8 @@ namespace Auga
 
             __instance.UpdateWorldList(false);
 
+            Object.Instantiate(Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true), __instance.transform);
+
             Localization.instance.Localize(__instance.transform);
         }
 
@@ -200,6 +203,40 @@ namespace Auga
         {
             var hasErrorText = !string.IsNullOrEmpty(__instance.m_passwordError.text);
             __instance.m_passwordError.transform.parent.gameObject.SetActive(hasErrorText);
+        }
+    }
+
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnNewCharacterDone))]
+    public static class FejdStartup_OnNewCharacterDone_Patch
+    {
+        [UsedImplicitly]
+        public static void Postfix(FejdStartup __instance)
+        {
+            var photoBooth = __instance.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true);
+            photoBooth.StartCoroutine(NewCharPhotoCoroutine(__instance, photoBooth));
+        }
+
+        private static IEnumerator NewCharPhotoCoroutine(FejdStartup instance, AugaCharacterSelectPhotoBooth photoBooth)
+        {
+            yield return photoBooth.TakePhoto(instance.m_profileIndex);
+            instance.UpdateCharacterList();
+        }
+    }
+
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.ClearCharacterPreview))]
+    public static class FejdStartup_ClearCharacterPreview_Patch
+    {
+        [UsedImplicitly]
+        public static bool Prefix(FejdStartup __instance)
+        {
+            if (AugaCharacterSelectPhotoBooth.TakingPhotos)
+            {
+                Object.Destroy(__instance.m_playerInstance);
+                __instance.m_playerInstance = null;
+                return false;
+            }
+
+            return true;
         }
     }
 }
