@@ -37,7 +37,7 @@ namespace AugaUnity
             StartCoroutine(PhotoBoothCoroutine());
         }
 
-        [UsedImplicitly]
+        /*[UsedImplicitly]
         public void Update()
         {
             _camera.Render();
@@ -46,7 +46,7 @@ namespace AugaUnity
                 _profileIndex = 0;
                 StartCoroutine(PhotoBoothCoroutine());
             }
-        }
+        }*/
 
         public IEnumerator PhotoBoothCoroutine()
         {
@@ -77,11 +77,10 @@ namespace AugaUnity
             FejdStartup.instance.SetupCharacterPreview(profile);
 
             //yield return new WaitForSeconds(1);
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
+            for (int i = 0; i < 30; i++)
+            {
+                yield return null;
+            }
 
             _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
             _camera.transform.LookAt(_lookTarget.position + _offset);
