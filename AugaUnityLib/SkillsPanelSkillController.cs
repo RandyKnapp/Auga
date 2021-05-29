@@ -11,6 +11,8 @@ namespace AugaUnity
         public Image ProgressBarAccumulator;
         public Text NameText;
         public Text LevelText;
+        public float StartFill;
+        public float EndFill;
 
         protected SkillTooltip _skillTooltip;
 
@@ -35,10 +37,8 @@ namespace AugaUnity
                 Icon.sprite = skillData.m_info.m_icon;
                 NameText.text = Localization.instance.Localize("$skill_" + SkillType.ToString().ToLower());
                 LevelText.text = $"$level {skillData.m_level:0}";
-                const float start = 0.02f;
-                const float end = 0.5f - start;
-                ProgressBarLevel.fillAmount = Mathf.Lerp(start, end, skillData.m_level / 100f);
-                ProgressBarAccumulator.fillAmount = Mathf.Lerp(start, end, skillData.GetLevelPercentage());
+                ProgressBarLevel.fillAmount = Mathf.Lerp(StartFill, EndFill, skillData.m_level / 100f);
+                ProgressBarAccumulator.fillAmount = Mathf.Lerp(StartFill, EndFill, skillData.GetLevelPercentage());
             }
         }
 

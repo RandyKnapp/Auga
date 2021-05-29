@@ -121,15 +121,14 @@ namespace Auga
             var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
             __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
             __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
-            __instance.m_buildIcon = selectedPiece.Find("IconBG/PieceIcon").GetComponent<Image>();
+            __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
             var requirements = selectedPiece.Find("Requirements");
-            __instance.m_requirementItems = new []{
+            __instance.m_requirementItems = new [] {
                 requirements.GetChild(0).gameObject,
                 requirements.GetChild(1).gameObject,
                 requirements.GetChild(2).gameObject,
                 requirements.GetChild(3).gameObject,
                 requirements.GetChild(4).gameObject,
-                requirements.GetChild(5).gameObject,
             };
 
             __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
@@ -257,6 +256,19 @@ namespace Auga
                 __instance.m_shipRudderIndicator.fillClockwise = false;
                 __instance.m_shipRudderIndicator.fillAmount = -rudderValue * RudderMinMax;
             }
+        }
+    }
+
+    //public void SetupPieceInfo(Piece piece)
+    [HarmonyPatch(typeof(Hud), nameof(Hud.SetupPieceInfo))]
+    public static class Hud_SetupPieceInfo_Patch
+    {
+        public static void Postfix(Hud __instance, Piece piece)
+        {
+            __instance.m_pieceDescription.gameObject.SetActive(!string.IsNullOrEmpty(__instance.m_pieceDescription.text));
+
+            var requireItemsContainer = __instance.m_requirementItems[0].transform.parent;
+            requireItemsContainer.gameObject.SetActive(piece.m_resources?.Length > 0);
         }
     }
 }

@@ -94,7 +94,6 @@ namespace AugaUnity
         [CanBeNull] public Image DiamondBackground;
         [CanBeNull] public Image SkillBackground;
         [CanBeNull] public GameObject NormalDivider;
-        [CanBeNull] public GameObject WideDivider;
         public Text Topic;
         public Text Subtitle;
         [CanBeNull] public Text DescriptionText;
@@ -234,15 +233,6 @@ namespace AugaUnity
             if (SkillBackground != null)
             {
                 SkillBackground.enabled = type == ObjectBackgroundType.Skill;
-            }
-
-            if (NormalDivider != null)
-            {
-                NormalDivider.SetActive(type != ObjectBackgroundType.Skill);
-            }
-            if (WideDivider != null)
-            {
-                WideDivider.SetActive(type == ObjectBackgroundType.Skill);
             }
         }
 

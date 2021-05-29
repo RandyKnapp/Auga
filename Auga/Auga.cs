@@ -220,4 +220,29 @@ namespace Auga
             }
         }
     }
+
+    [HarmonyPatch(typeof(Console), nameof(Console.InputText))]
+    public static class Console_InputText_Patch
+    {
+        public static bool Prefix(Console __instance)
+        {
+            var input = __instance.m_input.text;
+            var args = input.Split(' ');
+            if (args.Length == 0)
+            {
+                return true;
+            }
+
+            var player = Player.m_localPlayer;
+
+            var command = args[0];
+            if (command == "resetbiomes" && player != null)
+            {
+                player.m_knownBiome = new HashSet<Heightmap.Biome>();
+                return false;
+            }
+
+            return true;
+        }
+    }
 }
