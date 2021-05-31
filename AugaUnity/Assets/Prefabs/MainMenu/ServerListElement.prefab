@@ -30,8 +30,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 2363007146482591896}
   - {fileID: 5411265443444450525}
+  - {fileID: 2363007146482591896}
   - {fileID: 8174306720948967423}
   - {fileID: 1972653622399996927}
   - {fileID: 6192479818982846605}
@@ -86,8 +86,8 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 0}
     m_HighlightedColor: {r: 0.43921572, g: 0.3921569, b: 0.34117648, a: 1}
-    m_PressedColor: {r: 0.7254902, g: 0.5411765, b: 0.07058824, a: 1}
-    m_SelectedColor: {r: 0.7254902, g: 0.5411765, b: 0.07058824, a: 0}
+    m_PressedColor: {r: 0.12941177, g: 0.38823533, b: 0.53333336, a: 1}
+    m_SelectedColor: {r: 0.12941177, g: 0.38823533, b: 0.53333336, a: 0}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0
@@ -355,6 +355,7 @@ GameObject:
   - component: {fileID: 5557460650449525203}
   - component: {fileID: 4083555102270337212}
   - component: {fileID: 1651469730424127031}
+  - component: {fileID: 1032056979495946023}
   m_Layer: 5
   m_Name: Private
   m_TagString: Untagged
@@ -418,6 +419,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1032056979495946023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4074175879491635921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!1 &5311217104651303600
 GameObject:
   m_ObjectHideFlags: 0
@@ -448,7 +464,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 490117351609226943}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -522,7 +538,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 490117351609226943}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -550,7 +566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.45882356, g: 0.3372549, b: 0.03137255, a: 1}
+  m_Color: {r: 0.12941177, g: 0.38823533, b: 0.53333336, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:

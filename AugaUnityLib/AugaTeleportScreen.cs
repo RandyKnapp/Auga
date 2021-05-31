@@ -31,9 +31,12 @@ namespace AugaUnity
                 _stage.transform.position = new Vector3(9000, 9000, 9000);
                 _stage.SetActive(false);
 
-                _camera = Instantiate(GameCamera.instance.m_camera, _stage.transform, false);
+                var previousCamera = GameCamera.instance;
+                _camera = Instantiate(previousCamera.m_camera, _stage.transform, false);
                 _camera.enabled = false;
                 _camera.GetComponent<GameCamera>().enabled = false;
+                DestroyImmediate(_camera.GetComponent<GameCamera>());
+                GameCamera.m_instance = previousCamera;
                 _camera.tag = "Untagged";
                 _camera.name = "PortalCamera";
 

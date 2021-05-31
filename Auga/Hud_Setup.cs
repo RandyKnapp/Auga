@@ -1,4 +1,5 @@
-﻿using AugaUnity;
+﻿using System.Collections;
+using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
@@ -269,6 +270,56 @@ namespace Auga
 
             var requireItemsContainer = __instance.m_requirementItems[0].transform.parent;
             requireItemsContainer.gameObject.SetActive(piece.m_resources?.Length > 0);
+        }
+    }
+
+    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateCrosshair))]
+    public static class Hud_UpdateCrosshair_Patch
+    {
+        public static void Postfix(Hud __instance)
+        {
+            __instance.m_hoverName.text = __instance.m_hoverName.text.Replace("<color=yellow>", $"<color={Auga.Colors.Topic}>");
+        }
+    }
+
+    //StaminaBarNoStaminaFlash
+    [HarmonyPatch(typeof(Hud), nameof(Hud.StaminaBarNoStaminaFlash))]
+    public static class Hud_StaminaBarNoStaminaFlash_Patch
+    {
+        private const float FlashDuration = 0.15f;
+        private static Coroutine _staminaFlashCoroutine;
+
+        public static bool Prefix(Hud __instance)
+        {
+            if (_staminaFlashCoroutine != null)
+            {
+                __instance.StopCoroutine(_staminaFlashCoroutine);
+            }
+
+            _staminaFlashCoroutine = __instance.StartCoroutine(FlashStaminaBar(__instance));
+            return false;
+        }
+
+        private static IEnumerator FlashStaminaBar(Hud instance)
+        {
+            var staminaBarBorder = instance.m_staminaAnimator.transform.Find("Border").GetComponent<Image>();
+
+            for (var i = 0; i < 3; i++)
+            {
+                staminaBarBorder.color = Color.white;
+                yield return new WaitForSeconds(FlashDuration);
+                staminaBarBorder.color = Color.black;
+                yield return new WaitForSeconds(FlashDuration);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(GameCamera), nameof(GameCamera.Awake))]
+    public static class GameCamera_Awake_Patch
+    {
+        public static void Postfix(GameCamera __instance)
+        {
+            Debug.LogWarning($"GameCamera.Awake: {__instance.name}");
         }
     }
 }

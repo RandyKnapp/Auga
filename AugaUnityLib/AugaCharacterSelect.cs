@@ -37,17 +37,6 @@ namespace AugaUnity
             StartCoroutine(PhotoBoothCoroutine());
         }
 
-        /*[UsedImplicitly]
-        public void Update()
-        {
-            _camera.Render();
-            if (Input.GetKeyDown(KeyCode.Backspace))
-            {
-                _profileIndex = 0;
-                StartCoroutine(PhotoBoothCoroutine());
-            }
-        }*/
-
         public IEnumerator PhotoBoothCoroutine()
         {
             TakingPhotos = true;
@@ -139,18 +128,31 @@ namespace AugaUnity
         public Text CharacterName;
         public Button Button;
         public GameObject Selected;
+        public Text StatsText;
+
+        public Color NameColorSelected;
+        public Color StatsTextColorSelected;
 
         private Texture2D _texture;
         private PlayerProfile _profile;
         private int _index;
+        private Color _originalNameColor;
+        private Color _originalStatsTextColor;
+
+        public void Awake()
+        {
+            _originalNameColor = CharacterName.color;
+            _originalStatsTextColor = StatsText.color;
+            Update();
+        }
 
         public void Setup(PlayerProfile profile, int index, RenderTexture renderTexture)
         {
             _profile = profile;
             _index = index;
             CharacterName.text = profile.m_playerName;
-            Selected.SetActive(_index == FejdStartup.instance.m_profileIndex);
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
+            StatsText.text = $"{profile.m_playerStats.m_deaths}\n{profile.m_playerStats.m_builds}\n{profile.m_playerStats.m_crafts}";
 
             var outputFileName = profile.m_filename + ".png";
             var outputFilePath = Utils.GetSaveDataPath() + "/characters/" + outputFileName;
@@ -163,11 +165,16 @@ namespace AugaUnity
 
                 Image.texture = _texture;
             }
+
+            Update();
         }
 
         public void Update()
         {
-            Selected.SetActive(_index == FejdStartup.instance.m_profileIndex);
+            var selected = _index == FejdStartup.instance.m_profileIndex;
+            Selected.SetActive(selected);
+            CharacterName.color = selected ? NameColorSelected : _originalNameColor;
+            StatsText.color = selected ? StatsTextColorSelected : _originalStatsTextColor;
         }
 
         [UsedImplicitly]
