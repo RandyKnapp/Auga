@@ -1,7 +1,9 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Auga
@@ -34,6 +36,7 @@ namespace Auga
 
             var minimap = __instance.GetComponentInChildren<Minimap>();
             var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
+            var originalMiniMapMaterialLarge = minimap.m_mapImageLarge.material;
 
             var newMiniMap = __instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
             minimap.m_smallRoot = newMiniMap.gameObject;
@@ -45,6 +48,30 @@ namespace Auga
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
 
+            var newMap = __instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
+            minimap.m_largeRoot = newMap.gameObject;
+            minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
+            minimap.m_mapImageLarge.material = originalMiniMapMaterialLarge;
+            minimap.m_pinRootLarge = (RectTransform)newMap.Find("map/pin_root");
+            minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<Text>();
+            minimap.m_largeShipMarker = (RectTransform)newMap.Find("map/ship_marker");
+            minimap.m_largeMarker = (RectTransform)newMap.Find("map/player_marker");
+            minimap.m_gamepadCrosshair = (RectTransform)newMap.Find("GamepadCrosshair");
+            minimap.m_publicPosition = newMap.Find("PublicPanel").GetComponent<Toggle>();
+            minimap.m_selectedIcon0 = newMap.Find("IconPanel/Icon0/Selected").GetComponent<Image>();
+            minimap.m_selectedIcon1 = newMap.Find("IconPanel/Icon1/Selected").GetComponent<Image>();
+            minimap.m_selectedIcon2 = newMap.Find("IconPanel/Icon2/Selected").GetComponent<Image>();
+            minimap.m_selectedIcon3 = newMap.Find("IconPanel/Icon3/Selected").GetComponent<Image>();
+            minimap.m_selectedIcon4 = newMap.Find("IconPanel/Icon4/Selected").GetComponent<Image>();
+            minimap.m_nameInput = newMap.Find("NameField").GetComponent<InputField>();
+
+            SetToggleListener(newMap.transform, "PublicPanel", (_) => minimap.OnTogglePublicPosition());
+            SetButtonListener(newMap.transform, "IconPanel/Icon0", minimap.OnPressedIcon0);
+            SetButtonListener(newMap.transform, "IconPanel/Icon1", minimap.OnPressedIcon1);
+            SetButtonListener(newMap.transform, "IconPanel/Icon2", minimap.OnPressedIcon2);
+            SetButtonListener(newMap.transform, "IconPanel/Icon3", minimap.OnPressedIcon3);
+            SetButtonListener(newMap.transform, "IconPanel/Icon4", minimap.OnPressedIcon4);
+
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
             __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
 
@@ -53,7 +80,7 @@ namespace Auga
             var newCrosshair = __instance.Replace("hudroot/crosshair", Auga.Assets.Hud);
             __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
             __instance.m_crosshairBow = newCrosshair.Find("crosshair_bow").GetComponent<Image>();
-            __instance.m_hoverName = newCrosshair.Find("HoverName").GetComponent<Text>();
+            __instance.m_hoverName = newCrosshair.Find("Dummy/HoverName").GetComponent<Text>();
             __instance.m_pieceHealthRoot = (RectTransform) newCrosshair.Find("PieceHealthRoot");
             __instance.m_pieceHealthBar = newCrosshair.Find("PieceHealthRoot/PieceHealthBar").GetComponent<GuiBar>();
             __instance.m_targetedAlert = newCrosshair.Find("Sneak/Alert").gameObject;
@@ -151,6 +178,22 @@ namespace Auga
             __instance.m_shipWindIconRoot = (RectTransform)shipHud.Find("WindIndicator/Wind");
             __instance.m_shipRudderIndicator = shipHud.Find("Controls/RudderIndicatorBG/RudderIndicatorMask/RudderIndicator").GetComponent<Image>();
             __instance.m_shipRudderIcon = shipHud.Find("Controls/RudderIcon").GetComponent<Image>();
+
+            Localization.instance.Localize(__instance.transform);
+        }
+
+        private static void SetButtonListener(Transform root, string childName, UnityAction listener)
+        {
+            var button = root.Find(childName).GetComponent<Button>();
+            button.onClick = new Button.ButtonClickedEvent();
+            button.onClick.AddListener(listener);
+        }
+
+        private static void SetToggleListener(Transform root, string childName, UnityAction<bool> listener)
+        {
+            var toggle = root.Find(childName).GetComponent<Toggle>();
+            toggle.onValueChanged = new Toggle.ToggleEvent();
+            toggle.onValueChanged.AddListener(listener);
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
@@ -276,9 +319,108 @@ namespace Auga
     [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateCrosshair))]
     public static class Hud_UpdateCrosshair_Patch
     {
+        public static Transform AugaHoverText;
+        public static Text HoverTextPrefab;
+        public static GameObject HoverTextWithButtonPrefab;
+        public static GameObject HoverTextWithButtonRangePrefab;
+
+        private static string _lastHoverText;
+        private static readonly Dictionary<string, string> _cachedKeyNames = new Dictionary<string, string>();
+
         public static void Postfix(Hud __instance)
         {
-            __instance.m_hoverName.text = __instance.m_hoverName.text.Replace("<color=yellow>", $"<color={Auga.Colors.Topic}>");
+            if (HoverTextPrefab == null)
+            {
+                AugaHoverText = __instance.m_crosshair.transform.parent.Find("AugaHoverText");
+                HoverTextPrefab = __instance.m_hoverName;
+                HoverTextWithButtonPrefab = __instance.m_crosshair.transform.parent.Find("Dummy/HoverNameWithButton").gameObject;
+                HoverTextWithButtonRangePrefab = __instance.m_crosshair.transform.parent.Find("Dummy/HoverNameWithButtonRange").gameObject;
+            }
+
+            if (!string.IsNullOrEmpty(__instance.m_hoverName.text))
+            {
+                ColorUtility.TryParseHtmlString(Auga.Colors.BrightestGold, out var brightestGold);
+                __instance.m_crosshair.color = brightestGold;
+            }
+            else
+            {
+                __instance.m_crosshair.color = new Color(1f, 1f, 1f, 0.5f);
+            }
+
+            AugaHoverText.gameObject.SetActive(__instance.m_hoverName.gameObject.activeSelf);
+
+            if (_lastHoverText != __instance.m_hoverName.text)
+            {
+                _lastHoverText = __instance.m_hoverName.text;
+                foreach (Transform child in AugaHoverText)
+                {
+                    Object.Destroy(child.gameObject);
+                }
+
+                var parts = _lastHoverText.Split('\n');
+                foreach (var part in parts)
+                {
+                    if (part.StartsWith("["))
+                    {
+                        var closingBracketIndex = part.IndexOf(']');
+                        if (closingBracketIndex > 0)
+                        {
+                            var textInBracket = part.Substring(1, closingBracketIndex - 1);
+                            textInBracket = textInBracket.Replace("<color=yellow>", "").Replace("<b>", "").Replace("</b>", "").Replace("</color>", "").Trim();
+                            var otherText = part.Substring(closingBracketIndex + 1).Trim();
+
+                            if (textInBracket == "1-8")
+                            {
+                                var lineWithRange = Object.Instantiate(HoverTextWithButtonRangePrefab, AugaHoverText, false);
+                                lineWithRange.SetActive(true);
+                                var bindings = lineWithRange.GetComponentsInChildren<AugaBindingDisplay>();
+                                bindings[0].SetText("1");
+                                bindings[1].SetText("8");
+                                var text = lineWithRange.transform.Find("Text").GetComponent<Text>();
+                                text.text = otherText;
+
+                                continue;
+                            }
+
+                            if (_cachedKeyNames.Count == 0)
+                            {
+                                foreach (var buttonEntry in ZInput.instance.m_buttons)
+                                {
+                                    var bindingDisplay = Localization.instance.GetBoundKeyString(buttonEntry.Key);
+                                    if (!_cachedKeyNames.ContainsKey(bindingDisplay))
+                                    {
+                                        _cachedKeyNames.Add(bindingDisplay, buttonEntry.Key);
+                                    }
+                                }
+                            }
+
+                            if (_cachedKeyNames.TryGetValue(textInBracket, out var keyName))
+                            {
+                                var lineWithBinding = Object.Instantiate(HoverTextWithButtonPrefab, AugaHoverText, false);
+                                lineWithBinding.SetActive(true);
+                                var binding = lineWithBinding.GetComponentInChildren<AugaBindingDisplay>();
+                                binding.SetBinding(keyName);
+                                var text = lineWithBinding.transform.Find("Text").GetComponent<Text>();
+                                text.text = otherText;
+                                continue;
+                            }
+                        }
+                    }
+
+                    var line = Object.Instantiate(HoverTextPrefab, AugaHoverText, false);
+                    line.gameObject.SetActive(true);
+                    line.text = part;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(ZInput), nameof(ZInput.Save))]
+        public static class ZInput_Save_Patch
+        {
+            public static void Postfix()
+            {
+                _cachedKeyNames.Clear();
+            }
         }
     }
 

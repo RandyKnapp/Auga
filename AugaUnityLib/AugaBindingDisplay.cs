@@ -77,6 +77,11 @@ namespace AugaUnity
                 localizedKeyString = ((char)keycode).ToString();
             }
 
+            SetText(localizedKeyString, showMouse);
+        }
+
+        public void SetText(string localizedKeyString, int showMouse = -1)
+        {
             var isOneCharLong = localizedKeyString.Length == 1;
             (isOneCharLong ? KeybindText : LongKeybindText).text = localizedKeyString;
             KeybindBox.SetActive(showMouse < 0 && isOneCharLong);

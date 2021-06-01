@@ -27,7 +27,6 @@ namespace AugaUnity
                 case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
                 case ItemDrop.ItemData.ItemType.Bow:
                 case ItemDrop.ItemData.ItemType.Shield:
-                case ItemDrop.ItemData.ItemType.Torch:
                 case ItemDrop.ItemData.ItemType.Helmet:
                 case ItemDrop.ItemData.ItemType.Chest:
                 case ItemDrop.ItemData.ItemType.Legs:

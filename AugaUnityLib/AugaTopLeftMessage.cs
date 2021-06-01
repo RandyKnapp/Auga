@@ -120,14 +120,7 @@ namespace AugaUnity
                 Destroy(LogContainer.GetChild(0).gameObject);
             }
 
-            if (amount > 0)
-            {
-                TryAddExistingMessage(text, icon, amount);
-            }
-            else
-            {
-                AddNewMessage(text, icon, amount);
-            }
+            TryAddExistingMessage(text, icon, amount);
         }
 
         private void TryAddExistingMessage(string text, Sprite icon, int amount)
