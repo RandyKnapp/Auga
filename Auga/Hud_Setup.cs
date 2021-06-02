@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using AugaUnity;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -462,6 +465,27 @@ namespace Auga
         public static void Postfix(GameCamera __instance)
         {
             Debug.LogWarning($"GameCamera.Awake: {__instance.name}");
+        }
+    }
+
+    //UpdateBuild
+    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild))]
+    public static class Hud_UpdateBuild_Patch
+    {
+        [UsedImplicitly]
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Ldstr && instruction.OperandIs(" [<color=yellow>"))
+                {
+                    yield return new CodeInstruction(OpCodes.Ldstr, $" [<color={Auga.Colors.BrightestGold}>");
+                }
+                else
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -80,7 +79,7 @@ namespace AugaUnity
                 }
             }
 
-            return results.Count == 0 ? "-" : string.Join(" | ", results);
+            return results.Count == 0 ? "-" : string.Join("\n", results);
         }
 
         private static string GetDamageString(ItemDrop.ItemData itemData, float levelFactor)
@@ -90,7 +89,9 @@ namespace AugaUnity
                 return "<no primary>";
             }
 
-            return itemData.GetDamage().GetTooltipString().Trim().Replace("\n", ", ").Replace(": <color=yellow>", " ").Replace("</color>", "");
+            var modifiedDamage = itemData.GetDamage().Clone();
+            modifiedDamage.Modify(levelFactor);
+            return modifiedDamage.GetTooltipString().Trim().Replace("\n", ", ").Replace(": <color=yellow>", " ").Replace("</color>", "");
         }
 
         public static List<HitData.DamageType> GetDamageTypes(Humanoid humanoid, HitData.DamageModifier modifier)
@@ -111,26 +112,20 @@ namespace AugaUnity
 
     public class AugaCompendiumController : MonoBehaviour
     {
-        public AugaTabController TabController;
+        public TabHandler TabController;
         public TextsDialog Compendium;
         public GameObject BestiaryContent;
         public RectTransform BestiaryList;
         public GameObject BestiaryListElementPrefab;
-        public Image BestiaryIllustration;
-        public Sprite BestiaryIllustrationPlaceholder;
         public Text BestiaryName;
-        public Text BestiaryBiome;
-        public Text BestiaryHostility;
-        public Text BestiaryTameable;
         public Text BestiaryDescription;
-        public CompendiumItem TrophyIcon;
+        public CompendiumItem CompendiumItemPrefab;
         public RectTransform DropsContainer;
         public List<BestiaryStatBlock> StatBlocks;
 
         protected readonly List<KeyValuePair<string, GameObject>> _bestiaryItems = new List<KeyValuePair<string, GameObject>>();
         protected int _selectedBestiaryItem = -1;
         protected Dictionary<string, Humanoid> _trophyToMonsterCache;
-        protected Dictionary<string, string> _monsterToLocationStringCache;
 
         protected virtual void SetupTrophyToMonsterCache()
         {
@@ -180,86 +175,13 @@ namespace AugaUnity
             }
         }
 
-        public virtual void SetupMonsterToLocationStringCache()
-        {
-            if (ZoneSystem.instance == null || _trophyToMonsterCache == null)
-            {
-                return;
-            }
-
-            _monsterToLocationStringCache = new Dictionary<string, string>();
-            var monsters = _trophyToMonsterCache.Values;
-
-            foreach (var monsterPrefab in monsters)
-            {
-                var monsterPrefabName = monsterPrefab.name;
-                var locations = new HashSet<string>();
-                foreach (var location in ZoneSystem.instance.m_locations)
-                {
-                    if (location.m_prefab == null)
-                    {
-                        continue;
-                    }
-
-                    var spawners = location.m_prefab.GetComponentsInChildren<CreatureSpawner>(true);
-                    foreach (var spawner in spawners)
-                    {
-                        if (spawner.m_creaturePrefab != null && spawner.m_creaturePrefab.name == monsterPrefabName)
-                        {
-                            var teleports = location.m_prefab.GetComponentsInChildren<Teleport>(true).Where(x => !string.IsNullOrEmpty(x.m_enterText));
-                            if (teleports.Any())
-                            {
-                                foreach (var teleport in teleports)
-                                {
-                                    locations.Add(teleport.m_enterText);
-                                }
-                            }
-                            else
-                            {
-                                locations.Add($"$biome_{location.m_biome.ToString().ToLowerInvariant()}");
-                            }
-                        }
-                    }
-
-                    var offeringBowls = location.m_prefab.GetComponentsInChildren<OfferingBowl>();
-                    foreach (var offeringBowl in offeringBowls)
-                    {
-                        if (offeringBowl.m_bossPrefab != null && offeringBowl.m_bossPrefab.name == monsterPrefabName)
-                        {
-                            locations.Add($"$biome_{location.m_biome.ToString().ToLowerInvariant()}");
-                        }
-                    }
-                }
-
-                if (locations.Count > 0)
-                {
-                    var locationsString = string.Join(", ", locations);
-                    Debug.LogWarning($"{monsterPrefabName}: {locationsString}");
-                    _monsterToLocationStringCache.Add(monsterPrefabName, locationsString);
-                }
-            } 
-        }
-
-        public virtual void Awake()
-        {
-            TabController.OnTabChanged += OnTabChanged;
-        }
-
         public virtual void ShowCompendium()
         {
             gameObject.SetActive(true);
-            TabController.SelectTab(0);
+            TabController.SetActiveTab(0);
             Compendium.Setup(Player.m_localPlayer);
             SetupBestiary();
             Menu.instance.m_settingsInstance = gameObject;
-        }
-
-        private void OnTabChanged(int previousTab, int newTab)
-        {
-            if (newTab == 1)
-            {
-                OnBestiaryItemClicked(0);
-            }
         }
 
         public virtual void HideCompendium()
@@ -279,8 +201,7 @@ namespace AugaUnity
         public virtual void SetupBestiary()
         {
             SetupTrophyToMonsterCache();
-            SetupMonsterToLocationStringCache();
-            if (_trophyToMonsterCache == null || _monsterToLocationStringCache == null)
+            if (_trophyToMonsterCache == null)
             {
                 return;
             }
@@ -289,11 +210,10 @@ namespace AugaUnity
             if (player == null)
             {
                 BestiaryContent.SetActive(false);
-                BestiaryIllustration.sprite = BestiaryIllustrationPlaceholder;
                 return;
             }
 
-            BestiaryContent.SetActive(true);
+            BestiaryContent.SetActive(_bestiaryItems.Count > 0);
 
             foreach (var bestiaryItem in _bestiaryItems)
             {
@@ -306,7 +226,6 @@ namespace AugaUnity
 
             for (var index = 0; index < trophies.Count; ++index)
             {
-                // TODO: Fix bug with some kind of ordering issue in the list
                 var trophyName = trophies[index];
                 var trophyItemPrefab = ObjectDB.instance.GetItemPrefab(trophyName);
                 if (trophyItemPrefab == null)
@@ -384,12 +303,7 @@ namespace AugaUnity
 
             BestiaryContent.SetActive(true);
             BestiaryName.text = humanoidPrefab.m_name;
-            BestiaryHostility.text = humanoidPrefab.GetComponent<MonsterAI>() != null ? "$aggressive" : "$passive";
-            _monsterToLocationStringCache.TryGetValue(humanoidPrefab.name, out var locations);
-            BestiaryBiome.text = string.IsNullOrEmpty(locations) ? "???" : locations;
-            BestiaryTameable.text = humanoidPrefab.GetComponent<Tameable>() != null ? "$tameable" : "$untameable";
             BestiaryDescription.text = trophyItem.m_itemData.m_shared.m_name + "_lore";
-            TrophyIcon.SetItem(trophyItem.m_itemData);
 
             foreach (Transform child in DropsContainer)
             {
@@ -398,7 +312,7 @@ namespace AugaUnity
 
             foreach (var drop in humanoidPrefab.GetComponent<CharacterDrop>().m_drops)
             {
-                var dropElement = Instantiate(TrophyIcon, DropsContainer);
+                var dropElement = Instantiate(CompendiumItemPrefab, DropsContainer);
                 var amountText = (drop.m_amountMin == drop.m_amountMax ? $"{drop.m_amountMin}" : $"{drop.m_amountMin}-{drop.m_amountMax}") + $" ({Mathf.CeilToInt(drop.m_chance * 100)}%)";
                 dropElement.SetItem(drop.m_prefab.GetComponent<ItemDrop>().m_itemData, amountText);
             }
@@ -411,5 +325,10 @@ namespace AugaUnity
 
             Localization.instance.Localize(BestiaryContent.transform);
         }
+    }
+
+    public class AugaTextsDialogFilter : MonoBehaviour
+    {
+        public string Filter;
     }
 }

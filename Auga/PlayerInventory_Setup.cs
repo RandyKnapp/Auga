@@ -255,23 +255,5 @@ namespace Auga
                 }
             }
         }
-
-        [HarmonyPatch(typeof(TextsDialog))]
-        public static class TextsDialog_Patch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch(nameof(TextsDialog.AddActiveEffects))]
-            public static bool AddActiveEffects_Prefix()
-            {
-                return false;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyPatch(nameof(TextsDialog.AddLog))]
-            public static bool AddLog_Prefix()
-            {
-                return false;
-            }
-        }
     }
 }

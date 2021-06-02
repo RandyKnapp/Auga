@@ -7,4 +7,9 @@ namespace AugaUnity
     public class AlwaysUpper : MonoBehaviour
     {
     }
+
+    [RequireComponent(typeof(Text))]
+    public class TitleCase : MonoBehaviour
+    {
+    }
 }
