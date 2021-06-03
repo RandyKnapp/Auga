@@ -23,22 +23,18 @@ namespace AugaUnity
 
     public class BestiaryStatBlock : MonoBehaviour
     {
-        public GameObject Level0Label;
-        public GameObject Level1Star;
-        public GameObject Level2Star;
+        public Text LevelLabel;
+        public GameObject LevelStar;
         public Text Health;
-        public Text Damage;
         public Text Weakness;
         public Text Resistance;
         public Text Immune;
 
         public virtual void SetStats(Humanoid humanoid, int level)
         {
-            Level0Label.SetActive(level == 1);
-            Level1Star.SetActive(level >= 2);
-            Level2Star.SetActive(level >= 3);
+            LevelLabel.text = level == 1 ? "$baselevel" : (level - 1).ToString();
+            LevelStar.SetActive(level >= 2);
             Health.text = GetMaxHealth(humanoid, level).ToString("0");
-            Damage.text = GetDamage(humanoid, level);
 
             var weak = GetDamageTypes(humanoid, HitData.DamageModifier.Weak);
             var veryWeak = GetDamageTypes(humanoid, HitData.DamageModifier.VeryWeak);
@@ -48,50 +44,14 @@ namespace AugaUnity
             var allResist = resist.Concat(veryResist).ToArray();
             var immune = GetDamageTypes(humanoid, HitData.DamageModifier.Immune);
 
-            Weakness.text = !allWeak.Any() ? "-" : string.Join(", ", allWeak.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
-            Resistance.text = !allResist.Any() ? "-" : string.Join(", ", allResist.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
-            Immune.text = !immune.Any() ? "-" : string.Join(", ", immune.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
+            Weakness.text = !allWeak.Any() ? "-" : string.Join("\n", allWeak.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
+            Resistance.text = !allResist.Any() ? "-" : string.Join("\n", allResist.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
+            Immune.text = !immune.Any() ? "-" : string.Join("\n", immune.Select(x => $"$inventory_{x.ToString().ToLowerInvariant()}"));
         }
 
         public static float GetMaxHealth(Humanoid humanoid, int level)
         {
             return humanoid.m_health * Game.instance.GetDifficultyHealthScale(humanoid.transform.position) * level;
-        }
-
-        // See Humanoid.GetLevelDamageFactor
-        public static float GetLevelDamageFactor(int level)
-        {
-            return 1.0f + Mathf.Max(0, level - 1) * 0.5f;
-        }
-
-        public static string GetDamage(Humanoid humanoid, int level)
-        {
-            var levelFactor = GetLevelDamageFactor(level);
-            var results = new List<string>();
-
-            var allItems = humanoid.m_defaultItems.Concat(humanoid.m_randomWeapon).Select(x => x.GetComponent<ItemDrop>().m_itemData);
-            foreach (var itemData in allItems)
-            {
-                if (itemData.IsWeapon())
-                {
-                    var damageString = GetDamageString(itemData, levelFactor);
-                    results.Add(damageString);
-                }
-            }
-
-            return results.Count == 0 ? "-" : string.Join("\n", results);
-        }
-
-        private static string GetDamageString(ItemDrop.ItemData itemData, float levelFactor)
-        {
-            if (!itemData.HavePrimaryAttack())
-            {
-                return "<no primary>";
-            }
-
-            var modifiedDamage = itemData.GetDamage().Clone();
-            modifiedDamage.Modify(levelFactor);
-            return modifiedDamage.GetTooltipString().Trim().Replace("\n", ", ").Replace(": <color=yellow>", " ").Replace("</color>", "");
         }
 
         public static List<HitData.DamageType> GetDamageTypes(Humanoid humanoid, HitData.DamageModifier modifier)
@@ -150,7 +110,6 @@ namespace AugaUnity
                     continue;
                 }
 
-                var added = false;
                 foreach (var drop in characterDrop.m_drops)
                 {
                     var itemDrop = drop.m_prefab.GetComponent<ItemDrop>();
@@ -160,17 +119,11 @@ namespace AugaUnity
                         {
                             if (!_trophyToMonsterCache.ContainsKey(drop.m_prefab.name))
                             {
-                                added = true;
                                 _trophyToMonsterCache.Add(drop.m_prefab.name, humanoid);
                                 break;
                             }
                         }
                     }
-                }
-
-                if (!added)
-                {
-                    Debug.LogWarning($"Didn't add any trophy drops for humanoid ({prefab.name})");
                 }
             }
         }
@@ -245,6 +198,7 @@ namespace AugaUnity
                     var t = listItem.transform;
                     var creatureName = Localization.instance.Localize(humanoidPrefab.m_name);
                     t.Find("name").GetComponent<Text>().text = creatureName;
+                    t.Find("icon").GetComponent<Image>().sprite = trophyItem.m_itemData.GetIcon();
                     tempList.Add(new Tuple<int, string, GameObject>(position, trophyName, listItem));
                 }
             }

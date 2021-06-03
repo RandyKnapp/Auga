@@ -15,7 +15,7 @@ namespace AugaUnity
 
         public int SelectedIndex { get; private set; } = -1;
 
-        public virtual void Start()
+        public virtual void Awake()
         {
             for (var index = 0; index < TabButtons.Count; index++)
             {
