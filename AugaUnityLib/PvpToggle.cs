@@ -3,36 +3,39 @@ using UnityEngine.UI;
 
 namespace AugaUnity
 {
-    [RequireComponent(typeof(Toggle))]
     public class PvpToggle : MonoBehaviour
     {
         public GameObject Enabled;
         public GameObject Disabled;
         public GameObject Inactive;
+        public Text PleaseWaitText;
 
-        protected Toggle _toggle;
-        protected bool _canTogglePvp = true;
-
-        protected void Awake()
+        public void Awake()
         {
-            _toggle = GetComponent<Toggle>();
-            _toggle.onValueChanged.AddListener(OnValueChanged);
+            Update();
         }
 
         public virtual void Update()
         {
-            if (_canTogglePvp != _toggle.interactable)
+            var player = Player.m_localPlayer;
+            var canTogglePvp = player.CanSwitchPVP();
+            Inactive.SetActive(!canTogglePvp);
+            Enabled.SetActive(canTogglePvp && player.m_pvp);
+            Disabled.SetActive(canTogglePvp && !player.m_pvp);
+            if (Inactive.activeSelf)
             {
-                _canTogglePvp = _toggle.interactable;
-                OnValueChanged(_toggle.isOn);
+                PleaseWaitText.text = $"{Localization.instance.Localize("$pvp_wait_text")}: {10 - player.m_lastCombatTimer:0}";
             }
         }
 
-        private void OnValueChanged(bool toggled)
+        public void EnablePvp()
         {
-            Inactive.SetActive(!_toggle.interactable);
-            Enabled.SetActive(_toggle.interactable && toggled);
-            Disabled.SetActive(_toggle.interactable && !toggled);
+            Player.m_localPlayer.SetPVP(true);
+        }
+
+        public void DisablePvp()
+        {
+            Player.m_localPlayer.SetPVP(false);
         }
     }
 }

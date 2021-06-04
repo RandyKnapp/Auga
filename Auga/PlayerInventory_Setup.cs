@@ -1,4 +1,5 @@
-﻿using AugaUnity;
+﻿using System.Globalization;
+using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,7 +61,7 @@ namespace Auga
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
-                __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/PVPToggle").GetComponent<Toggle>();
+                __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/Dummy/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;
                 __instance.m_recipeListRoot = CraftingPanel.RecipeList;
                 __instance.m_recipeListScroll = CraftingPanel.RecipeListScrollbar;
@@ -234,6 +235,17 @@ namespace Auga
                 {
                     CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, quality, player, allowedQuality);
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateCharacterStats))]
+        public static class InventoryGui_UpdateCharacterStats_Patch
+        {
+            public static bool Prefix(InventoryGui __instance, Player player)
+            {
+                __instance.m_playerName.text = Game.instance.GetPlayerProfile().GetName();
+                __instance.m_armor.text = player.GetBodyArmor().ToString(CultureInfo.InvariantCulture);
+                return false;
             }
         }
 
