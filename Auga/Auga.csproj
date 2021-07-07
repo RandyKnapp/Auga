@@ -30,6 +30,20 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'API|AnyCPU'">
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <AssemblyName>AugaAPI</AssemblyName>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>bin\API\</OutputPath>
+    <DefineConstants>API;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
@@ -93,7 +107,11 @@
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\unstripped_corlib\UnityEngine.UIModule.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' ">
+    <Compile Include="API.External.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
+    <Compile Include="API.cs" />
     <Compile Include="Auga.cs" />
     <Compile Include="AugaLog_Hooks.cs" />
     <Compile Include="Chat_Setup.cs" />
@@ -118,23 +136,23 @@
     <Compile Include="Text_Patch.cs" />
     <Compile Include="UITooltip_Patch.cs" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
       <Link>augaassets</Link>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\AugaUnityLib\bin\Debug\Unity.Auga.dll">
       <Link>Unity.Auga.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <ProjectReference Include="..\AugaUnityLib\AugaUnityLib.csproj">
       <Project>{5b19eb03-f699-46bc-afaf-2a2e78e1f6c5}</Project>
       <Name>AugaUnityLib</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\Libs\fastJSON.dll">
       <Link>fastJSON.dll</Link>
     </EmbeddedResource>
@@ -144,7 +162,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "C:\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
-xcopy "$(ProjectDir)translations.json" "C:\Program Files (x86)\Steam\steamapps\common\Valheim_Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "C:\Users\rknapp\Documents\GitHub\ValheimMods\Libs\" /q /y /i</PostBuildEvent>
   </PropertyGroup>
 </Project>

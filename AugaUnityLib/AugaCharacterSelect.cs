@@ -93,14 +93,17 @@ namespace AugaUnity
     public class AugaCharacterSelect : MonoBehaviour
     {
         public CharacterSelectPortrait CharacterPortraitPrefab;
+        public Scrollbar ScrollBar;
         public RectTransform CharacterList;
         public RenderTexture RenderTexture;
 
         private readonly List<CharacterSelectPortrait> _portraits = new List<CharacterSelectPortrait>();
+        private bool _onFirstUpdate;
 
         [UsedImplicitly]
         public void OnEnable()
         {
+            _onFirstUpdate = false;
             UpdateCharacterList();
         }
 
@@ -118,6 +121,20 @@ namespace AugaUnity
                 var portrait = Instantiate(CharacterPortraitPrefab, CharacterList, false);
                 portrait.Setup(profile, index, RenderTexture);
                 _portraits.Add(portrait);
+            }
+        }
+
+        public void LateUpdate()
+        {
+            if (!_onFirstUpdate)
+            {
+                _onFirstUpdate = true;
+
+                var currentIndex = FejdStartup.instance.m_profileIndex;
+                if (currentIndex >= 0 && currentIndex < _portraits.Count && _portraits.Count > 1)
+                {
+                    ScrollBar.value = 1.0f - (currentIndex / (_portraits.Count - 1.0f));
+                }
             }
         }
     }
