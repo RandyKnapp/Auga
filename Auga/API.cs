@@ -1,4 +1,6 @@
-﻿namespace Auga
+﻿using UnityEngine;
+
+namespace Auga
 {
     public static class API
     {
