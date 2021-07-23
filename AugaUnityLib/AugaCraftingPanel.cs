@@ -17,6 +17,7 @@ namespace AugaUnity
         public CraftingRequirementsPanel CraftingRequirementsPanel;
         public CraftingRequirementsPanel UpgradeRequirementsPanel;
         public CraftingRequirementsPanel MaxQualityUpgradeRequirementsPanel;
+        public CraftingRequirementsPanel GenericCraftingRequirementsPanel;
         public RectTransform RecipeList;
         public Scrollbar RecipeListScrollbar;
         public ScrollRectEnsureVisible RecipeListEnsureVisible;
@@ -59,10 +60,10 @@ namespace AugaUnity
             var inventoryGui = InventoryGui.instance;
             if (inventoryGui != null)
             {
+                Debug.LogWarning("TabChanged");
                 if (currentTabIndex == 0)
                 {
                     ActivatePanel(CraftingRequirementsPanel);
-                    MaxQualityUpgradeRequirementsPanel.gameObject.SetActive(false);
                     inventoryGui.OnTabCraftPressed();
                 }
                 else if (currentTabIndex == 1)
@@ -70,13 +71,26 @@ namespace AugaUnity
                     ActivatePanel(UpgradeRequirementsPanel);
                     inventoryGui.OnTabUpgradePressed();
                 }
+                else
+                {
+                    ActivatePanel(GenericCraftingRequirementsPanel);
+                    inventoryGui.m_tabCraft.interactable = true;
+                    inventoryGui.m_tabUpgrade.interactable = true;
+                    inventoryGui.UpdateCraftingPanel();
+                }
             }
         }
 
         public virtual void ActivatePanel(CraftingRequirementsPanel panel)
         {
+            CraftingRequirementsPanel.gameObject.SetActive(false);
+            UpgradeRequirementsPanel.gameObject.SetActive(false);
+            MaxQualityUpgradeRequirementsPanel.gameObject.SetActive(false);
+            GenericCraftingRequirementsPanel.gameObject.SetActive(false);
+
             var inventoryGui = InventoryGui.instance;
             _currentPanel = panel;
+            panel.gameObject.SetActive(true);
             panel.Activate(inventoryGui, ItemInfo);
             SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
         }
@@ -156,11 +170,9 @@ namespace AugaUnity
 
         public virtual void PostSetupRequirementList(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedWorkbenchQuality)
         {
-            if (item != null)
+            if (TabController.SelectedIndex == 1 && item != null)
             {
                 var maxQuality = item.m_shared.m_maxQuality == item.m_quality;
-                UpgradeRequirementsPanel.gameObject.SetActive(!maxQuality);
-                MaxQualityUpgradeRequirementsPanel.gameObject.SetActive(maxQuality);
                 if (maxQuality)
                 {
                     ActivatePanel(MaxQualityUpgradeRequirementsPanel);

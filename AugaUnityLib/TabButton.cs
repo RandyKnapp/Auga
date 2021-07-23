@@ -17,6 +17,8 @@ namespace AugaUnity
 
         protected bool _selected;
 
+        public bool Selected => _selected;
+
         public virtual void Awake()
         {
             SetColor();
@@ -31,6 +33,11 @@ namespace AugaUnity
 
             _selected = selected;
             SetColor();
+        }
+
+        public virtual void SetIcon(Sprite icon)
+        {
+            Icon.sprite = icon;
         }
 
         public virtual void SetColor()

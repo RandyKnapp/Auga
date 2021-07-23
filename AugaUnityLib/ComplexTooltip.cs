@@ -5,6 +5,7 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
+// ReSharper disable InconsistentNaming
 
 namespace AugaUnity
 {
@@ -113,7 +114,7 @@ namespace AugaUnity
         public static event Action<ComplexTooltip, Skills.Skill> OnComplexTooltipGeneratedForSkill;
 
         protected static readonly StringBuilder _stringBuilder = new StringBuilder();
-        protected readonly List<TooltipTextBox> _textBoxes = new List<TooltipTextBox>();
+        protected readonly List<GameObject> _textBoxes = new List<GameObject>();
         protected ItemDrop.ItemData _item;
         protected Player.Food _food;
         protected StatusEffect _statusEffect;
@@ -139,7 +140,7 @@ namespace AugaUnity
         {
             foreach (var textBox in _textBoxes)
             {
-                Destroy(textBox.gameObject);
+                Destroy(textBox);
             }
 
             _textBoxes.Clear();
@@ -159,8 +160,22 @@ namespace AugaUnity
             container.gameObject.SetActive(true);
             var textBox = Instantiate(prefab, container, false);
             textBox.gameObject.SetActive(true);
-            _textBoxes.Add(textBox);
+            _textBoxes.Add(textBox.gameObject);
             return textBox;
+        }
+
+        public GameObject AddDivider(RectTransform container = null)
+        {
+            if (container == null)
+            {
+                container = TextBoxContainer;
+            }
+
+            container.gameObject.SetActive(true);
+            var divider = Instantiate(NormalDivider, container, false);
+            divider.SetActive(true);
+            _textBoxes.Add(divider);
+            return divider;
         }
 
         public virtual void ClearData()
@@ -248,7 +263,7 @@ namespace AugaUnity
             }
         }
 
-        private void SetIcon(Sprite icon)
+        public virtual void SetIcon(Sprite icon)
         {
             if (Icon != null)
             {
@@ -256,7 +271,7 @@ namespace AugaUnity
             }
         }
 
-        private void SetDescription(string description)
+        public virtual void SetDescription(string description)
         {
             var hasDescription = !string.IsNullOrEmpty(description);
             EnableDescription(hasDescription);

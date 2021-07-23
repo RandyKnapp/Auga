@@ -51,7 +51,7 @@ namespace Auga
     [BepInPlugin(PluginID, "Project Auga", Version)]
     public class Auga : BaseUnityPlugin
     {
-        public const string PluginID = "mods.randyknapp.auga";
+        public const string PluginID = "randyknapp.mods.auga";
         public const string Version = "1.0.0";
 
         private static ConfigEntry<bool> _loggingEnabled;

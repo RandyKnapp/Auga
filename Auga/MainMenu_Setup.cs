@@ -152,7 +152,7 @@ namespace Auga
 
             __instance.m_menuAnimator.runtimeAnimatorController = Auga.Assets.MainMenuPrefab.GetComponent<Animator>().runtimeAnimatorController;
 
-            __instance.UpdateWorldList(false);
+            __instance.OnSelectWorldTab();
 
             Object.Instantiate(Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true), __instance.transform);
 

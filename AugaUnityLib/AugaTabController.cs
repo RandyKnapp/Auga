@@ -59,6 +59,24 @@ namespace AugaUnity
                 }
             }
 
+            if (SelectedIndex >= 0)
+            {
+                if (SelectedIndex < TabTitles.Count)
+                {
+                    TabTitles[SelectedIndex].gameObject.SetActive(true);
+                }
+
+                if (SelectedIndex < TabButtons.Count)
+                {
+                    TabButtons[SelectedIndex].SetSelected(true);
+                }
+
+                if (SelectedIndex < TabContents.Count)
+                {
+                    TabContents[SelectedIndex].SetActive(true);
+                }
+            }
+
             OnTabChanged?.Invoke(previousIndex, SelectedIndex);
         }
     }
