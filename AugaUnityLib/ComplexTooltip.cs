@@ -99,7 +99,6 @@ namespace AugaUnity
         public Text Subtitle;
         [CanBeNull] public Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
-        [CanBeNull] public ColoredItemBar ColoredItemBar;
         [CanBeNull] public Text ItemQuality;
         public RectTransform TextBoxContainer;
         [CanBeNull] public RectTransform LowerTextBoxContainer;
@@ -107,6 +106,7 @@ namespace AugaUnity
         public TooltipTextBox CenteredTextBoxPrefab;
         [CanBeNull] public TooltipTextBox UpgradeLabelsPrefab;
         [CanBeNull] public TooltipTextBox UpgradeTwoColumnTextBoxPrefab;
+        [CanBeNull] public TooltipTextBox CheckBoxTextBoxPrefab;
 
         public static event Action<ComplexTooltip, ItemDrop.ItemData> OnComplexTooltipGeneratedForItem;
         public static event Action<ComplexTooltip, Player.Food> OnComplexTooltipGeneratedForFood;
@@ -133,6 +133,11 @@ namespace AugaUnity
             if (UpgradeTwoColumnTextBoxPrefab != null)
             {
                 UpgradeTwoColumnTextBoxPrefab.gameObject.SetActive(false);
+            }
+
+            if (CheckBoxTextBoxPrefab != null)
+            {
+                CheckBoxTextBoxPrefab.gameObject.SetActive(false);
             }
         }
 
@@ -172,7 +177,7 @@ namespace AugaUnity
             }
 
             container.gameObject.SetActive(true);
-            var divider = Instantiate(NormalDivider, container, false);
+            var divider = Instantiate(BottomDivider, container, false);
             divider.SetActive(true);
             _textBoxes.Add(divider);
             return divider;
@@ -196,7 +201,7 @@ namespace AugaUnity
             Subtitle.text = topic;
         }
 
-        public virtual void SetItem(ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        protected virtual void SetItemBaseData(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
             ClearData();
             _item = item;
@@ -208,31 +213,29 @@ namespace AugaUnity
                 ItemQuality.text = quality.ToString();
             }
 
-            SetupColoredItemBar(item);
             EnableObjectBackground(ObjectBackgroundType.Item);
 
             SetIcon(variant < 0 ? item.GetIcon() : item.m_shared.m_icons[variant]);
-
             SetTopic(Localization.instance.Localize(item.m_shared.m_name));
             SetSubtitle(GenerateItemSubtext(item));
-            GenerateItemTextBoxes(item, quality);
             SetDescription(Localization.instance.Localize(item.m_shared.m_description));
+        }
 
+        public virtual void SetItem(ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        {
+            SetItemBaseData(item, quality, variant);
+            GenerateItemTextBoxes(item, quality);
             Localization.instance.Localize(transform);
 
             OnComplexTooltipGeneratedForItem?.Invoke(this, item);
         }
 
-        public virtual void SetupColoredItemBar(ItemDrop.ItemData item)
+        public virtual void SetItemNoTextBoxes(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
-            if (ColoredItemBar != null)
-            {
-                ColoredItemBar.gameObject.SetActive(item != null);
-                if (item != null)
-                {
-                    ColoredItemBar.Setup(item);
-                }
-            }
+            SetItemBaseData(item, quality, variant);
+            Localization.instance.Localize(transform);
+
+            OnComplexTooltipGeneratedForItem?.Invoke(this, item);
         }
 
         public virtual void EnableObjectBackground(ObjectBackgroundType type)
@@ -310,6 +313,8 @@ namespace AugaUnity
 
         public virtual void GenerateItemTextBoxes(ItemDrop.ItemData item, int quality)
         {
+            quality = quality < 0 ? item.m_quality : quality;
+
             ClearTextBoxes();
 
             var upgrade = item.m_quality != quality;
@@ -598,8 +603,7 @@ namespace AugaUnity
         {
             ClearData();
             _food = food;
-
-            SetupColoredItemBar(null);
+            
             EnableObjectBackground(ObjectBackgroundType.Diamond);
 
             SetIcon(food.m_item.GetIcon());
@@ -618,8 +622,7 @@ namespace AugaUnity
         {
             ClearData();
             _statusEffect = statusEffect;
-
-            SetupColoredItemBar(null);
+            
             EnableObjectBackground(ObjectBackgroundType.Diamond);
 
             SetIcon(statusEffect.m_icon);
@@ -649,8 +652,7 @@ namespace AugaUnity
         {
             ClearData();
             _skill = skill;
-
-            SetupColoredItemBar(null);
+            
             EnableObjectBackground(ObjectBackgroundType.Skill);
             EnableDescription(false);
 

@@ -459,15 +459,6 @@ namespace Auga
         }
     }
 
-    [HarmonyPatch(typeof(GameCamera), nameof(GameCamera.Awake))]
-    public static class GameCamera_Awake_Patch
-    {
-        public static void Postfix(GameCamera __instance)
-        {
-            Debug.LogWarning($"GameCamera.Awake: {__instance.name}");
-        }
-    }
-
     //UpdateBuild
     [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild))]
     public static class Hud_UpdateBuild_Patch

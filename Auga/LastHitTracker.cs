@@ -25,7 +25,6 @@ namespace Auga
     {
         public static void Postfix(Player __instance, HitData hit)
         {
-            Debug.LogWarning("Player Damaged");
             var hitTracker = __instance.RequireComponent<LastHitTracker>();
             hitTracker.OnDamaged(hit);
         }

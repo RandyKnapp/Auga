@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using AugaUnity;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using fastJSON;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Auga
 {
@@ -31,6 +34,8 @@ namespace Auga
         public GameObject ServerListElement;
         public GameObject PasswordDialog;
         public GameObject ConnectingDialog;
+        public GameObject PanelBase;
+        public GameObject ButtonMedium;
     }
 
     public class AugaColors
@@ -59,6 +64,7 @@ namespace Auga
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
+
         private static Auga _instance;
         private Harmony _harmony;
 
@@ -152,6 +158,8 @@ namespace Auga
             Assets.ServerListElement = assetBundle.LoadAsset<GameObject>("ServerListElement");
             Assets.PasswordDialog = assetBundle.LoadAsset<GameObject>("AugaPassword");
             Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
+            Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
+            Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
         }
 
         private static void ApplyCursor()

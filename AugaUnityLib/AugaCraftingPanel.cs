@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace AugaUnity
 {
@@ -30,8 +32,12 @@ namespace AugaUnity
         public GameObject VariantButtonContainer;
         public GameObject NonVariantButtonContainer;
         public VariantDialog VariantDialog;
+        public Button CustomVariantButton;
+        public GameObject CustomVariantDialog;
+        public Text CustomVariantText;
         public Transform CraftProgressPanel;
         public Image CraftProgressBar;
+        public GameObject ResultsPanelPrefab;
 
         [Header("Dummy Objects")]
         public Image DummyIcon;
@@ -46,11 +52,13 @@ namespace AugaUnity
 
         private static AugaCraftingPanel _instance;
         private CraftingRequirementsPanel _currentPanel;
+        private Action<bool> _onShowCustomVariantDialog;
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
             TabController.OnTabChanged += OnTabChanged;
             ActivatePanel(CraftingRequirementsPanel);
+            CustomVariantButton.onClick.AddListener(OnCustomVariantButtonClicked);
         }
 
         private void OnTabChanged(int previousTabIndex, int currentTabIndex)
@@ -60,7 +68,6 @@ namespace AugaUnity
             var inventoryGui = InventoryGui.instance;
             if (inventoryGui != null)
             {
-                Debug.LogWarning("TabChanged");
                 if (currentTabIndex == 0)
                 {
                     ActivatePanel(CraftingRequirementsPanel);
@@ -154,16 +161,21 @@ namespace AugaUnity
                 CraftProgressBar.fillAmount = percent;
             }
 
-            VariantButtonContainer.SetActive(VariantButton.gameObject.activeSelf);
-            NonVariantButtonContainer.SetActive(!VariantButton.gameObject.activeSelf);
-
+            UpdateVariantButtonVisibility();
             UpdateRequirementsContainerVisibility();
+        }
+
+        public virtual void UpdateVariantButtonVisibility()
+        {
+            var showingAnyVariantButton = VariantButton.gameObject.activeInHierarchy || CustomVariantButton.gameObject.activeInHierarchy;
+            VariantButtonContainer.SetActive(showingAnyVariantButton);
+            NonVariantButtonContainer.SetActive(!showingAnyVariantButton);
         }
 
         public virtual void UpdateRequirementsContainerVisibility()
         {
-            var hasRecipe = InventoryGui.instance.m_selectedRecipe.Key != null;
-            var showingVariants = InventoryGui.instance.m_variantDialog.gameObject.activeSelf;
+            var hasRecipe = TabController.SelectedIndex > 1 || InventoryGui.instance.m_selectedRecipe.Key != null;
+            var showingVariants = InventoryGui.instance.m_variantDialog.gameObject.activeInHierarchy || CustomVariantDialog.gameObject.activeInHierarchy;
 
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);
         }
@@ -190,7 +202,6 @@ namespace AugaUnity
                 return;
             }
 
-            //Debug.LogWarning($"UpdateWireframe Input: recipe={recipe}, item={item}, quality={quality}, allowedWorkbenchQuality={allowedWorkbenchQuality}");
             var canCraft = allowedWorkbenchQuality;
             var states = new List<WireState>();
             var index = 0;
@@ -203,7 +214,6 @@ namespace AugaUnity
                     {
                         var playerInventoryAmount = player.GetInventory().CountItems(resource.m_resItem.m_itemData.m_shared.m_name);
                         var have = playerInventoryAmount >= amountRequired;
-                        //Debug.Log($"  {index}: res={resource.m_resItem.m_itemData.m_shared.m_name}, amountRequired={amountRequired}, playerInventoryAmount={playerInventoryAmount}");
                         states.Add(have ? WireState.Have : WireState.DontHave);
                         canCraft = canCraft && have;
                         ++index;
@@ -223,8 +233,39 @@ namespace AugaUnity
             var stationLevel = requiredCraftingStation == null || currentCraftingStation == null || currentCraftingStation.GetLevel() >= requiredStationLevel;
             canCraft = canCraft && hasStation && stationLevel;
 
-            //Debug.LogWarning($"UpdateWireframe Values: states={string.Join(",", states)}, canCraft={canCraft}");
             _currentPanel.WireFrame.Set(states, canCraft);
+        }
+
+        public void OnCustomVariantButtonClicked()
+        {
+            CustomVariantDialog.gameObject.SetActive(!CustomVariantDialog.gameObject.activeSelf);
+            UpdateRequirementsContainerVisibility();
+            _onShowCustomVariantDialog?.Invoke(CustomVariantDialog.gameObject.activeSelf);
+        }
+
+        public virtual Text EnableCustomVariantDialog(string buttonText, Action<bool> onShow)
+        {
+            _onShowCustomVariantDialog = onShow;
+
+            VariantButton.gameObject.SetActive(false);
+            CustomVariantButton.gameObject.SetActive(true);
+            CustomVariantButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(buttonText);
+
+            UpdateVariantButtonVisibility();
+
+            return CustomVariantText;
+        }
+
+        public virtual void DisableCustomVariantDialog()
+        {
+            _onShowCustomVariantDialog = null;
+            CustomVariantButton.gameObject.SetActive(false);
+            UpdateVariantButtonVisibility();
+        }
+
+        public virtual GameObject CreateResultsPanel()
+        {
+            return Instantiate(ResultsPanelPrefab, transform, false);
         }
     }
 }

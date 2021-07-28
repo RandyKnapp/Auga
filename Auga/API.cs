@@ -5,11 +5,73 @@ using AugaUnity;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
     public static class API
     {
+        // Panels & Buttons
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static GameObject CreatePanel(Transform parent, Vector2 size, string name, bool withCornerDecoration)
+        {
+            var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
+            panel.name = name;
+            if (!withCornerDecoration)
+            {
+                foreach (Transform child in panel.transform.Find("Background"))
+                {
+                    Object.Destroy(child.gameObject);
+                }
+            }
+
+            var rt = (RectTransform)panel.transform;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+
+            return panel;
+        }
+
+        [UsedImplicitly]
+        public static Button MediumButton_Create(Transform parent, string name)
+        {
+            var button = Object.Instantiate(Auga.Assets.ButtonMedium, parent);
+            button.name = name;
+
+            return button.GetComponent<ColorButtonText>();
+        }
+
+        [UsedImplicitly]
+        public static void MediumButton_SetColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled)
+        {
+            var colorValues = button.GetComponent<ColorButtonTextValues>();
+            if (colorValues != null)
+            {
+                colorValues.TextColors.normalColor = normal;
+                colorValues.TextColors.highlightedColor = highlighted;
+                colorValues.TextColors.pressedColor = pressed;
+                colorValues.TextColors.selectedColor = selected;
+                colorValues.TextColors.disabledColor = disabled;
+            }
+        }
+
+        [UsedImplicitly]
+        public static void MediumButton_OverrideColor(Button button, Color color)
+        {
+            var colorValues = button.GetComponent<ColorButtonTextValues>();
+            if (colorValues != null)
+            {
+                Object.Destroy(colorValues);
+            }
+
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.color = color;
+            }
+        }
+
         // Workbench Tabs
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
@@ -53,6 +115,12 @@ namespace Auga
         public static Button GetUpgradeTabButton()
         {
             return WorkbenchPanelController.instance?.WorkbenchTabController.TabButtons[1].GetComponent<Button>();
+        }
+
+        [UsedImplicitly]
+        public static GameObject Workbench_CreateNewResultsPanel()
+        {
+            return WorkbenchPanelController.instance?.CraftingPanel.CreateResultsPanel();
         }
 
 
@@ -141,6 +209,12 @@ namespace Auga
         }
 
         [UsedImplicitly]
+        public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener)
+        {
+            UITooltip_UpdateTextElements_Patch.OnItemTooltipCreated += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+        }
+
+        [UsedImplicitly]
         public static void ComplexTooltip_ClearTextBoxes(GameObject complexTooltipGO)
         {
             if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
@@ -196,6 +270,17 @@ namespace Auga
         }
 
         [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddCheckBoxTextBox(GameObject complexTooltipGO)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.CheckBoxTextBoxPrefab).gameObject;
+        }
+
+        [UsedImplicitly]
         public static GameObject ComplexTooltip_AddDivider(GameObject complexTooltipGO)
         {
             if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
@@ -229,6 +314,17 @@ namespace Auga
         }
 
         [UsedImplicitly]
+        public static void ComplexTooltip_SetDescription(GameObject complexTooltipGO, string desc)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetDescription(desc);
+        }
+
+        [UsedImplicitly]
         public static void ComplexTooltip_SetItem(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
             if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
@@ -237,6 +333,28 @@ namespace Auga
             }
 
             complexTooltip.SetItem(item, quality, variant);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetItemNoTextBoxes(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetItemNoTextBoxes(item, quality, variant);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.EnableDescription(enabled);
         }
 
 
@@ -255,6 +373,17 @@ namespace Auga
         }
 
         [UsedImplicitly]
+        public static Image RequirementsPanel_GetIcon(GameObject requirementsPanelGO)
+        {
+            if (!RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel))
+            {
+                return null;
+            }
+
+            return requirementsPanel.Icon;
+        }
+
+        [UsedImplicitly]
         public static void RequirementsPanel_SetWires(GameObject requirementsPanelGO, RequirementWireState[] wireStates, bool canCraft)
         {
             if (!RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel))
@@ -264,6 +393,26 @@ namespace Auga
 
             var convertedWireStates = wireStates.Select(wireState => (WireState)wireState).ToList();
             requirementsPanel.WireFrame.Set(convertedWireStates, canCraft);
+        }
+
+
+        // Custom Variant Panel
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow)
+        {
+            if (WorkbenchPanelController.instance == null)
+            {
+                return null;
+            }
+
+            return WorkbenchPanelController.instance.CraftingPanel.EnableCustomVariantDialog(buttonLabel, onShow);
+        }
+
+        [UsedImplicitly]
+        public static void CustomVariantPanel_Disable()
+        {
+            WorkbenchPanelController.instance?.CraftingPanel.DisableCustomVariantDialog();
         }
     }
 }

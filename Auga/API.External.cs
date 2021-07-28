@@ -57,12 +57,18 @@ namespace Auga
 
         public static string RedText = "#CD2121";
 
+        public static GameObject CreatePanel(Transform parent, Vector2 size, string name, bool withCornerDecoration) => null;
+        public static Button MediumButton_Create(Transform parent, string name) => null;
+        public static void MediumButton_SetColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled) { }
+        public static void MediumButton_OverrideColor(Button button, Color color) { }
+
         public static bool IsLoaded() => LoadAssembly() != null;
         public static bool HasWorkbenchTab(string tabID) => false;
         public static WorkbenchTabData AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
         public static bool IsTabActive(GameObject tabButton) => false;
         public static Button GetCraftingTabButton() => null;
         public static Button GetUpgradeTabButton() => null;
+        public static GameObject Workbench_CreateNewResultsPanel() => null;
 
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true) { }
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize = true) { }
@@ -70,16 +76,25 @@ namespace Auga
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize = true) { }
         public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true) { }
 
+        public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener) { }
         public static void ComplexTooltip_ClearTextBoxes(GameObject complexTooltipGO) { }
         public static GameObject ComplexTooltip_AddTwoColumnTextBox(GameObject complexTooltipGO) => null;
         public static GameObject ComplexTooltip_AddCenteredTextBox(GameObject complexTooltipGO) => null;
         public static GameObject ComplexTooltip_AddUpgradeLabels(GameObject complexTooltipGO) => null;
         public static GameObject ComplexTooltip_AddUpgradeTwoColumnTextBox(GameObject complexTooltipGO) => null;
+        public static GameObject ComplexTooltip_AddCheckBoxTextBox(GameObject complexTooltipGO) => null;
         public static GameObject ComplexTooltip_AddDivider(GameObject complexTooltipGO) => null;
         public static void ComplexTooltip_SetTopic(GameObject complexTooltipGO, string topic) { }
         public static void ComplexTooltip_SetSubtitle(GameObject complexTooltipGO, string topic) { }
+        public static void ComplexTooltip_SetDescription(GameObject complexTooltipGO, string desc) { }
         public static void ComplexTooltip_SetItem(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1) { }
+        public static void ComplexTooltip_SetItemNoTextBoxes(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1) { }
+        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled) { }
 
+        public static Image RequirementsPanel_GetIcon(GameObject requirementsPanelGO) => null;
         public static void RequirementsPanel_SetWires(GameObject requirementsPanelGO, RequirementWireState[] wireStates, bool canCraft) { }
+
+        public static Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow) => null;
+        public static void CustomVariantPanel_Disable() { }
     }
 }

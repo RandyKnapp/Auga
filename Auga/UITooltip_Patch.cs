@@ -1,4 +1,5 @@
-﻿using AugaUnity;
+﻿using System;
+using AugaUnity;
 using HarmonyLib;
 
 namespace Auga
@@ -6,6 +7,8 @@ namespace Auga
     [HarmonyPatch(typeof(UITooltip), nameof(UITooltip.UpdateTextElements))]
     public static class UITooltip_UpdateTextElements_Patch
     {
+        public static event Action<ComplexTooltip, ItemDrop.ItemData> OnItemTooltipCreated;
+
         public static bool Prefix(UITooltip __instance)
         {
             if (UITooltip.m_tooltip != null)
@@ -17,6 +20,7 @@ namespace Auga
                     if (itemTooltip != null && itemTooltip.Item != null)
                     {
                         customTooltip.SetItem(itemTooltip.Item);
+                        OnItemTooltipCreated?.Invoke(customTooltip, itemTooltip.Item);
                         return false;
                     }
 

@@ -125,7 +125,6 @@ namespace AugaUnity
 
         protected virtual void AddLog(ILogData data)
         {
-            Debug.LogWarning($"AddLog ({data.Type}): {data.Message}");
             _allLogs.Add(data);
             if (!_logsByType.TryGetValue(data.Type, out var logList))
             {

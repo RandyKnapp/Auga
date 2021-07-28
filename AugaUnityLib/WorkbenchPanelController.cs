@@ -53,6 +53,7 @@ namespace AugaUnity
                 {
                     _rememberTabIndex = tabController.SelectedIndex;
                     tabController.SelectTab(1);
+                    WorkbenchContent.GetComponent<AugaTabController>().SelectTab(0);
                 }
                 else if (_rememberTabIndex >= 0)
                 {

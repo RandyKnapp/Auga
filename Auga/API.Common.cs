@@ -15,6 +15,8 @@ namespace Auga
         DontHave
     }
 
+    public delegate void TooltipCreationDelegate(GameObject complexTooltipGO, ItemDrop.ItemData item);
+
     public class WorkbenchTabData
     {
         public int Index;
