@@ -36,6 +36,12 @@ namespace Auga
         public GameObject ConnectingDialog;
         public GameObject PanelBase;
         public GameObject ButtonMedium;
+        public Font SourceSansProBold;
+        public Font SourceSansProSemiBold;
+        public Font SourceSansProRegular;
+        public Sprite ItemBackgroundSprite;
+        public GameObject InventoryTooltip;
+        public GameObject SimpleTooltip;
     }
 
     public class AugaColors
@@ -160,6 +166,12 @@ namespace Auga
             Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
             Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
+            Assets.SourceSansProBold = assetBundle.LoadAsset<Font>("SourceSansPro-Bold");
+            Assets.SourceSansProSemiBold = assetBundle.LoadAsset<Font>("SourceSansPro-SemiBold");
+            Assets.SourceSansProRegular = assetBundle.LoadAsset<Font>("SourceSansPro-Regular");
+            Assets.ItemBackgroundSprite = assetBundle.LoadAsset<Sprite>("Container_Square_A");
+            Assets.InventoryTooltip = assetBundle.LoadAsset<GameObject>("InventoryTooltip");
+            Assets.SimpleTooltip = assetBundle.LoadAsset<GameObject>("SimpleTooltip");
         }
 
         private static void ApplyCursor()

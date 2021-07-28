@@ -68,10 +68,15 @@ namespace AugaUnity
             AddLine(ThirdColumnText, b, false);
         }
 
+        public virtual string GenerateParenthetical(object b, object parenthetical)
+        {
+            return $"{b} <color={ComplexTooltip.ParentheticalColor}>({parenthetical})</color>";
+        }
+
         public virtual void AddLine(object a, object b, object parenthetical, bool localize = true)
         {
             AddLine(Text, a, localize);
-            AddLine(RightColumnText, $"{b} <color={ComplexTooltip.ParentheticalColor}>({parenthetical})</color>", localize);
+            AddLine(RightColumnText, GenerateParenthetical(b, parenthetical), localize);
             AddLine(ThirdColumnText, b, false);
         }
 
@@ -112,6 +117,7 @@ namespace AugaUnity
         public static event Action<ComplexTooltip, Player.Food> OnComplexTooltipGeneratedForFood;
         public static event Action<ComplexTooltip, StatusEffect> OnComplexTooltipGeneratedForStatusEffect;
         public static event Action<ComplexTooltip, Skills.Skill> OnComplexTooltipGeneratedForSkill;
+        public static event Func<ItemDrop.ItemData, string, string, Tuple<string, string>> ItemStatPreprocess = (item, label, value) => new Tuple<string, string>(label, value);
 
         protected static readonly StringBuilder _stringBuilder = new StringBuilder();
         protected readonly List<GameObject> _textBoxes = new List<GameObject>();
@@ -380,12 +386,12 @@ namespace AugaUnity
 
                 if (item.m_shared.m_value > 0)
                 {
-                    textBox.AddLine("$item_value", item.GetValue(), item.m_shared.m_value);
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_value", item.GetValue(), item.m_shared.m_value);
                 }
 
                 if (item.m_shared.m_maxQuality > 1)
                 {
-                    textBox.AddLine("$item_quality", quality, upgrade);
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_quality", quality, upgrade);
                 }
 
                 if (item.m_shared.m_useDurability)
@@ -402,19 +408,19 @@ namespace AugaUnity
                     }
                     else
                     {
-                        textBox.AddLine("$item_durability", $"{durabilityPercent}%", $"{durability}/{maxDurability}");
+                        TextBoxAddPreprocessedLine(textBox, item, "$item_durability", $"{durabilityPercent}%", $"{durability}/{maxDurability}");
                         if (item.m_shared.m_canBeReparied)
                         {
                             var recipe = ObjectDB.instance.GetRecipe(item);
                             if (recipe != null)
                             {
-                                textBox.AddLine("$item_repairlevel", recipe.m_minStationLevel);
+                                TextBoxAddPreprocessedLine(textBox, item, "$item_repairlevel", recipe.m_minStationLevel);
                             }
                         }
                     }
                 }
 
-                textBox.AddLine("$item_weight", item.GetWeight().ToString("0.0"));
+                TextBoxAddPreprocessedLine(textBox, item, "$item_weight", item.GetWeight().ToString("0.0"));
             }
 
             if (!item.m_shared.m_teleportable || item.m_shared.m_movementModifier != 0)
@@ -423,14 +429,14 @@ namespace AugaUnity
 
                 if (!item.m_shared.m_teleportable)
                 {
-                    textBox.AddLine("$item_noteleport");
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_noteleport");
                 }
 
                 if (item.m_shared.m_movementModifier != 0)
                 {
                     var movementModifier = (item.m_shared.m_movementModifier * 100).ToString("+0;-0");
                     var totalEquipmentMovementModifier = (Player.m_localPlayer.GetEquipmentMovementModifier() * 100).ToString("+0;-0");
-                    textBox.AddLine($"$item_movement_modifier: <color=#D1C9C2>{movementModifier}%</color> ($item_total: <color={ParentheticalColor}>{totalEquipmentMovementModifier}%</color>)");
+                    TextBoxAddPreprocessedLine(textBox, item, $"$item_movement_modifier: <color=#D1C9C2>{movementModifier}%</color> ($item_total: <color={ParentheticalColor}>{totalEquipmentMovementModifier}%</color>)");
                 }
             }
 
@@ -438,8 +444,8 @@ namespace AugaUnity
             if (!string.IsNullOrEmpty(setStatusEffect))
             {
                 var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-                textBox.AddLine("$item_seteffect", "", $"{item.m_shared.m_setSize} $item_parts");
-                textBox.AddLine("", setStatusEffect);
+                TextBoxAddPreprocessedLine(textBox, item, "$item_seteffect", "", $"{item.m_shared.m_setSize} $item_parts");
+                TextBoxAddPreprocessedLine(textBox, item, "", setStatusEffect);
             }
         }
 
@@ -459,31 +465,31 @@ namespace AugaUnity
             Player.m_localPlayer.GetSkills().GetRandomSkillRange(out var min, out var max, skillType);
 
             if (damage.m_damage != 0.0f)
-                AddDamageLine(textBox, "$inventory_damage", damage.m_damage, previousDamage.m_damage, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_damage", damage.m_damage, previousDamage.m_damage, min, max, upgrade);
             if (damage.m_blunt != 0.0f)
-                AddDamageLine(textBox, "$inventory_blunt", damage.m_blunt, previousDamage.m_blunt, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_blunt", damage.m_blunt, previousDamage.m_blunt, min, max, upgrade);
             if (damage.m_slash != 0.0f)
-                AddDamageLine(textBox, "$inventory_slash", damage.m_slash, previousDamage.m_slash, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_slash", damage.m_slash, previousDamage.m_slash, min, max, upgrade);
             if (damage.m_pierce != 0.0f)
-                AddDamageLine(textBox, "$inventory_pierce", damage.m_pierce, previousDamage.m_pierce, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_pierce", damage.m_pierce, previousDamage.m_pierce, min, max, upgrade);
             if (damage.m_fire != 0.0f)
-                AddDamageLine(textBox, "$inventory_fire", damage.m_fire, previousDamage.m_fire, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_fire", damage.m_fire, previousDamage.m_fire, min, max, upgrade);
             if (damage.m_frost != 0.0f)
-                AddDamageLine(textBox, "$inventory_frost", damage.m_frost, previousDamage.m_frost, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_frost", damage.m_frost, previousDamage.m_frost, min, max, upgrade);
             if (damage.m_lightning != 0.0f)
-                AddDamageLine(textBox, "$inventory_lightning",damage.m_lightning, previousDamage.m_lightning, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_lightning", damage.m_lightning, previousDamage.m_lightning, min, max, upgrade);
             if (damage.m_poison != 0.0f)
-                AddDamageLine(textBox, "$inventory_poison", damage.m_poison, previousDamage.m_poison, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_poison", damage.m_poison, previousDamage.m_poison, min, max, upgrade);
             if (damage.m_spirit != 0.0f)
-                AddDamageLine(textBox, "$inventory_spirit", damage.m_spirit, previousDamage.m_spirit, min, max, upgrade);
+                AddDamageLine(textBox, item, "$inventory_spirit", damage.m_spirit, previousDamage.m_spirit, min, max, upgrade);
 
             if (item.m_shared.m_attackForce > 0)
-                textBox.AddLine("$item_knockback", item.m_shared.m_attackForce);
+                TextBoxAddPreprocessedLine(textBox, item, "$item_knockback", item.m_shared.m_attackForce);
             if (item.m_shared.m_backstabBonus > 0)
-                textBox.AddLine("$item_backstab", $"{item.m_shared.m_backstabBonus}x");
+                TextBoxAddPreprocessedLine(textBox, item, "$item_backstab", $"{item.m_shared.m_backstabBonus}x");
         }
 
-        private void AddDamageLine(TooltipTextBox textBox, string label, float damage, float previousDamage, float min, float max, bool upgrade)
+        private void AddDamageLine(TooltipTextBox textBox, ItemDrop.ItemData item, string label, float damage, float previousDamage, float min, float max, bool upgrade)
         {
             if (upgrade)
             {
@@ -491,7 +497,7 @@ namespace AugaUnity
             }
             else
             {
-                textBox.AddLine(label, GetDamageRangeString(damage, min, max));
+                TextBoxAddPreprocessedLine(textBox, item, label, GetDamageRangeString(damage, min, max));
             }
         }
 
@@ -521,7 +527,7 @@ namespace AugaUnity
                 }
                 else
                 {
-                    textBox.AddLine("$item_blockpower", blockPower.ToString("0"));
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_blockpower", blockPower.ToString("0"));
                 }
             }
 
@@ -531,13 +537,13 @@ namespace AugaUnity
                 var previousDeflectForce = item.GetDeflectionForce(item.m_quality);
                 if (upgrade)
                 {
-                    textBox.AddUpgradeLine("$item_blockpower", previousDeflectForce.ToString("0"), deflectForce.ToString("0"), deflectForce > previousDeflectForce ? UpgradeColor : null);
+                    textBox.AddUpgradeLine("$item_deflection", previousDeflectForce.ToString("0"), deflectForce.ToString("0"), deflectForce > previousDeflectForce ? UpgradeColor : null);
                 }
                 else
                 {
-                    textBox.AddLine("$item_deflection", deflectForce);
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_deflection", deflectForce);
                 }
-                textBox.AddLine("$item_parrybonus", $"{item.m_shared.m_timedBlockBonus}x");
+                TextBoxAddPreprocessedLine(textBox, item, "$item_parrybonus", $"{item.m_shared.m_timedBlockBonus}x");
             }
         }
 
@@ -547,7 +553,7 @@ namespace AugaUnity
             if (projectileTooltip.Length > 0)
             {
                 var textBox = AddTextBox(CenteredTextBoxPrefab);
-                textBox.AddLine(projectileTooltip);
+                TextBoxAddPreprocessedLine(textBox, item, projectileTooltip);
             }
         }
 
@@ -557,7 +563,7 @@ namespace AugaUnity
             if (statusEffectTooltip.Length > 0)
             {
                 var textBox = AddTextBox(CenteredTextBoxPrefab);
-                textBox.AddLine(statusEffectTooltip);
+                TextBoxAddPreprocessedLine(textBox, item, statusEffectTooltip);
             }
         }
 
@@ -572,14 +578,14 @@ namespace AugaUnity
             }
             else
             {
-                textBox.AddLine("$item_armor", armor);
+                TextBoxAddPreprocessedLine(textBox, item, "$item_armor", armor);
             }
 
             var modifiersTooltipString = SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var damageModifier in modifiersTooltipString)
             {
                 var fullString = damageModifier.Replace("<color=orange>", "").Replace("$inventory_dmgmod: ", "").Replace("</color>", "");
-                textBox.AddLine("$inventory_dmgmod", fullString);
+                TextBoxAddPreprocessedLine(textBox, item, "$inventory_dmgmod", fullString);
             }
         }
 
@@ -673,6 +679,24 @@ namespace AugaUnity
 
             Localization.instance.Localize(transform);
             OnComplexTooltipGeneratedForSkill?.Invoke(this, skill);
+        }
+
+        protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, bool localize = true)
+        {
+            var result = ItemStatPreprocess(item, label.ToString(), null);
+            textBox.AddLine(result.Item1, localize);
+        }
+
+        protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, object value, bool localize = true)
+        {
+            var result = ItemStatPreprocess(item, label.ToString(), value.ToString());
+            textBox.AddLine(result.Item1, result.Item2, localize);
+        }
+
+        protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, object value, object parenthetical, bool localize = true)
+        {
+            var result = ItemStatPreprocess(item, label.ToString(), textBox.GenerateParenthetical(value, parenthetical));
+            textBox.AddLine(result.Item1, result.Item2, localize);
         }
     }
 }

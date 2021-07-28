@@ -11,6 +11,32 @@ namespace Auga
 {
     public static class API
     {
+        // Fonts & Assets
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static Font GetBoldFont()
+        {
+            return Auga.Assets.SourceSansProBold;
+        }
+
+        [UsedImplicitly]
+        public static Font GetSemiBoldFont()
+        {
+            return Auga.Assets.SourceSansProSemiBold;
+        }
+
+        [UsedImplicitly]
+        public static Font GetRegularFont()
+        {
+            return Auga.Assets.SourceSansProRegular;
+        }
+
+        [UsedImplicitly]
+        public static Sprite GetItemBackgroundSprite()
+        {
+            return Auga.Assets.ItemBackgroundSprite;
+        }
+
         // Panels & Buttons
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
@@ -70,6 +96,38 @@ namespace Auga
             {
                 text.color = color;
             }
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeSimpleTooltip(GameObject obj)
+        {
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.SimpleTooltip;
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeItemTooltip(GameObject obj, ItemDrop.ItemData item)
+        {
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var itemTooltip = obj.GetComponent<ItemTooltip>();
+            if (itemTooltip == null)
+            {
+                itemTooltip = obj.AddComponent<ItemTooltip>();
+            }
+
+            itemTooltip.Item = item;
         }
 
         // Workbench Tabs
@@ -212,6 +270,12 @@ namespace Auga
         public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener)
         {
             UITooltip_UpdateTextElements_Patch.OnItemTooltipCreated += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddItemStatPreprocessor(Func<ItemDrop.ItemData, string, string, Tuple<string, string>> itemStatPreprocessor)
+        {
+            ComplexTooltip.ItemStatPreprocess += itemStatPreprocessor;
         }
 
         [UsedImplicitly]

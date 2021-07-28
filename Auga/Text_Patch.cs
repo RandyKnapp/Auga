@@ -13,7 +13,12 @@ namespace Auga
         [HarmonyPatch(nameof(Text.text), MethodType.Setter)]
         public static bool Prefix(Text __instance, ref string value)
         {
-            if (__instance.GetComponent<AlwaysUpper>() != null && !string.IsNullOrEmpty(value))
+            if (__instance == null || string.IsNullOrEmpty(value))
+            {
+                return true;
+            }
+
+            if (__instance.GetComponent<AlwaysUpper>() != null)
             {
                 if (value.StartsWith("$"))
                 {
@@ -21,7 +26,7 @@ namespace Auga
                 }
                 value = value.ToUpper();
             }
-            else if (__instance.GetComponent<TitleCase>() != null && !string.IsNullOrEmpty(value))
+            else if (__instance.GetComponent<TitleCase>() != null)
             {
                 if (value.StartsWith("$"))
                 {
@@ -29,6 +34,7 @@ namespace Auga
                 }
                 value = TextInfo.ToTitleCase(value);
             }
+
             return true;
         }
     }

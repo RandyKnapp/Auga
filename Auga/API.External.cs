@@ -56,11 +56,33 @@ namespace Auga
         }
 
         public static string RedText = "#CD2121";
+        public static string Red = "#AD1616";
+        public static string Brown1 = "#EAE1D9";
+        public static string Brown2 = "#D1C9C2";
+        public static string Brown3 = "#A39689";
+        public static string Brown4 = "#706457";
+        public static string Brown5 = "#2E2620";
+        public static string Brown6 = "#EAE1D9";
+        public static string Brown7 = "#181410";
+        public static string Blue = "#216388";
+        public static string LightBlue = "#1AACEF";
+        public static string Gold = "#B98A12";
+        public static string BrightGold = "#EAA800";
+        public static string BrightestGold = "#FFBF1B";
+        public static string GoldDark = "#755608";
+        public static string Green = "#1B9B37";
+
+        public static Font GetBoldFont() => null;
+        public static Font GetSemiBoldFont() => null;
+        public static Font GetRegularFont() => null;
+        public static Sprite GetItemBackgroundSprite() => null;
 
         public static GameObject CreatePanel(Transform parent, Vector2 size, string name, bool withCornerDecoration) => null;
         public static Button MediumButton_Create(Transform parent, string name) => null;
         public static void MediumButton_SetColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled) { }
         public static void MediumButton_OverrideColor(Button button, Color color) { }
+        public static void Tooltip_MakeSimpleTooltip(GameObject obj) { }
+        public static void Tooltip_MakeItemTooltip(GameObject obj, ItemDrop.ItemData item) { }
 
         public static bool IsLoaded() => LoadAssembly() != null;
         public static bool HasWorkbenchTab(string tabID) => false;
@@ -77,6 +99,7 @@ namespace Auga
         public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true) { }
 
         public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener) { }
+        public static void ComplexTooltip_AddItemStatPreprocessor(Func<ItemDrop.ItemData, string, string, Tuple<string, string>> itemStatPreprocessor) { }
         public static void ComplexTooltip_ClearTextBoxes(GameObject complexTooltipGO) { }
         public static GameObject ComplexTooltip_AddTwoColumnTextBox(GameObject complexTooltipGO) => null;
         public static GameObject ComplexTooltip_AddCenteredTextBox(GameObject complexTooltipGO) => null;
