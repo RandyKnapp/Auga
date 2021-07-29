@@ -167,7 +167,7 @@ namespace AugaUnity
 
         public virtual void UpdateVariantButtonVisibility()
         {
-            var showingAnyVariantButton = VariantButton.gameObject.activeInHierarchy || CustomVariantButton.gameObject.activeInHierarchy;
+            var showingAnyVariantButton = VariantButton.gameObject.activeSelf || CustomVariantButton.gameObject.activeSelf;
             VariantButtonContainer.SetActive(showingAnyVariantButton);
             NonVariantButtonContainer.SetActive(!showingAnyVariantButton);
         }

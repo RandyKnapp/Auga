@@ -55,6 +55,8 @@ namespace Auga
             return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == "Auga");
         }
 
+        public static bool IsLoaded() => LoadAssembly() != null;
+
         public static string RedText = "#CD2121";
         public static string Red = "#AD1616";
         public static string Brown1 = "#EAE1D9";
@@ -84,7 +86,6 @@ namespace Auga
         public static void Tooltip_MakeSimpleTooltip(GameObject obj) { }
         public static void Tooltip_MakeItemTooltip(GameObject obj, ItemDrop.ItemData item) { }
 
-        public static bool IsLoaded() => LoadAssembly() != null;
         public static bool HasWorkbenchTab(string tabID) => false;
         public static WorkbenchTabData AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
         public static bool IsTabActive(GameObject tabButton) => false;
