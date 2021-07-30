@@ -12,10 +12,13 @@ namespace AugaUnity
         public GameObject WorkbenchContent;
         public AugaTabController WorkbenchTabController;
         public AugaCraftingPanel CraftingPanel;
-        public RectTransform TabTitleContainer;
-        public RectTransform TabButtonContainer;
+        public RectTransform PlayerPanelTabTitleContainer;
+        public RectTransform PlayerPanelTabButtonContainer;
+        public RectTransform WorkbenchTabTitleContainer;
+        public RectTransform WorkbenchTabButtonContainer;
         public RectTransform RequirementsContainer;
-        public Text TabTitlePrefab;
+        public Text PlayerPanelTabTitlePrefab;
+        public Text WorkbenchTabTitlePrefab;
         public CraftingRequirementsPanel GenericWorkbenchTabRequirementsPrefab;
         public TabButton TabButtonBasePrefab;
 
@@ -72,9 +75,69 @@ namespace AugaUnity
             }
         }
 
+        public bool HasPlayerPanelTab(string tabID)
+        {
+            return DefaultTabController.TabButtons.Exists(x => x.name == tabID);
+        }
+
         public bool HasWorkbenchTab(string tabID)
         {
             return WorkbenchTabController.TabButtons.Exists(x => x.name == tabID);
+        }
+
+        private void AddTab(AugaTabController controller, Text titlePrefab, Transform titleContainer, Transform tabButtonContainer, string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, GameObject content)
+        {
+            tabTitle = Instantiate(titlePrefab, titleContainer, true);
+            tabTitle.text = Localization.instance.Localize(tabLabel);
+
+            tabButton = Instantiate(TabButtonBasePrefab, tabButtonContainer);
+            tabButton.name = tabID;
+            if (tabIcon != null)
+            {
+                tabButton.Icon.sprite = tabIcon;
+            }
+            tabButton.SetSelected(true);
+            tabButton.SetSelected(false);
+
+            controller.TabTitles.Add(tabTitle);
+            controller.TabButtons.Add(tabButton);
+            controller.TabContents.Add(content);
+
+            var index = controller.TabButtons.Count - 1;
+            controller.OnTabChanged += (_, current) =>
+            {
+                if (current == index)
+                {
+                    onTabSelected(index);
+                }
+            };
+        }
+
+        public virtual void AddPlayerPanelTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, out GameObject content)
+        {
+            tabTitle = null;
+            tabButton = null;
+            content = null;
+
+            if (HasPlayerPanelTab(tabID))
+            {
+                return;
+            }
+
+            var contentContainer = transform.Find("TabContent");
+            content = new GameObject($"TabContent_{tabLabel}", typeof(RectTransform));
+            content.transform.SetParent(contentContainer);
+            content.SetActive(false);
+            var rt = (RectTransform)content.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 564);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 780);
+
+            AddTab(DefaultTabController, PlayerPanelTabTitlePrefab, PlayerPanelTabTitleContainer, PlayerPanelTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, out tabTitle, out tabButton, content);
+
+            var index = DefaultTabController.TabButtons.Count - 1;
+            tabButton.Button.onClick.AddListener(() => DefaultTabController.SelectTab(index));
         }
 
         public virtual void AddWorkbenchTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, out CraftingRequirementsPanel requirementsPanel, out ComplexTooltip itemInfo)
@@ -89,31 +152,9 @@ namespace AugaUnity
                 return;
             }
 
-            tabTitle = Instantiate(TabTitlePrefab, TabTitleContainer, true);
-            tabTitle.text = Localization.instance.Localize(tabLabel);
-
-            tabButton = Instantiate(TabButtonBasePrefab, TabButtonContainer);
-            tabButton.name = tabID;
-            tabButton.Icon.sprite = tabIcon;
-            tabButton.SetSelected(true);
-            tabButton.SetSelected(false);
-
             itemInfo = CraftingPanel.ItemInfo;
-
             requirementsPanel = CraftingPanel.GenericCraftingRequirementsPanel;
-
-            WorkbenchTabController.TabTitles.Add(tabTitle);
-            WorkbenchTabController.TabButtons.Add(tabButton);
-            WorkbenchTabController.TabContents.Add(requirementsPanel.gameObject);
-
-            var index = WorkbenchTabController.TabButtons.Count - 1;
-            WorkbenchTabController.OnTabChanged += (_, current) =>
-            {
-                if (current == index)
-                {
-                    onTabSelected(index);
-                }
-            };
+            AddTab(WorkbenchTabController, WorkbenchTabTitlePrefab, WorkbenchTabTitleContainer, WorkbenchTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, out tabTitle, out tabButton, requirementsPanel.gameObject);
         }
 
         public bool IsTabActive(GameObject tabButton)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -79,18 +80,30 @@ namespace Auga
         public static Font GetRegularFont() => null;
         public static Sprite GetItemBackgroundSprite() => null;
 
-        public static GameObject CreatePanel(Transform parent, Vector2 size, string name, bool withCornerDecoration) => null;
-        public static Button MediumButton_Create(Transform parent, string name) => null;
-        public static void MediumButton_SetColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled) { }
-        public static void MediumButton_OverrideColor(Button button, Color color) { }
+        public static GameObject Panel_Create(Transform parent, Vector2 size, string name, bool withCornerDecoration) => null;
+        public static Button SmallButton_Create(Transform parent, string name, string labelText) => null;
+        public static Button MediumButton_Create(Transform parent, string name, string labelText) => null;
+        public static Button FancyButton_Create(Transform parent, string name, string labelText) => null;
+        public static Button SettingsButton_Create(Transform parent, string name, string labelText) => null;
+        public static Button DiamondButton_Create(Transform parent, string name, [CanBeNull] Sprite icon) => null;
+        public static GameObject Divider_CreateSmall(Transform parent, string name, float width = -1) => null;
+        public static Tuple<GameObject, GameObject> Divider_CreateMedium(Transform parent, string name, float width = -1) => null;
+        public static Tuple<GameObject, GameObject> Divider_CreateLarge(Transform parent, string name, float width = -1) => null;
+        public static void Button_SetTextColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled, Color baseTextColor) { }
+        public static void Button_OverrideTextColor(Button button, Color color) { }
         public static void Tooltip_MakeSimpleTooltip(GameObject obj) { }
         public static void Tooltip_MakeItemTooltip(GameObject obj, ItemDrop.ItemData item) { }
 
-        public static bool HasWorkbenchTab(string tabID) => false;
-        public static WorkbenchTabData AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
-        public static bool IsTabActive(GameObject tabButton) => false;
-        public static Button GetCraftingTabButton() => null;
-        public static Button GetUpgradeTabButton() => null;
+        public static bool PlayerPanel_HasTab(string tabID) => false;
+        public static PlayerPanelTabData PlayerPanel_AddTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
+        public static bool PlayerPanel_IsTabActive(GameObject tabButton) => false;
+        public static Button PlayerPanel_GetTabButton(int index) => null;
+
+        public static bool Workbench_HasWorkbenchTab(string tabID) => false;
+        public static WorkbenchTabData Workbench_AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
+        public static bool Workbench_IsTabActive(GameObject tabButton) => false;
+        public static Button Workbench_GetCraftingTabButton() => null;
+        public static Button Workbench_GetUpgradeTabButton() => null;
         public static GameObject Workbench_CreateNewResultsPanel() => null;
 
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true) { }
@@ -111,14 +124,21 @@ namespace Auga
         public static void ComplexTooltip_SetTopic(GameObject complexTooltipGO, string topic) { }
         public static void ComplexTooltip_SetSubtitle(GameObject complexTooltipGO, string topic) { }
         public static void ComplexTooltip_SetDescription(GameObject complexTooltipGO, string desc) { }
+        public static void ComplexTooltip_SetIcon(GameObject complexTooltipGO, Sprite icon) { }
+        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled) { }
+        public static string ComplexTooltip_GenerateItemSubtext(GameObject complexTooltipGO, ItemDrop.ItemData item) => string.Empty;
         public static void ComplexTooltip_SetItem(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1) { }
         public static void ComplexTooltip_SetItemNoTextBoxes(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1) { }
-        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled) { }
+        public static void ComplexTooltip_SetFood(GameObject complexTooltipGO, Player.Food food) { }
+        public static void ComplexTooltip_SetStatusEffect(GameObject complexTooltipGO, StatusEffect statusEffect) { }
+        public static void ComplexTooltip_SetSkill(GameObject complexTooltipGO, Skills.Skill skill) { }
 
         public static Image RequirementsPanel_GetIcon(GameObject requirementsPanelGO) => null;
+        public static GameObject[] RequirementsPanel_RequirementList(GameObject requirementsPanelGO) => null;
         public static void RequirementsPanel_SetWires(GameObject requirementsPanelGO, RequirementWireState[] wireStates, bool canCraft) { }
 
         public static Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow) => null;
+        public static void CustomVariantPanel_SetButtonLabel(string buttonLabel) { }
         public static void CustomVariantPanel_Disable() { }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using AugaUnity;
 using JetBrains.Annotations;
@@ -40,7 +39,7 @@ namespace Auga
         // Panels & Buttons
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
-        public static GameObject CreatePanel(Transform parent, Vector2 size, string name, bool withCornerDecoration)
+        public static GameObject Panel_Create(Transform parent, Vector2 size, string name, bool withCornerDecoration)
         {
             var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
             panel.name = name;
@@ -53,6 +52,8 @@ namespace Auga
             }
 
             var rt = (RectTransform)panel.transform;
+            rt.pivot = rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
 
@@ -60,16 +61,151 @@ namespace Auga
         }
 
         [UsedImplicitly]
-        public static Button MediumButton_Create(Transform parent, string name)
+        public static Button SmallButton_Create(Transform parent, string name, string labelText)
         {
-            var button = Object.Instantiate(Auga.Assets.ButtonMedium, parent);
+            var button = Object.Instantiate(Auga.Assets.ButtonSmall, parent);
             button.name = name;
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
 
             return button.GetComponent<ColorButtonText>();
         }
 
         [UsedImplicitly]
-        public static void MediumButton_SetColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled)
+        public static Button MediumButton_Create(Transform parent, string name, string labelText)
+        {
+            var button = Object.Instantiate(Auga.Assets.ButtonMedium, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+        }
+
+        [UsedImplicitly]
+        public static Button FancyButton_Create(Transform parent, string name, string labelText)
+        {
+            var button = Object.Instantiate(Auga.Assets.ButtonFancy, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+        }
+
+        [UsedImplicitly]
+        public static Button SettingsButton_Create(Transform parent, string name, string labelText)
+        {
+            var button = Object.Instantiate(Auga.Assets.ButtonSettings, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+        }
+
+        [UsedImplicitly]
+        public static Button DiamondButton_Create(Transform parent, string name, [CanBeNull] Sprite icon)
+        {
+            var button = Object.Instantiate(Auga.Assets.DiamondButton, parent);
+            button.name = name;
+
+            var image = button.GetComponentInChildren<Image>();
+            if (icon == null)
+            {
+                image.enabled = false;
+            }
+            else
+            {
+                image.sprite = icon;
+            }
+
+            return button.GetComponent<Button>();
+        }
+
+        [UsedImplicitly]
+        public static GameObject Divider_CreateSmall(Transform parent, string name, float width = -1)
+        {
+            var divider = Object.Instantiate(Auga.Assets.DividerSmall, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return divider;
+        }
+
+        [UsedImplicitly]
+        public static Tuple<GameObject, GameObject> Divider_CreateMedium(Transform parent, string name, float width = -1)
+        {
+            var divider = Object.Instantiate(Auga.Assets.DividerMedium, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return new Tuple<GameObject, GameObject>(divider, divider.transform.Find("Content").gameObject);
+        }
+
+        [UsedImplicitly]
+        public static Tuple<GameObject, GameObject> Divider_CreateLarge(Transform parent, string name, float width = -1)
+        {
+            var divider = Object.Instantiate(Auga.Assets.DividerLarge, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return new Tuple<GameObject, GameObject>(divider, divider.transform.Find("Content").gameObject);
+        }
+
+        [UsedImplicitly]
+        public static GameObject ConfirmDialog_Show(string displayText, string yesButtonText = "$menu_yes", string noButtonText = "$menu_no", Action onYesClick = null, Action onNoClick = null)
+        {
+            var parent = FejdStartup.instance != null ? FejdStartup.instance.transform : Hud.instance != null ? Hud.instance.transform : null;
+            if (parent == null)
+            {
+                Debug.LogError("Could not find parent for ConfirmDialog (tried FejdStartup and Hud)");
+            }
+
+            var confirmDialog = Object.Instantiate(Auga.Assets.ConfirmDialog, parent);
+
+            var yesButton = confirmDialog.transform.Find("ButtonYes").GetComponent<Button>();
+            yesButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(yesButtonText);
+            yesButton.onClick.AddListener(() =>
+            {
+                onYesClick?.Invoke();
+                Object.Destroy(confirmDialog);
+            });
+
+            var noButton = confirmDialog.transform.Find("ButtonNo").GetComponent<Button>();
+            noButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(noButtonText);
+            noButton.onClick.AddListener(() =>
+            {
+                onNoClick?.Invoke();
+                Object.Destroy(confirmDialog);
+            }); 
+
+            return confirmDialog;
+        }
+
+        [UsedImplicitly]
+        public static void Button_SetTextColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled, Color baseTextColor)
         {
             var colorValues = button.GetComponent<ColorButtonTextValues>();
             if (colorValues != null)
@@ -80,10 +216,16 @@ namespace Auga
                 colorValues.TextColors.selectedColor = selected;
                 colorValues.TextColors.disabledColor = disabled;
             }
+
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.color = baseTextColor;
+            }
         }
 
         [UsedImplicitly]
-        public static void MediumButton_OverrideColor(Button button, Color color)
+        public static void Button_OverrideTextColor(Button button, Color color)
         {
             var colorValues = button.GetComponent<ColorButtonTextValues>();
             if (colorValues != null)
@@ -130,16 +272,117 @@ namespace Auga
             itemTooltip.Item = item;
         }
 
+        [UsedImplicitly]
+        public static void Tooltip_MakeFoodTooltip(GameObject obj, Player.Food food)
+        {
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var foodTooltip = obj.GetComponent<FoodTooltip>();
+            if (foodTooltip == null)
+            {
+                foodTooltip = obj.AddComponent<FoodTooltip>();
+            }
+
+            foodTooltip.Food = food;
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeStatusEffectTooltip(GameObject obj, StatusEffect statusEffect)
+        {
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var statusEffectTooltip = obj.GetComponent<StatusTooltip>();
+            if (statusEffectTooltip == null)
+            {
+                statusEffectTooltip = obj.AddComponent<StatusTooltip>();
+            }
+
+            statusEffectTooltip.StatusEffect = statusEffect;
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeSkillTooltip(GameObject obj, Skills.Skill skill)
+        {
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var skillTooltip = obj.GetComponent<SkillTooltip>();
+            if (skillTooltip == null)
+            {
+                skillTooltip = obj.AddComponent<SkillTooltip>();
+            }
+
+            skillTooltip.Skill = skill;
+        }
+
+        // Player Panel Tabs
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static bool PlayerPanel_HasTab(string tabID)
+        {
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.HasPlayerPanelTab(tabID);
+        }
+
+        [UsedImplicitly]
+        public static PlayerPanelTabData PlayerPanel_AddTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        {
+            if (WorkbenchPanelController.instance != null)
+            {
+                var data = new PlayerPanelTabData();
+
+                WorkbenchPanelController.instance.AddPlayerPanelTab(tabID, tabIcon, tabTitleText, onTabSelected, out data.TabTitle, out var tabButton, out data.ContentGO);
+                data.Index = WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count - 1;
+                data.TabButtonGO = tabButton.gameObject;
+
+                return data;
+            }
+
+            return null;
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_IsTabActive(GameObject tabButton)
+        {
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActive(tabButton);
+        }
+
+        [UsedImplicitly]
+        public static Button PlayerPanel_GetTabButton(int index)
+        {
+            if (WorkbenchPanelController.instance != null && index >= 0 && index < WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count)
+            {
+                return WorkbenchPanelController.instance.DefaultTabController.TabButtons[index].Button;
+            }
+            return null;
+        }
+
         // Workbench Tabs
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
-        public static bool HasWorkbenchTab(string tabID)
+        public static bool Workbench_HasWorkbenchTab(string tabID)
         {
             return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.HasWorkbenchTab(tabID);
         }
 
         [UsedImplicitly]
-        public static WorkbenchTabData AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        public static WorkbenchTabData Workbench_AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
         {
             if (WorkbenchPanelController.instance != null)
             {
@@ -158,19 +401,19 @@ namespace Auga
         }
 
         [UsedImplicitly]
-        public static bool IsTabActive(GameObject tabButton)
+        public static bool Workbench_IsTabActive(GameObject tabButton)
         {
             return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActive(tabButton);
         }
 
         [UsedImplicitly]
-        public static Button GetCraftingTabButton()
+        public static Button Workbench_GetCraftingTabButton()
         {
             return WorkbenchPanelController.instance?.WorkbenchTabController.TabButtons[0].GetComponent<Button>();
         }
 
         [UsedImplicitly]
-        public static Button GetUpgradeTabButton()
+        public static Button Workbench_GetUpgradeTabButton()
         {
             return WorkbenchPanelController.instance?.WorkbenchTabController.TabButtons[1].GetComponent<Button>();
         }
@@ -389,6 +632,39 @@ namespace Auga
         }
 
         [UsedImplicitly]
+        public static void ComplexTooltip_SetIcon(GameObject complexTooltipGO, Sprite icon)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetIcon(icon);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.EnableDescription(enabled);
+        }
+
+        [UsedImplicitly]
+        public static string ComplexTooltip_GenerateItemSubtext(GameObject complexTooltipGO, ItemDrop.ItemData item)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return string.Empty;
+            }
+
+            return complexTooltip.GenerateItemSubtext(item);
+        }
+
+        [UsedImplicitly]
         public static void ComplexTooltip_SetItem(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
             if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
@@ -411,14 +687,36 @@ namespace Auga
         }
 
         [UsedImplicitly]
-        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled)
+        public static void ComplexTooltip_SetFood(GameObject complexTooltipGO, Player.Food food)
         {
             if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
             {
                 return;
             }
 
-            complexTooltip.EnableDescription(enabled);
+            complexTooltip.SetFood(food);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetStatusEffect(GameObject complexTooltipGO, StatusEffect statusEffect)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetStatusEffect(statusEffect);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetSkill(GameObject complexTooltipGO, Skills.Skill skill)
+        {
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetSkill(skill);
         }
 
 
@@ -439,12 +737,13 @@ namespace Auga
         [UsedImplicitly]
         public static Image RequirementsPanel_GetIcon(GameObject requirementsPanelGO)
         {
-            if (!RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel))
-            {
-                return null;
-            }
+            return !RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel) ? null : requirementsPanel.Icon;
+        }
 
-            return requirementsPanel.Icon;
+        [UsedImplicitly]
+        public static GameObject[] RequirementsPanel_RequirementList(GameObject requirementsPanelGO)
+        {
+            return !RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel) ? null : requirementsPanel.RequirementList;
         }
 
         [UsedImplicitly]
@@ -471,6 +770,17 @@ namespace Auga
             }
 
             return WorkbenchPanelController.instance.CraftingPanel.EnableCustomVariantDialog(buttonLabel, onShow);
+        }
+
+        [UsedImplicitly]
+        public static void CustomVariantPanel_SetButtonLabel(string buttonLabel)
+        {
+            if (WorkbenchPanelController.instance == null)
+            {
+                return;
+            }
+
+            WorkbenchPanelController.instance.CraftingPanel.SetCustomVariantButtonLabel(buttonLabel);
         }
 
         [UsedImplicitly]

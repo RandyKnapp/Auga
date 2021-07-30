@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using AugaUnity;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using fastJSON;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Auga
 {
@@ -35,13 +32,21 @@ namespace Auga
         public GameObject PasswordDialog;
         public GameObject ConnectingDialog;
         public GameObject PanelBase;
+        public GameObject ButtonSmall;
         public GameObject ButtonMedium;
+        public GameObject ButtonFancy;
+        public GameObject ButtonSettings;
+        public GameObject DiamondButton;
         public Font SourceSansProBold;
         public Font SourceSansProSemiBold;
         public Font SourceSansProRegular;
         public Sprite ItemBackgroundSprite;
         public GameObject InventoryTooltip;
         public GameObject SimpleTooltip;
+        public GameObject DividerSmall;
+        public GameObject DividerMedium;
+        public GameObject DividerLarge;
+        public GameObject ConfirmDialog;
     }
 
     public class AugaColors
@@ -165,13 +170,21 @@ namespace Auga
             Assets.PasswordDialog = assetBundle.LoadAsset<GameObject>("AugaPassword");
             Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
             Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
+            Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
+            Assets.ButtonFancy = assetBundle.LoadAsset<GameObject>("ButtonFancy");
+            Assets.ButtonSettings = assetBundle.LoadAsset<GameObject>("ButtonSettings");
+            Assets.DiamondButton = assetBundle.LoadAsset<GameObject>("DiamondButton");
             Assets.SourceSansProBold = assetBundle.LoadAsset<Font>("SourceSansPro-Bold");
             Assets.SourceSansProSemiBold = assetBundle.LoadAsset<Font>("SourceSansPro-SemiBold");
             Assets.SourceSansProRegular = assetBundle.LoadAsset<Font>("SourceSansPro-Regular");
             Assets.ItemBackgroundSprite = assetBundle.LoadAsset<Sprite>("Container_Square_A");
             Assets.InventoryTooltip = assetBundle.LoadAsset<GameObject>("InventoryTooltip");
             Assets.SimpleTooltip = assetBundle.LoadAsset<GameObject>("SimpleTooltip");
+            Assets.DividerSmall = assetBundle.LoadAsset<GameObject>("DividerSmall");
+            Assets.DividerMedium = assetBundle.LoadAsset<GameObject>("DividerMedium");
+            Assets.DividerLarge = assetBundle.LoadAsset<GameObject>("DividerLarge");
+            Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
         }
 
         private static void ApplyCursor()
