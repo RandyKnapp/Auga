@@ -124,12 +124,14 @@ namespace AugaUnity
 
         public virtual float GetMaxPotentialHealth(Player player)
         {
-            return Player.m_baseHP + player.m_foods.Sum(x => x.m_item.m_shared.m_food);
+            var baseHP = player.GetMaxHealth() - player.m_foods.Sum(x => x.m_health);
+            return baseHP + player.m_foods.Sum(x => x.m_item.m_shared.m_food);
         }
 
         public virtual float GetMaxPotentialStamina(Player player)
         {
-            return Player.m_baseStamina + player.m_foods.Sum(x => x.m_item.m_shared.m_foodStamina);
+            var baseStamina = player.GetMaxStamina() - player.m_foods.Sum(x => x.m_stamina);
+            return baseStamina + player.m_foods.Sum(x => x.m_item.m_shared.m_foodStamina);
         }
     }
 }

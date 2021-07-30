@@ -243,17 +243,22 @@ namespace AugaUnity
             _onShowCustomVariantDialog?.Invoke(CustomVariantDialog.gameObject.activeSelf);
         }
 
-        public virtual Text EnableCustomVariantDialog(string buttonText, Action<bool> onShow)
+        public virtual Text EnableCustomVariantDialog(string buttonLabel, Action<bool> onShow)
         {
             _onShowCustomVariantDialog = onShow;
 
             VariantButton.gameObject.SetActive(false);
             CustomVariantButton.gameObject.SetActive(true);
-            CustomVariantButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(buttonText);
+            SetCustomVariantButtonLabel(buttonLabel);
 
             UpdateVariantButtonVisibility();
 
             return CustomVariantText;
+        }
+
+        public void SetCustomVariantButtonLabel(string buttonLabel)
+        {
+            CustomVariantButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(buttonLabel);
         }
 
         public virtual void DisableCustomVariantDialog()
