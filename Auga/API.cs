@@ -175,36 +175,6 @@ namespace Auga
         }
 
         [UsedImplicitly]
-        public static GameObject ConfirmDialog_Show(string displayText, string yesButtonText = "$menu_yes", string noButtonText = "$menu_no", Action onYesClick = null, Action onNoClick = null)
-        {
-            var parent = FejdStartup.instance != null ? FejdStartup.instance.transform : Hud.instance != null ? Hud.instance.transform : null;
-            if (parent == null)
-            {
-                Debug.LogError("Could not find parent for ConfirmDialog (tried FejdStartup and Hud)");
-            }
-
-            var confirmDialog = Object.Instantiate(Auga.Assets.ConfirmDialog, parent);
-
-            var yesButton = confirmDialog.transform.Find("ButtonYes").GetComponent<Button>();
-            yesButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(yesButtonText);
-            yesButton.onClick.AddListener(() =>
-            {
-                onYesClick?.Invoke();
-                Object.Destroy(confirmDialog);
-            });
-
-            var noButton = confirmDialog.transform.Find("ButtonNo").GetComponent<Button>();
-            noButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(noButtonText);
-            noButton.onClick.AddListener(() =>
-            {
-                onNoClick?.Invoke();
-                Object.Destroy(confirmDialog);
-            }); 
-
-            return confirmDialog;
-        }
-
-        [UsedImplicitly]
         public static void Button_SetTextColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled, Color baseTextColor)
         {
             var colorValues = button.GetComponent<ColorButtonTextValues>();
