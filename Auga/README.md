@@ -29,6 +29,7 @@ Does it work with...
 
   * EpicLoot: **YES**
   * Equipment & Quick Slots: **YES**
+  * Valheim+: **NO**
   * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.

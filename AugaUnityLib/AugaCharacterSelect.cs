@@ -66,7 +66,7 @@ namespace AugaUnity
             FejdStartup.instance.SetupCharacterPreview(profile);
 
             //yield return new WaitForSeconds(1);
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 15; i++)
             {
                 yield return null;
             }
