@@ -33,9 +33,14 @@ SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Auga/Screensh
 
 Does it work with...
 
+  * Controller: **LIMITED** (using a controller is not supported in all menus yet)
   * EpicLoot: **YES**
   * Equipment & Quick Slots: **YES**
-  * Valheim+: **NO**
+  * Valheim+: **LIMITED** (Not all features work, please set the following config options or the HUD will break:)
+	* displayStaminaValue = false
+	* displayBowAmmoCounts = 0
+	* (changing inventory sizes will not work correctly)
+	* GameClock: enabled = false
   * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.
