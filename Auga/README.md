@@ -18,6 +18,12 @@ SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Auga/Screensh
 
 ## How to Install
 
+### GitHub/Nexus Mods
+  1. Install [BepInEx for Valheim﻿](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/)
+  1. Download the zip file from the Nexus or the GitHub Release
+  1. Extract the contents of the zip file to <Your Valheim Installation Directory>\BepInEx\plugins\Auga
+
+### Thunderstore
   1. Install [BepInEx for Valheim﻿](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/)
   1. Download the zip file from here on Thunderstore
   1. Install with your mod manager
