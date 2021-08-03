@@ -11,6 +11,8 @@ namespace Auga
     public static class InventoryPanel_Patches
     {
         public static AugaCraftingPanel CraftingPanel;
+        public static Transform TopRowInventory;
+        public static Transform MainRowsInventory;
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class InventoryGui_Awake_Patch
@@ -140,13 +142,23 @@ namespace Auga
             {
                 if (__instance.name == "PlayerGrid")
                 {
-                    Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
+                    if (TopRowInventory == null)
+                    {
+                        TopRowInventory = __instance.transform.Find("Top");
+                        MainRowsInventory = __instance.transform.Find("Main/Grid");
+                    }
+                    //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
                     foreach (var element in __instance.m_elements)
                     {
-                        if (element.m_pos.y != 0)
+                        if (element.m_pos.y == 0)
                         {
-                            Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 26);
-                            element.m_go.RectTransform().anchoredPosition = startPos + currentPosition;
+                            element.m_go.transform.SetParent(TopRowInventory);
+                        }
+                        else
+                        {
+                            element.m_go.transform.SetParent(MainRowsInventory);
+                            //Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 26);
+                            //element.m_go.RectTransform().anchoredPosition = startPos + currentPosition;
                         }
                     }
                 }

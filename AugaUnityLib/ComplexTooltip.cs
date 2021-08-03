@@ -195,6 +195,11 @@ namespace AugaUnity
             _food = null;
             _statusEffect = null;
             _skill = null;
+
+            if (ItemQuality != null)
+            {
+                ItemQuality.transform.parent.gameObject.SetActive(false);
+            }
         }
 
         public virtual void SetTopic(string topic)
