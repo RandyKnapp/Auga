@@ -3,6 +3,9 @@
 
 Project Auga is a completely re-imagined, modder-friendly UI-overhaul for Valheim. Every last piece of UI was considered and reworked from the ground-up to create a more helpful and immersive player experience, all while remaining familiar to Valheim veterans.
 
+Join the Discord: [Project Auga Discord﻿](https://discord.gg/ZNhYeavv3C)
+Visit the Website: [ProjectAuga.com](https://projectauga.com/)
+
 ## What's Changed?
 
 Basically everything:
@@ -42,6 +45,7 @@ Does it work with...
 	* Changing inventory size works, but it is slightly too small and always scrolls
 	* GameClock: enabled = false
   * [JotunnBackpacks](https://www.nexusmods.com/valheim/mods/1416): **YES**
+  * Better Wards: **YES**
   * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.

@@ -18,7 +18,6 @@ namespace Auga
         }
 
         [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud))]
-        [HarmonyBefore("org.bepinex.plugins.creaturelevelcontrol")] // this doesn't seem to work?
         public static class EnemyHud_ShowHud_Patch
         {
             public static void Postfix(EnemyHud __instance, Character c)
@@ -65,6 +64,27 @@ namespace Auga
                                 var text = levelDisplayX.GetComponentInChildren<Text>();
                                 text.text = $"x {level - 1}";
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds))]
+        [HarmonyAfter("org.bepinex.plugins.creaturelevelcontrol")]
+        public static class EnemyHud_UpdateHuds_Patch
+        {
+            public static void Postfix(EnemyHud __instance)
+            {
+                foreach (var hud in __instance.m_huds)
+                {
+                    if (hud.Key != null && hud.Value != null && hud.Value.m_gui != null)
+                    {
+                        var name = hud.Value.m_gui.transform.Find("Name");
+                        if (name != null)
+                        {
+                            var rt = (RectTransform)name;
+                            rt.anchoredPosition = new Vector2(0, 38.5f);
                         }
                     }
                 }
