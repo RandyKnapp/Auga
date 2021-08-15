@@ -72,6 +72,7 @@ namespace Auga
 
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
+        public static ConfigEntry<bool> UseAugaTrash;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -149,6 +150,7 @@ namespace Auga
         {
             _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
             _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
+            UseAugaTrash = Config.Bind("Options", "UseAugaTrash", false, "Enable Auga's built in trash button. Click on the button while holding an item or part of a stack with the mouse.");
         }
 
         private static void LoadAssets()

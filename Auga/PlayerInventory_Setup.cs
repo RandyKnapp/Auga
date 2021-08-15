@@ -131,6 +131,11 @@ namespace Auga
                 animator.runtimeAnimatorController = newAnimator.runtimeAnimatorController;
                 animator.Rebind();
 
+                var standardDivider = playerInventory.Find("StandardDivider");
+                var trashDivider = playerInventory.Find("TrashDivider");
+                standardDivider.gameObject.SetActive(!Auga.UseAugaTrash.Value);
+                trashDivider.gameObject.SetActive(Auga.UseAugaTrash.Value);
+
                 Localization.instance.Localize(__instance.transform);
             }
         }
