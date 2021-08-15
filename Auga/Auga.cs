@@ -76,6 +76,8 @@ namespace Auga
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
 
+        public static bool HasBetterTrader = false;
+
         private static Auga _instance;
         private Harmony _harmony;
 
@@ -89,6 +91,8 @@ namespace Auga
             LoadAssets();
 
             ApplyCursor();
+
+            HasBetterTrader = gameObject.GetComponent("BetterTrader") != null;
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
         }

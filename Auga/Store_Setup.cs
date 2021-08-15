@@ -10,6 +10,11 @@ namespace Auga
         [HarmonyPrefix]
         public static bool Awake_Prefix(StoreGui __instance)
         {
+            if (Auga.HasBetterTrader)
+            {
+                return true;
+            }
+
             var replaced = SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.StoreGui, "Store_Screen", out var newStoreGui);
             if (replaced)
             {
@@ -22,6 +27,11 @@ namespace Auga
         [HarmonyPostfix]
         public static void FillList_Postfix(StoreGui __instance)
         {
+            if (Auga.HasBetterTrader)
+            {
+                return;
+            }
+
             var items = __instance.m_trader.m_items;
             for (var index = 0; index < __instance.m_itemList.Count; index++)
             {
