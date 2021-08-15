@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using AugaUnity;
@@ -7,6 +8,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -476,6 +478,94 @@ namespace Auga
                     yield return instruction;
                 }
             }
+        }
+    }
+
+    //UpdatePieceList
+    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdatePieceList))]
+    public static class Hud_UpdatePieceList_Patch
+    {
+        public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
+        {
+            var buildPieces = player.GetBuildPieces();
+            var pieceIcons = __instance.m_pieceIcons;
+
+            var i = 0;
+            for (; i < buildPieces.Count; ++i)
+            {
+                if (i >= pieceIcons.Count)
+                {
+                    // Create icon
+                    var icon = Object.Instantiate(__instance.m_pieceIconPrefab, __instance.m_pieceListRoot);
+                    var pieceIconData = new Hud.PieceIconData();
+                    pieceIconData.m_go = icon;
+                    pieceIconData.m_tooltip = icon.GetComponent<UITooltip>();
+                    pieceIconData.m_icon = icon.transform.Find("icon").GetComponent<Image>();
+                    pieceIconData.m_marker = icon.transform.Find("selected").gameObject;
+                    pieceIconData.m_upgrade = icon.transform.Find("upgrade").gameObject;
+                    pieceIconData.m_icon.color = new Color(1f, 0.0f, 1f, 0.0f);
+                    var component = icon.GetComponent<UIInputHandler>();
+                    component.m_onLeftDown += __instance.OnLeftClickPiece;
+                    component.m_onRightDown += __instance.OnRightClickPiece;
+                    component.m_onPointerEnter += __instance.OnHoverPiece;
+                    component.m_onPointerExit += __instance.OnHoverPieceExit;
+                    pieceIcons.Add(pieceIconData);
+                }
+
+                // Update icon
+                var pieceIcon = pieceIcons[i];
+                var selectedIndex = selectedNr.x + selectedNr.y * 10;
+                pieceIcon.m_marker.SetActive(i == selectedIndex);
+
+                var piece = buildPieces[i];
+                pieceIcon.m_icon.sprite = piece.m_icon;
+                pieceIcon.m_icon.enabled = true;
+                pieceIcon.m_tooltip.m_text = piece.m_name;
+                pieceIcon.m_upgrade.SetActive(piece.m_isUpgrade);
+            }
+
+            for (; i < pieceIcons.Count; ++i)
+            {
+                Object.Destroy(pieceIcons[i].m_go);
+                pieceIcons[i] = null;
+            }
+
+            pieceIcons.RemoveAll(x => x == null);
+
+            __instance.UpdatePieceBuildStatus(buildPieces, player);
+            if (updateAllBuildStatuses)
+            {
+                __instance.UpdatePieceBuildStatusAll(buildPieces, player);
+            }
+
+            if (__instance.m_lastPieceCategory == category)
+            {
+                return false;
+            }
+
+            __instance.m_lastPieceCategory = category;
+            __instance.m_pieceBarPosX = __instance.m_pieceBarTargetPosX;
+            __instance.UpdatePieceBuildStatusAll(buildPieces, player);
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.PrevCategory))]
+    public static class PieceTable_PrevCategory_Patch
+    {
+        public static bool Prefix(ref PieceTable __instance)
+        {
+            return Input.GetAxis("Mouse ScrollWheel") == 0;
+        }
+    }
+
+    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory))]
+    public static class PieceTable_NextCategory_Patch
+    {
+        public static bool Prefix(ref PieceTable __instance)
+        {
+            return Input.GetAxis("Mouse ScrollWheel") == 0;
         }
     }
 }
