@@ -117,9 +117,10 @@ namespace AugaUnity
         public static event Action<ComplexTooltip, Player.Food> OnComplexTooltipGeneratedForFood;
         public static event Action<ComplexTooltip, StatusEffect> OnComplexTooltipGeneratedForStatusEffect;
         public static event Action<ComplexTooltip, Skills.Skill> OnComplexTooltipGeneratedForSkill;
-        public static event Func<ItemDrop.ItemData, string, string, Tuple<string, string>> ItemStatPreprocess = (item, label, value) => new Tuple<string, string>(label, value);
 
         protected static readonly StringBuilder _stringBuilder = new StringBuilder();
+        protected static List<Func<ItemDrop.ItemData, string, string, Tuple<string, string>>> _itemStatPreprocessors = new List<Func<ItemDrop.ItemData, string, string, Tuple<string, string>>>();
+
         protected readonly List<GameObject> _textBoxes = new List<GameObject>();
         protected ItemDrop.ItemData _item;
         protected Player.Food _food;
@@ -338,13 +339,13 @@ namespace AugaUnity
             if (!upgrade && item.m_shared.m_dlc.Length > 0)
             {
                 var textBox = AddTextBox(CenteredTextBoxPrefab);
-                textBox.AddLine("<color=aqua>$item_dlc</color>");
+                TextBoxAddPreprocessedLine(textBox, item, "<color=aqua>$item_dlc</color>");
             }
 
             if (!upgrade && item.m_crafterID != 0L)
             {
                 var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-                textBox.AddLine("$item_crafter", item.m_crafterName);
+                TextBoxAddPreprocessedLine(textBox, item, "$item_crafter", item.m_crafterName);
             }
 
             var statusEffectTooltip = item.GetStatusEffectTooltip();
@@ -684,6 +685,22 @@ namespace AugaUnity
 
             Localization.instance.Localize(transform);
             OnComplexTooltipGeneratedForSkill?.Invoke(this, skill);
+        }
+
+        public static void AddItemStatPreprocessor(Func<ItemDrop.ItemData, string, string, Tuple<string, string>> itemStatPreprocessor)
+        {
+            _itemStatPreprocessors.Add(itemStatPreprocessor);
+        }
+
+        private static Tuple<string, string> ItemStatPreprocess(ItemDrop.ItemData item, string label, string value)
+        {
+            var result = new Tuple<string, string>(label, value);
+            foreach (var itemStatPreprocessor in _itemStatPreprocessors)
+            {
+                result = itemStatPreprocessor(item, result.Item1, result.Item2);
+            }
+
+            return result;
         }
 
         protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, bool localize = true)

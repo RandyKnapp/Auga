@@ -488,7 +488,7 @@ namespace Auga
         [UsedImplicitly]
         public static void ComplexTooltip_AddItemStatPreprocessor(Func<ItemDrop.ItemData, string, string, Tuple<string, string>> itemStatPreprocessor)
         {
-            ComplexTooltip.ItemStatPreprocess += itemStatPreprocessor;
+            ComplexTooltip.AddItemStatPreprocessor(itemStatPreprocessor);
         }
 
         [UsedImplicitly]
