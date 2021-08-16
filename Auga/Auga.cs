@@ -68,7 +68,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.0.2";
+        public const string Version = "1.0.3";
 
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;

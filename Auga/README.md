@@ -47,6 +47,8 @@ Does it work with...
   * [JotunnBackpacks](https://www.nexusmods.com/valheim/mods/1416): **YES**
   * Better Wards: **YES**
   * Creature Level & Loot Control: **YES**
+  * BetterTrader: **YES**
+  * BuildExpansion: **NO (but kinda YES)** (But it now supports extra build pieces, BuildExpansion is no longer required when using Auga)
   * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.
@@ -59,3 +61,17 @@ Project Auga comes with an API that allows other mods to easily access its featu
 
 Auga API: https://github.com/RandyKnapp/Auga/wiki/Auga-API
 Source: https://github.com/RandyKnapp/Auga
+
+## Changelog
+
+### 1.0.3
+  * BetterTrader bugfix
+  * Extended Item Data Framework compatibility (please update EIDF to 1.0.3)
+  * Added BuildExpansion-like support
+  * Fixed white square on store buy button
+  * Added support for more skills on the skills page
+  * Added trash support (like TrashItems), enable it in the config
+### 1.0.2
+  * Fixed overlapping names and health bars for enemies when using CLLC
+### 1.0.1
+  * Valheim+ Compatibility
