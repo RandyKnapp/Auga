@@ -68,7 +68,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.0.3";
+        public const string Version = "1.0.4";
 
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
@@ -261,28 +261,15 @@ namespace Auga
         }
     }
 
-    [HarmonyPatch(typeof(Console), nameof(Console.InputText))]
-    public static class Console_InputText_Patch
+    [HarmonyPatch(typeof(Terminal), nameof(Terminal.InitTerminal))]
+    public static class Terminal_InitTerminal_Patch
     {
-        public static bool Prefix(Console __instance)
+        public static void Postfix()
         {
-            var input = __instance.m_input.text;
-            var args = input.Split(' ');
-            if (args.Length == 0)
+            new Terminal.ConsoleCommand("resetbiomes", "", args =>
             {
-                return true;
-            }
-
-            var player = Player.m_localPlayer;
-
-            var command = args[0];
-            if (command == "resetbiomes" && player != null)
-            {
-                player.m_knownBiome = new HashSet<Heightmap.Biome>();
-                return false;
-            }
-
-            return true;
+                Player.m_localPlayer.m_knownBiome = new HashSet<Heightmap.Biome>();
+            });
         }
     }
 }

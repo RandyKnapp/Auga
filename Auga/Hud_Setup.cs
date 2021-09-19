@@ -67,14 +67,29 @@ namespace Auga
             minimap.m_selectedIcon2 = newMap.Find("IconPanel/Icon2/Selected").GetComponent<Image>();
             minimap.m_selectedIcon3 = newMap.Find("IconPanel/Icon3/Selected").GetComponent<Image>();
             minimap.m_selectedIcon4 = newMap.Find("IconPanel/Icon4/Selected").GetComponent<Image>();
+            minimap.m_selectedIconBoss = newMap.Find("IconBoss/Selected").GetComponent<Image>();
+            minimap.m_selectedIconDeath = newMap.Find("IconDeath/Selected").GetComponent<Image>();
             minimap.m_nameInput = newMap.Find("NameField").GetComponent<InputField>();
+            minimap.m_sharedMapHint = newMap.Find("SharedPanel").gameObject;
+            minimap.m_hints = new List<GameObject>() { newMap.Find("PingPanel").gameObject };
 
             SetToggleListener(newMap.transform, "PublicPanel", (_) => minimap.OnTogglePublicPosition());
+            SetToggleListener(newMap.transform, "SharedPanel", (_) => minimap.OnToggleSharedMapData());
             SetButtonListener(newMap.transform, "IconPanel/Icon0", minimap.OnPressedIcon0);
             SetButtonListener(newMap.transform, "IconPanel/Icon1", minimap.OnPressedIcon1);
             SetButtonListener(newMap.transform, "IconPanel/Icon2", minimap.OnPressedIcon2);
             SetButtonListener(newMap.transform, "IconPanel/Icon3", minimap.OnPressedIcon3);
             SetButtonListener(newMap.transform, "IconPanel/Icon4", minimap.OnPressedIcon4);
+            SetButtonListener(newMap.transform, "IconBoss", minimap.OnPressedIconBoss);
+            SetButtonListener(newMap.transform, "IconDeath", minimap.OnPressedIconDeath);
+
+            SetRightClickListener(newMap.transform, "IconPanel/Icon0", minimap.OnAltPressedIcon0);
+            SetRightClickListener(newMap.transform, "IconPanel/Icon1", minimap.OnAltPressedIcon1);
+            SetRightClickListener(newMap.transform, "IconPanel/Icon2", minimap.OnAltPressedIcon2);
+            SetRightClickListener(newMap.transform, "IconPanel/Icon3", minimap.OnAltPressedIcon3);
+            SetRightClickListener(newMap.transform, "IconPanel/Icon4", minimap.OnAltPressedIcon4);
+            SetRightClickListener(newMap.transform, "IconBoss", minimap.OnAltPressedIconBoss);
+            SetRightClickListener(newMap.transform, "IconDeath", minimap.OnAltPressedIconDeath);
 
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
             __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
@@ -107,7 +122,6 @@ namespace Auga
             __instance.m_healthBarFast = null;
             __instance.m_healthBarSlow = null;
             __instance.m_healthText = null;
-            __instance.m_healthMaxText = null;
             __instance.m_foodBars = new Image[0];
             __instance.m_foodIcons = new Image[0];
             __instance.m_foodBarRoot = null;
@@ -121,6 +135,10 @@ namespace Auga
             __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
             __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
             __instance.m_actionProgress = __instance.m_actionBarRoot.GetComponent<GuiBar>();
+
+            var newStaggerPanel = __instance.Replace("hudroot/staggerpanel", Auga.Assets.Hud);
+            __instance.m_staggerAnimator = newStaggerPanel.GetComponent<Animator>();
+            __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
 
             // Setup the icon material to grayscale the piece icons
             var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
@@ -161,6 +179,7 @@ namespace Auga
                 requirements.GetChild(2).gameObject,
                 requirements.GetChild(3).gameObject,
                 requirements.GetChild(4).gameObject,
+                requirements.GetChild(5).gameObject,
             };
 
             __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
@@ -191,6 +210,13 @@ namespace Auga
             var button = root.Find(childName).GetComponent<Button>();
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(listener);
+        }
+
+        private static void SetRightClickListener(Transform root, string childName, UnityAction listener)
+        {
+            var button = root.Find(childName).GetComponent<MouseClick>();
+            button.m_rightClick = new UnityEvent();
+            button.m_rightClick.AddListener(listener);
         }
 
         private static void SetToggleListener(Transform root, string childName, UnityAction<bool> listener)

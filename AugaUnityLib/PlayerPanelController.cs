@@ -37,10 +37,10 @@ namespace AugaUnity
             StaminaText.text = $"<color={_highlightColor1}>{staminaDisplay}</color> / {Mathf.CeilToInt(player.GetMaxStamina())}";
 
             player.GetTotalFoodValue(out var hp, out var stamina);
-            var healthFoodDisplay = Mathf.CeilToInt(hp - Player.m_baseHP);
-            var staminaFoodDisplay = Mathf.CeilToInt(stamina - Player.m_baseStamina);
-            HealthTextSecondary.text = $"Base <color={_highlightColor2}>{Player.m_baseHP}</color> + Food <color={_highlightColor2}>{healthFoodDisplay}</color>";
-            StaminaTextSecondary.text = $"Base <color={_highlightColor2}>{Player.m_baseStamina}</color> + Food <color={_highlightColor2}>{staminaFoodDisplay}</color>";
+            var healthFoodDisplay = Mathf.CeilToInt(hp - player.m_baseHP);
+            var staminaFoodDisplay = Mathf.CeilToInt(stamina - player.m_baseStamina);
+            HealthTextSecondary.text = $"Base <color={_highlightColor2}>{player.m_baseHP}</color> + Food <color={_highlightColor2}>{healthFoodDisplay}</color>";
+            StaminaTextSecondary.text = $"Base <color={_highlightColor2}>{player.m_baseStamina}</color> + Food <color={_highlightColor2}>{staminaFoodDisplay}</color>";
         }
     }
 }

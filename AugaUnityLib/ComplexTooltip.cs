@@ -600,15 +600,26 @@ namespace AugaUnity
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
 
             const string subValueColor = "#706457";
-            var healthText = item.m_shared.m_food.ToString("0");
-            var staminaText = item.m_shared.m_foodStamina.ToString("0");
-            var healingText = item.m_shared.m_foodRegen.ToString("0.#");
+            var healingText = $"+{item.m_shared.m_foodRegen:0.#}<color={subValueColor}> $healing_tick</color>";
             var durationText = TimeSpan.FromSeconds(Mathf.CeilToInt(item.m_shared.m_foodBurnTime)).ToString(PlayerPanelFoodController.TimeFormat);
 
-            textBox.AddLine("$item_food_health", healthText);
-            textBox.AddLine("$item_food_stamina", staminaText);
-            textBox.AddLine("$item_food_regen", $"+{healingText}<color={subValueColor}> $healing_tick</color>");
-            textBox.AddLine("$item_food_duration", durationText);
+            if (Player.m_localPlayer != null && Player.m_localPlayer.m_foods.Find(x => x.m_item.m_shared.m_name == item.m_shared.m_name) is Player.Food food)
+            {
+                var currentTime = TimeSpan.FromSeconds(Mathf.CeilToInt(food.m_time)).ToString(PlayerPanelFoodController.TimeFormat);
+                var percent = food.m_health / food.m_item.m_shared.m_food;
+                textBox.AddLine("$item_food_health", $"<color=#FF8080>{item.m_shared.m_food:0} ({food.m_health:0})</color>");
+                textBox.AddLine("$item_food_stamina", $"<color=#FFFF80>{item.m_shared.m_foodStamina:0} ({food.m_stamina:0})</color>");
+                textBox.AddLine("$item_food_regen", healingText);
+                textBox.AddLine("$item_food_duration", $"{currentTime}/{durationText}");
+                textBox.AddLine("$percent_effective", $"{percent:P0}");
+            }
+            else
+            {
+                textBox.AddLine("$item_food_health", $"<color=#FF8080>{item.m_shared.m_food:0}</color>");
+                textBox.AddLine("$item_food_stamina", $"<color=#FFFF80>{item.m_shared.m_foodStamina:0}</color>");
+                textBox.AddLine("$item_food_regen", healingText);
+                textBox.AddLine("$item_food_duration", durationText);
+            }
         }
 
         public virtual void SetFood(Player.Food food)

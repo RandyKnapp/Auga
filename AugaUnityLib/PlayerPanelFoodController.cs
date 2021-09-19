@@ -118,9 +118,9 @@ namespace AugaUnity
         public virtual void UpdateFood(Player.Food food)
         {
             _foodTooltip.Food = food;
-
-            var percent = food.m_health / food.m_item.m_shared.m_food;
-            var secondsRemaining = Mathf.CeilToInt(percent * food.m_item.m_shared.m_foodBurnTime);
+            
+            var percent = food.m_time / food.m_item.m_shared.m_foodBurnTime;
+            var secondsRemaining = Mathf.CeilToInt(food.m_time);
 
             if (NameText != null)
             {

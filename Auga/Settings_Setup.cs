@@ -50,7 +50,7 @@ namespace Auga
             Settings.instance.m_languageKey = Localization.instance.GetLanguages()[index];
         }
 
-        [HarmonyPatch(typeof(Settings), nameof(Settings.SetQualityText))]
+        /*[HarmonyPatch(typeof(Settings), nameof(Settings.SetQualityText))]
         [HarmonyPrefix]
         public static bool SetQualityText_Prefix(Text text, int level)
         {
@@ -58,7 +58,7 @@ namespace Auga
             text.text = Localization.instance.Localize(locIds[Mathf.Clamp(level, 0, locIds.Length - 1)]);
 
             return false;
-        }
+        }*/
 
         [HarmonyPatch(typeof(Settings), nameof(Settings.UpdateBindings))]
         [HarmonyPrefix]

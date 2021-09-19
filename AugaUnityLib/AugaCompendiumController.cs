@@ -51,7 +51,7 @@ namespace AugaUnity
 
         public static float GetMaxHealth(Humanoid humanoid, int level)
         {
-            return humanoid.m_health * Game.instance.GetDifficultyHealthScale(humanoid.transform.position) * level;
+            return humanoid.m_health * level;
         }
 
         public static List<HitData.DamageType> GetDamageTypes(Humanoid humanoid, HitData.DamageModifier modifier)
