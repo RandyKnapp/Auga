@@ -515,6 +515,9 @@ namespace Auga
         {
             var buildPieces = player.GetBuildPieces();
             var pieceIcons = __instance.m_pieceIcons;
+            var selectedIndex = selectedNr.x + selectedNr.y * 13;
+            selectedNr.x = selectedIndex % 10;
+            selectedNr.y = selectedIndex / 10;
 
             var i = 0;
             for (; i < buildPieces.Count; ++i)
@@ -540,7 +543,6 @@ namespace Auga
 
                 // Update icon
                 var pieceIcon = pieceIcons[i];
-                var selectedIndex = selectedNr.x + selectedNr.y * 10;
                 pieceIcon.m_marker.SetActive(i == selectedIndex);
 
                 var piece = buildPieces[i];

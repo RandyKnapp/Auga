@@ -64,12 +64,16 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.5
+  * Fixed build HUD selector
+  * Fixed some screen alignment/resolution issues
+  * Hooked up Last IP Joined
 ### 1.0.4
   * Updated for H&H
   * Implemented Auga-style Stagger Bar
 ### 1.0.3
   * BetterTrader bugfix
-  * Extended Item Data Framework compatibility (please update EIDF to 1.0.4)
+  * Extended Item Data Framework compatibility (please update EIDF to 1.0.5)
   * Added BuildExpansion-like support
   * Fixed white square on store buy button
   * Added support for more skills on the skills page

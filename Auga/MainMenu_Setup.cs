@@ -125,6 +125,7 @@ namespace Auga
             __instance.m_removeWorldName = startGame.Find("RemoveWorldDialog/Text").GetComponent<Text>();
             __instance.m_friendFilterSwitch = startGame.Find("Panel/JoinPanel/CheckboxRow/FriendsFilter").GetComponent<Toggle>();
             __instance.m_publicFilterSwitch = startGame.Find("Panel/JoinPanel/CheckboxRow/PublicFilter").GetComponent<Toggle>();
+            __instance.m_joinIPAddress.text = PlayerPrefs.GetString("LastIPJoined", "");
 
             SetButtonListener(startGame, "Panel/WorldPanel/RemoveButton", __instance.OnWorldRemove);
             SetButtonListener(startGame, "Panel/WorldPanel/NewButton", __instance.OnWorldNew);
