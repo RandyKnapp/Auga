@@ -518,10 +518,6 @@ namespace AugaUnity
         {
             var blockPower = item.GetBlockPowerTooltip(quality);
             var previousBlockPower = item.GetBlockPowerTooltip(item.m_quality);
-            if (blockPower <= 0 || item.m_shared.m_timedBlockBonus <= 0)
-            {
-                return;
-            }
 
             var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
 
@@ -529,27 +525,35 @@ namespace AugaUnity
             {
                 if (upgrade)
                 {
-                    textBox.AddUpgradeLine("$item_blockpower", previousBlockPower.ToString("0"), blockPower.ToString("0"), blockPower > previousBlockPower ? UpgradeColor : null);
+                    textBox.AddUpgradeLine("$item_blockarmor", previousBlockPower.ToString("0"), blockPower.ToString("0"), blockPower > previousBlockPower ? UpgradeColor : null);
                 }
                 else
                 {
-                    TextBoxAddPreprocessedLine(textBox, item, "$item_blockpower", blockPower.ToString("0"));
+                    TextBoxAddPreprocessedLine(textBox, item, "$item_blockarmor", blockPower.ToString("0"));
                 }
+            }
+
+            var deflectForce = item.GetDeflectionForce(quality);
+            var previousDeflectForce = item.GetDeflectionForce(item.m_quality);
+            if (upgrade)
+            {
+                textBox.AddUpgradeLine("$item_blockforce", previousDeflectForce.ToString("0"), deflectForce.ToString("0"), deflectForce > previousDeflectForce ? UpgradeColor : null);
+            }
+            else
+            {
+                TextBoxAddPreprocessedLine(textBox, item, "$item_blockforce", deflectForce);
             }
 
             if (item.m_shared.m_timedBlockBonus > 1)
             {
-                var deflectForce = item.GetDeflectionForce(quality);
-                var previousDeflectForce = item.GetDeflectionForce(item.m_quality);
-                if (upgrade)
-                {
-                    textBox.AddUpgradeLine("$item_deflection", previousDeflectForce.ToString("0"), deflectForce.ToString("0"), deflectForce > previousDeflectForce ? UpgradeColor : null);
-                }
-                else
-                {
-                    TextBoxAddPreprocessedLine(textBox, item, "$item_deflection", deflectForce);
-                }
                 TextBoxAddPreprocessedLine(textBox, item, "$item_parrybonus", $"{item.m_shared.m_timedBlockBonus}x");
+            }
+
+            var modifiersTooltipString = SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var damageModifier in modifiersTooltipString)
+            {
+                var fullString = damageModifier.Replace("<color=orange>", "").Replace("$inventory_dmgmod: ", "").Replace("</color>", "");
+                TextBoxAddPreprocessedLine(textBox, item, "$inventory_dmgmod", fullString);
             }
         }
 
