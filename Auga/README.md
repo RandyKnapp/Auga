@@ -64,6 +64,10 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.7
+  * Fixed issue with tower shield tooltips
+  * Fixed cartography table map issue
+  * Fixed various screen alignment/resolution issues
 ### 1.0.6
   * Reupload with correct files
 ### 1.0.5
@@ -75,7 +79,7 @@ Source: https://github.com/RandyKnapp/Auga
   * Implemented Auga-style Stagger Bar
 ### 1.0.3
   * BetterTrader bugfix
-  * Extended Item Data Framework compatibility (please update EIDF to 1.0.6)
+  * Extended Item Data Framework compatibility (please update EIDF to 1.0.7)
   * Added BuildExpansion-like support
   * Fixed white square on store buy button
   * Added support for more skills on the skills page

@@ -47,6 +47,8 @@ namespace Auga
         public GameObject DividerMedium;
         public GameObject DividerLarge;
         public GameObject ConfirmDialog;
+
+        public GameObject LeftWristMountUI;
     }
 
     public class AugaColors
@@ -68,11 +70,12 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.0.6";
+        public const string Version = "1.0.7";
 
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
         public static ConfigEntry<bool> UseAugaTrash;
+        public static ConfigEntry<bool> UseAugaVR;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -151,6 +154,7 @@ namespace Auga
             _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
             _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
             UseAugaTrash = Config.Bind("Options", "UseAugaTrash", false, "Enable Auga's built in trash button. Click on the button while holding an item or part of a stack with the mouse.");
+            UseAugaVR = Config.Bind("Options", "UseAugaVR", false, "Enable Auga's custom Valheim VR mode.");
         }
 
         private static void LoadAssets()
@@ -191,6 +195,7 @@ namespace Auga
             Assets.DividerMedium = assetBundle.LoadAsset<GameObject>("DividerMedium");
             Assets.DividerLarge = assetBundle.LoadAsset<GameObject>("DividerLarge");
             Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
+            Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
         }
 
         private static void ApplyCursor()

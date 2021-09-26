@@ -38,59 +38,6 @@ namespace Auga
             __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
             __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
 
-            var minimap = __instance.GetComponentInChildren<Minimap>();
-            var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
-            var originalMiniMapMaterialLarge = minimap.m_mapImageLarge.material;
-
-            var newMiniMap = __instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
-            minimap.m_smallRoot = newMiniMap.gameObject;
-            minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
-            minimap.m_mapImageSmall.material = originalMiniMapMaterial;
-            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/pin_root");
-            minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
-            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/ship_marker");
-            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
-            minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
-
-            var newMap = __instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
-            minimap.m_largeRoot = newMap.gameObject;
-            minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
-            minimap.m_mapImageLarge.material = originalMiniMapMaterialLarge;
-            minimap.m_pinRootLarge = (RectTransform)newMap.Find("map/pin_root");
-            minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<Text>();
-            minimap.m_largeShipMarker = (RectTransform)newMap.Find("map/ship_marker");
-            minimap.m_largeMarker = (RectTransform)newMap.Find("map/player_marker");
-            minimap.m_gamepadCrosshair = (RectTransform)newMap.Find("GamepadCrosshair");
-            minimap.m_publicPosition = newMap.Find("PublicPanel").GetComponent<Toggle>();
-            minimap.m_selectedIcon0 = newMap.Find("IconPanel/Icon0/Selected").GetComponent<Image>();
-            minimap.m_selectedIcon1 = newMap.Find("IconPanel/Icon1/Selected").GetComponent<Image>();
-            minimap.m_selectedIcon2 = newMap.Find("IconPanel/Icon2/Selected").GetComponent<Image>();
-            minimap.m_selectedIcon3 = newMap.Find("IconPanel/Icon3/Selected").GetComponent<Image>();
-            minimap.m_selectedIcon4 = newMap.Find("IconPanel/Icon4/Selected").GetComponent<Image>();
-            minimap.m_selectedIconBoss = newMap.Find("IconBoss/Selected").GetComponent<Image>();
-            minimap.m_selectedIconDeath = newMap.Find("IconDeath/Selected").GetComponent<Image>();
-            minimap.m_nameInput = newMap.Find("NameField").GetComponent<InputField>();
-            minimap.m_sharedMapHint = newMap.Find("SharedPanel").gameObject;
-            minimap.m_hints = new List<GameObject>() { newMap.Find("PingPanel").gameObject };
-
-            SetToggleListener(newMap.transform, "PublicPanel", (_) => minimap.OnTogglePublicPosition());
-            SetToggleListener(newMap.transform, "SharedPanel", (_) => minimap.OnToggleSharedMapData());
-            SetButtonListener(newMap.transform, "IconPanel/Icon0", minimap.OnPressedIcon0);
-            SetButtonListener(newMap.transform, "IconPanel/Icon1", minimap.OnPressedIcon1);
-            SetButtonListener(newMap.transform, "IconPanel/Icon2", minimap.OnPressedIcon2);
-            SetButtonListener(newMap.transform, "IconPanel/Icon3", minimap.OnPressedIcon3);
-            SetButtonListener(newMap.transform, "IconPanel/Icon4", minimap.OnPressedIcon4);
-            SetButtonListener(newMap.transform, "IconBoss", minimap.OnPressedIconBoss);
-            SetButtonListener(newMap.transform, "IconDeath", minimap.OnPressedIconDeath);
-
-            SetRightClickListener(newMap.transform, "IconPanel/Icon0", minimap.OnAltPressedIcon0);
-            SetRightClickListener(newMap.transform, "IconPanel/Icon1", minimap.OnAltPressedIcon1);
-            SetRightClickListener(newMap.transform, "IconPanel/Icon2", minimap.OnAltPressedIcon2);
-            SetRightClickListener(newMap.transform, "IconPanel/Icon3", minimap.OnAltPressedIcon3);
-            SetRightClickListener(newMap.transform, "IconPanel/Icon4", minimap.OnAltPressedIcon4);
-            SetRightClickListener(newMap.transform, "IconBoss", minimap.OnAltPressedIconBoss);
-            SetRightClickListener(newMap.transform, "IconDeath", minimap.OnAltPressedIconDeath);
-
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
             __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
 
@@ -205,25 +152,34 @@ namespace Auga
             Localization.instance.Localize(__instance.transform);
         }
 
-        private static void SetButtonListener(Transform root, string childName, UnityAction listener)
-        {
-            var button = root.Find(childName).GetComponent<Button>();
-            button.onClick = new Button.ButtonClickedEvent();
-            button.onClick.AddListener(listener);
-        }
+        private static GameObject _leftWristMountUI;
 
-        private static void SetRightClickListener(Transform root, string childName, UnityAction listener)
+        [HarmonyPatch(nameof(Hud.Update))]
+        [HarmonyPostfix]
+        private static void Hud_Update_Postfix()
         {
-            var button = root.Find(childName).GetComponent<MouseClick>();
-            button.m_rightClick = new UnityEvent();
-            button.m_rightClick.AddListener(listener);
-        }
+            var player = Player.m_localPlayer;
+            if (Auga.UseAugaVR.Value && player != null && _leftWristMountUI == null)
+            {
+                var leftForearm = player.transform.Find("Visual/Armature/Hips/Spine/Spine1/Spine2/LeftShoulder/LeftArm/LeftForeArm");
+                if (leftForearm != null)
+                {
+                    _leftWristMountUI = Object.Instantiate(Auga.Assets.LeftWristMountUI, leftForearm, false);
+                    var canvas = _leftWristMountUI.GetComponentInChildren<Canvas>();
+                    canvas.worldCamera = Camera.main;
+                    Debug.LogWarning("Created left wrist mount UI!");
+                }
+                else
+                {
+                    Debug.LogWarning("No LeftForeArm!");
+                }
+            }
 
-        private static void SetToggleListener(Transform root, string childName, UnityAction<bool> listener)
-        {
-            var toggle = root.Find(childName).GetComponent<Toggle>();
-            toggle.onValueChanged = new Toggle.ToggleEvent();
-            toggle.onValueChanged.AddListener(listener);
+            if (player == null && _leftWristMountUI != null)
+            {
+                Object.Destroy(_leftWristMountUI);
+                _leftWristMountUI = null;
+            }
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
