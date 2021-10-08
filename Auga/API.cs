@@ -482,7 +482,25 @@ namespace Auga
         [UsedImplicitly]
         public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener)
         {
-            UITooltip_UpdateTextElements_Patch.OnItemTooltipCreated += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+            ComplexTooltip.OnComplexTooltipGeneratedForItem += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddFoodTooltipCreatedListener(Action<GameObject, Player.Food> listener)
+        {
+            ComplexTooltip.OnComplexTooltipGeneratedForFood += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddStatusEffectTooltipCreatedListener(Action<GameObject, StatusEffect> listener)
+        {
+            ComplexTooltip.OnComplexTooltipGeneratedForStatusEffect += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddSkillTooltipCreatedListener(Action<GameObject, Skills.Skill> listener)
+        {
+            ComplexTooltip.OnComplexTooltipGeneratedForSkill += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
         }
 
         [UsedImplicitly]

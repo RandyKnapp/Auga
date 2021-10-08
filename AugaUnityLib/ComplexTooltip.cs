@@ -126,6 +126,8 @@ namespace AugaUnity
         protected Player.Food _food;
         protected StatusEffect _statusEffect;
         protected Skills.Skill _skill;
+        protected int _quality;
+        protected int _variant;
 
         public virtual void Start()
         {
@@ -217,6 +219,8 @@ namespace AugaUnity
         {
             ClearData();
             _item = item;
+            _quality = quality;
+            _variant = variant;
             quality = quality < 0 ? item.m_quality : quality;
 
             if (ItemQuality != null)
@@ -235,6 +239,9 @@ namespace AugaUnity
 
         public virtual void SetItem(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
+            if (_item == item && _quality == quality && _variant == variant)
+                return;
+
             SetItemBaseData(item, quality, variant);
             GenerateItemTextBoxes(item, quality);
             Localization.instance.Localize(transform);
@@ -244,6 +251,9 @@ namespace AugaUnity
 
         public virtual void SetItemNoTextBoxes(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
+            if (_item == item && _quality == quality && _variant == variant)
+                return;
+
             SetItemBaseData(item, quality, variant);
             Localization.instance.Localize(transform);
 
@@ -628,6 +638,9 @@ namespace AugaUnity
 
         public virtual void SetFood(Player.Food food)
         {
+            if (_food == food)
+                return;
+            
             ClearData();
             _food = food;
             
@@ -647,6 +660,9 @@ namespace AugaUnity
 
         public virtual void SetStatusEffect(StatusEffect statusEffect)
         {
+            if (_statusEffect == statusEffect)
+                return;
+
             ClearData();
             _statusEffect = statusEffect;
             
@@ -677,6 +693,9 @@ namespace AugaUnity
 
         public virtual void SetSkill(Skills.Skill skill)
         {
+            if (_skill == skill)
+                return;
+
             ClearData();
             _skill = skill;
             

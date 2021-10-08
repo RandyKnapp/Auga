@@ -64,6 +64,12 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.8
+  * Fixed Minimap/Map
+  * Fixed Settings
+  * Fixed issue with custom build menus (Odin's Architect, Clutter, Buildit, Planit)
+  * Added ComplexTooltip callback to crafting menu
+  * Updated API with callbacks for food, status effect, and skill tooltips as well 
 ### 1.0.7
   * Fixed issue with tower shield tooltips
   * Fixed cartography table map issue
@@ -79,7 +85,7 @@ Source: https://github.com/RandyKnapp/Auga
   * Implemented Auga-style Stagger Bar
 ### 1.0.3
   * BetterTrader bugfix
-  * Extended Item Data Framework compatibility (please update EIDF to 1.0.7)
+  * Extended Item Data Framework compatibility (please update EIDF to 1.0.8)
   * Added BuildExpansion-like support
   * Fixed white square on store buy button
   * Added support for more skills on the skills page

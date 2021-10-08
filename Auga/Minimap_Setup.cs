@@ -17,7 +17,7 @@ namespace Auga
             var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
             var originalMiniMapMaterialLarge = minimap.m_mapImageLarge.material;
 
-            var newMiniMap = __instance.Replace("small", Auga.Assets.Hud);
+            var newMiniMap = Hud.instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
             minimap.m_smallRoot = newMiniMap.gameObject;
             minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/pin_root");
@@ -26,7 +26,7 @@ namespace Auga
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
 
-            var newMap = __instance.Replace("large", Auga.Assets.Hud);
+            var newMap = Hud.instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
             minimap.m_largeRoot = newMap.gameObject;
             minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootLarge = (RectTransform)newMap.Find("map/pin_root");
@@ -82,6 +82,14 @@ namespace Auga
             SetRightClickListener(newMap.transform, "IconPanel/Icon4", minimap.OnAltPressedIcon4);
             SetRightClickListener(newMap.transform, "IconBoss", minimap.OnAltPressedIconBoss);
             SetRightClickListener(newMap.transform, "IconDeath", minimap.OnAltPressedIconDeath);
+
+            var mapInputHandler = minimap.m_mapImageLarge.GetComponent<UIInputHandler>();
+            mapInputHandler.m_onRightClick += minimap.OnMapRightClick;
+            mapInputHandler.m_onMiddleClick += minimap.OnMapMiddleClick;
+            mapInputHandler.m_onLeftDown += minimap.OnMapLeftDown;
+            mapInputHandler.m_onLeftUp += minimap.OnMapLeftUp;
+
+            Localization.instance.Localize(__instance.transform);
         }
 
         private static void SetButtonListener(Transform root, string childName, UnityAction listener)

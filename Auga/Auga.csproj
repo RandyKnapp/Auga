@@ -140,6 +140,7 @@
     <Compile Include="TextViewer_Setup.cs" />
     <Compile Include="Text_Patch.cs" />
     <Compile Include="UITooltip_Patch.cs" />
+    <Compile Include="Minimap_Setup.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
@@ -169,7 +170,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API.Common.cs" />
-    <Compile Include="Minimap_Setup.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

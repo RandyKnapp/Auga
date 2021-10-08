@@ -39,8 +39,9 @@ namespace AugaUnity
             player.GetTotalFoodValue(out var hp, out var stamina);
             var healthFoodDisplay = Mathf.CeilToInt(hp - player.m_baseHP);
             var staminaFoodDisplay = Mathf.CeilToInt(stamina - player.m_baseStamina);
-            HealthTextSecondary.text = $"Base <color={_highlightColor2}>{player.m_baseHP}</color> + Food <color={_highlightColor2}>{healthFoodDisplay}</color>";
-            StaminaTextSecondary.text = $"Base <color={_highlightColor2}>{player.m_baseStamina}</color> + Food <color={_highlightColor2}>{staminaFoodDisplay}</color>";
+            
+            HealthTextSecondary.text = Localization.instance.Localize("$status_desc", _highlightColor2, player.m_baseHP.ToString("0"), _highlightColor2, healthFoodDisplay.ToString());
+            StaminaTextSecondary.text = Localization.instance.Localize("$status_desc", _highlightColor2, player.m_baseStamina.ToString("0"), _highlightColor2, staminaFoodDisplay.ToString());
         }
     }
 }
