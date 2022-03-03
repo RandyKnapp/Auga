@@ -27,6 +27,12 @@ namespace AugaUnity
 
         public void SetBinding(string keyName)
         {
+            if (!ZInput.instance.m_buttons.ContainsKey(keyName))
+            {
+                Debug.LogError($"[AugaBindingDisplay.SetBinding] Couldn't find key: {keyName}");
+                return;
+            }
+
             var keycode = ZInput.instance.m_buttons[keyName].m_key;
             var localizedKeyString = Localization.instance.GetBoundKeyString(keyName);
 

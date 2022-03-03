@@ -38,6 +38,12 @@ namespace AugaUnity
         public Image CraftProgressBar;
         public GameObject ResultsPanelPrefab;
 
+        [Header("MultiCraft Objects")]
+        public Button PlusButton;
+        public Button MinusButton;
+        public Text CraftAmountText;
+        public GameObject CraftAmountBG;
+
         [Header("Dummy Objects")]
         public Image DummyIcon;
         public Text DummyName;
@@ -52,6 +58,7 @@ namespace AugaUnity
         private static AugaCraftingPanel _instance;
         private CraftingRequirementsPanel _currentPanel;
         private Action<bool> _onShowCustomVariantDialog;
+        private bool _multiCraftEnabled;
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
@@ -211,8 +218,7 @@ namespace AugaUnity
                     var amountRequired = resource.GetAmount(quality);
                     if (resource.m_resItem != null && amountRequired > 0)
                     {
-                        var playerInventoryAmount = player.GetInventory().CountItems(resource.m_resItem.m_itemData.m_shared.m_name);
-                        var have = playerInventoryAmount >= amountRequired;
+                        var have = player.HaveRequirements(new[] { resource }, false, quality);
                         states.Add(have ? WireState.Have : WireState.DontHave);
                         canCraft = canCraft && have;
                         ++index;
@@ -270,6 +276,33 @@ namespace AugaUnity
         public virtual GameObject CreateResultsPanel()
         {
             return Instantiate(ResultsPanelPrefab, transform, false);
+        }
+
+        public void SetMultiCraftEnabled(bool multiCraftEnabled)
+        {
+            _multiCraftEnabled = multiCraftEnabled;
+        }
+
+        public void Update()
+        {
+            if (InventoryGui.instance?.m_craftTimer >= 0)
+            {
+                PlusButton.gameObject.SetActive(false);
+                MinusButton.gameObject.SetActive(false);
+                CraftAmountText.gameObject.SetActive(false);
+                CraftAmountBG.gameObject.SetActive(false);
+            }
+            else
+            {
+                PlusButton.gameObject.SetActive(_multiCraftEnabled);
+                MinusButton.gameObject.SetActive(_multiCraftEnabled);
+                CraftAmountText.gameObject.SetActive(_multiCraftEnabled);
+                CraftAmountBG.gameObject.SetActive(_multiCraftEnabled);
+            }
+
+            var rect = (RectTransform)CraftButton.transform;
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _multiCraftEnabled ? 230 : 272);
+            rect.anchoredPosition = new Vector2(_multiCraftEnabled ? -21 : 0, rect.anchoredPosition.y);
         }
     }
 }

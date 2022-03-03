@@ -62,6 +62,7 @@ namespace Auga
                 rightPanel.gameObject.name = "RightPanel";
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
+                CraftingPanel.SetMultiCraftEnabled(Auga.HasMultiCraft);
                 __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
                 __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/Dummy/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;

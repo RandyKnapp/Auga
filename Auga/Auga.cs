@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using BepInEx;
@@ -8,6 +9,8 @@ using BepInEx.Logging;
 using fastJSON;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Auga
 {
@@ -82,9 +85,11 @@ namespace Auga
         public static readonly AugaColors Colors = new AugaColors();
 
         public static bool HasBetterTrader = false;
+        public static bool HasMultiCraft = false;
 
         private static Auga _instance;
         private Harmony _harmony;
+        private static Type _multiCraftUiType;
 
         public void Awake()
         {
@@ -100,6 +105,44 @@ namespace Auga
             HasBetterTrader = gameObject.GetComponent("BetterTrader") != null;
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
+
+            // patch MultiCraft_UI.CreateSpaceFromCraftButton
+            var multiCraftPlugin = gameObject.GetComponent("MultiCraftPlugin");
+            if (multiCraftPlugin != null)
+            {
+                HasMultiCraft = true;
+                var multiCraftPluginType = multiCraftPlugin.GetType();
+                _multiCraftUiType = multiCraftPluginType.Assembly.GetType("MultiCraft.MultiCraft_UI");
+                var multicraftLogicType = multiCraftPluginType.Assembly.GetType("MultiCraft.MultiCraft_Logic");
+                var createCraftButtonSpaceMethod = AccessTools.Method(_multiCraftUiType, "CreateSpaceFromCraftButton");
+                var isCraftingMethod = AccessTools.Method(multicraftLogicType, "IsCrafting");
+                if (createCraftButtonSpaceMethod != null)
+                {
+                    _harmony.Patch(createCraftButtonSpaceMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_UI_CreateSpaceFromCraftButton_Patch)));
+                    _harmony.Patch(isCraftingMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_Logic_IsCrafting_Patch)));
+                }
+            }
+        }
+
+        public static bool MultiCraft_UI_CreateSpaceFromCraftButton_Patch(InventoryGui instance)
+        {
+            var multiCraftUiInstance = AccessTools.Method(_multiCraftUiType, "get_instance").Invoke(null, BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, new object[] { }, CultureInfo.InvariantCulture);
+            
+            var plusButton = instance.m_craftButton.transform.parent.Find("plus");
+            var plusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnPlusButtonPressed");
+            plusButton.GetComponent<Button>().onClick.AddListener(() => plusButtonMethod.Invoke(multiCraftUiInstance, new object[]{}));
+
+            var minusButton = instance.m_craftButton.transform.parent.Find("minus");
+            var minusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnMinusButtonPressed");
+            minusButton.GetComponent<Button>().onClick.AddListener(() => minusButtonMethod.Invoke(multiCraftUiInstance, new object[] { }));
+
+            return false;
+        }
+
+        public static bool MultiCraft_Logic_IsCrafting_Patch(ref bool __result)
+        {
+            __result = InventoryGui.instance.m_craftTimer >= 0;
+            return false;
         }
 
         public void OnDestroy()

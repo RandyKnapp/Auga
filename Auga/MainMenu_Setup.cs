@@ -4,6 +4,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Auga
@@ -13,12 +14,38 @@ namespace Auga
     {
         public static void Postfix(FejdStartup __instance)
         {
+            ZInput.Initialize();
+
             var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
             __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
+            var logoPartNames = new[] { "Menu/Embers (3)", "Menu/LOGO", "Menu/Embers", "Menu/Embers (1)", "Menu/Embers (2)" };
+            var logoParts = new Transform[] { null, null, null, null, null };
+            for (var index = 0; index < logoPartNames.Length; index++)
+            {
+                var logoPartName = logoPartNames[index];
+                var logoPart = __instance.transform.Find(logoPartName);
+                if (logoPart == null)
+                {
+                    Auga.LogError($"Logo Part changed, could not find logo part ('{logoPartName}')");
+                    continue;
+                }
+
+                logoParts[index] = logoPart;
+                logoPart.SetParent(__instance.transform.parent, true);
+            }
+
             var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
+
+            foreach (var logoPart in logoParts)
+            {
+                logoPart?.SetParent(mainMenu, true);
+            }
+
             __instance.m_mainMenu = mainMenu.gameObject;
+            __instance.m_menuList = mainMenu.Find("MenuList").gameObject;
+            __instance.m_menuSelectedButton = mainMenu.Find("MenuList/StartGame").GetComponent<Button>();
             __instance.m_versionLabel = mainMenu.Find("Version").GetComponent<Text>();
             __instance.m_betaText = mainMenu.Find("DummyObjects/Dummy").gameObject;
             __instance.m_ndaPanel = mainMenu.Find("DummyObjects/Dummy").gameObject;
