@@ -64,6 +64,10 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.9
+  * Fixed bugs with ZInput preventing Auga from running with the new Valheim update
+  * Restored the vanilla logo in the main menu
+  * Added support for [MultiCraft](https://www.nexusmods.com/valheim/mods/263)!
 ### 1.0.8
   * Fixed Minimap/Map
   * Fixed Settings
