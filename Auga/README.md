@@ -64,6 +64,8 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.10
+  * Hotfix for Valheim v0.208.1
 ### 1.0.9
   * Fixed bugs with ZInput preventing Auga from running with the new Valheim update
   * Restored the vanilla logo in the main menu
