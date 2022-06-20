@@ -64,6 +64,8 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.11
+  * Hotfix for Valheim v0.209.8
 ### 1.0.10
   * Hotfix for Valheim v0.208.1
 ### 1.0.9

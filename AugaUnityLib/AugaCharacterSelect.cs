@@ -80,13 +80,24 @@ namespace AugaUnity
             RenderTexture.active = RenderTexture;
             profilePic.ReadPixels(new Rect(0, 0, RenderTexture.width, RenderTexture.height), 0, 0);
             profilePic.Apply();
-
-            var outputFileName = profile.m_filename + ".png";
-            var outputFilePath = Utils.GetSaveDataPath() + "/characters/" + outputFileName;
             var bytes = profilePic.EncodeToPNG();
 
-            File.WriteAllBytes(outputFilePath, bytes);
+            SaveProfilePic(profile, bytes);
+            
             Destroy(profilePic);
+        }
+
+        private void SaveProfilePic(PlayerProfile profile, byte[] bytes)
+        {
+            var outputFilePath = GetOutputFilePathForProfile(profile);
+            File.WriteAllBytes(outputFilePath, bytes);
+        }
+
+        public static string GetOutputFilePathForProfile(PlayerProfile profile)
+        {
+            var outputFileName = profile.m_filename + ".png";
+            var outputFilePath = Utils.GetSaveDataPath(FileHelpers.FileSource.Local) + PlayerProfile.GetCharacterFolder(profile.m_fileSource) + outputFileName;
+            return outputFilePath;
         }
     }
 
@@ -96,6 +107,8 @@ namespace AugaUnity
         public Scrollbar ScrollBar;
         public RectTransform CharacterList;
         public RenderTexture RenderTexture;
+        public GameObject SourceInfoPanel;
+        public Text SourceInfoContent;
 
         private readonly List<CharacterSelectPortrait> _portraits = new List<CharacterSelectPortrait>();
         private bool _onFirstUpdate;
@@ -122,6 +135,24 @@ namespace AugaUnity
                 portrait.Setup(profile, index, RenderTexture);
                 _portraits.Add(portrait);
             }
+
+            var showSourceInfoPanel = !FileHelpers.m_steamCloudEnabled;
+            SourceInfoContent.text = "";
+            if (FejdStartup.instance.m_profileIndex >= 0 && FejdStartup.instance.m_profileIndex < FejdStartup.instance.m_profiles.Count)
+            {
+                var selectedProfile = FejdStartup.instance.m_profiles[FejdStartup.instance.m_profileIndex];
+                if (selectedProfile != null && selectedProfile.m_fileSource == FileHelpers.FileSource.Legacy)
+                {
+                    SourceInfoContent.text = Localization.instance.Localize("$menu_legacynotice \n\n");
+                }
+            }
+
+            if (!FileHelpers.m_steamCloudEnabled)
+            {
+                SourceInfoContent.text += Localization.instance.Localize("$menu_cloudsavesdisabled");
+            }
+
+            SourceInfoPanel.gameObject.SetActive(showSourceInfoPanel);
         }
 
         public void LateUpdate()
@@ -146,6 +177,9 @@ namespace AugaUnity
         public Button Button;
         public GameObject Selected;
         public Text StatsText;
+        public Image LocalSave;
+        public Image LegacySave;
+        public Image CloudSave;
 
         public Color NameColorSelected;
         public Color StatsTextColorSelected;
@@ -171,8 +205,7 @@ namespace AugaUnity
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
             StatsText.text = $"{profile.m_playerStats.m_deaths}\n{profile.m_playerStats.m_builds}\n{profile.m_playerStats.m_crafts}";
 
-            var outputFileName = profile.m_filename + ".png";
-            var outputFilePath = Utils.GetSaveDataPath() + "/characters/" + outputFileName;
+            var outputFilePath = AugaCharacterSelectPhotoBooth.GetOutputFilePathForProfile(profile);
             if (File.Exists(outputFilePath))
             {
                 var bytes = File.ReadAllBytes(outputFilePath);
@@ -182,6 +215,10 @@ namespace AugaUnity
 
                 Image.texture = _texture;
             }
+
+            LocalSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Local);
+            LegacySave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Legacy);
+            CloudSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.SteamCloud || profile.m_fileSource == FileHelpers.FileSource.Auto);
 
             Update();
         }

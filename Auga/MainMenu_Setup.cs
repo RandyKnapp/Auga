@@ -180,6 +180,12 @@ namespace Auga
 
             __instance.m_menuAnimator.runtimeAnimatorController = Auga.Assets.MainMenuPrefab.GetComponent<Animator>().runtimeAnimatorController;
 
+            // New local/cloud save stuff
+            __instance.m_csFileSource = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
+            __instance.m_csSourceInfo = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
+            __instance.m_worldSourceInfoPanel = startGame.Find("Panel/WorldPanel/Server help").gameObject;
+            __instance.m_worldSourceInfo = startGame.Find("Panel/WorldPanel/Server help/Text").GetComponent<Text>();
+
             __instance.OnSelectWorldTab();
 
             Object.Instantiate(Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true), __instance.transform);
