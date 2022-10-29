@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
@@ -67,6 +68,11 @@ namespace Auga
             foreach (var key in __instance.m_keys)
             {
                 var bindingDisplay = key.m_keyTransform.GetComponent<AugaBindingDisplay>();
+                if (!bindingDisplay)
+                {
+                    Auga.LogWarning($"Could not set binding for {key.m_keyTransform.name}");
+                    continue;
+                }
                 bindingDisplay.SetBinding(key.m_keyName);
                 //key.m_keyTransform.GetComponentInChildren<Button>().GetComponentInChildren<Text>().text = Localization.instance.GetBoundKeyString(key.m_keyName);
             }

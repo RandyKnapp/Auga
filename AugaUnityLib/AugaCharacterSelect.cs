@@ -136,7 +136,7 @@ namespace AugaUnity
                 _portraits.Add(portrait);
             }
 
-            var showSourceInfoPanel = !FileHelpers.m_steamCloudEnabled;
+            var showSourceInfoPanel = !FileHelpers.m_cloudEnabled;
             SourceInfoContent.text = "";
             if (FejdStartup.instance.m_profileIndex >= 0 && FejdStartup.instance.m_profileIndex < FejdStartup.instance.m_profiles.Count)
             {
@@ -147,7 +147,7 @@ namespace AugaUnity
                 }
             }
 
-            if (!FileHelpers.m_steamCloudEnabled)
+            if (!FileHelpers.m_cloudEnabled)
             {
                 SourceInfoContent.text += Localization.instance.Localize("$menu_cloudsavesdisabled");
             }
@@ -218,7 +218,7 @@ namespace AugaUnity
 
             LocalSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Local);
             LegacySave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Legacy);
-            CloudSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.SteamCloud || profile.m_fileSource == FileHelpers.FileSource.Auto);
+            CloudSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Cloud || profile.m_fileSource == FileHelpers.FileSource.Auto);
 
             Update();
         }

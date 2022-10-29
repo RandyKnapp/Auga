@@ -16,11 +16,11 @@ namespace Auga
         {
             ZInput.Initialize();
 
-            var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
+            //var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
             __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
-            var logoPartNames = new[] { "Menu/Embers (3)", "Menu/LOGO", "Menu/Embers", "Menu/Embers (1)", "Menu/Embers (2)" };
+            /*var logoPartNames = new[] { "Menu/Embers (3)", "Menu/LOGO", "Menu/Embers", "Menu/Embers (1)", "Menu/Embers (2)" };
             var logoParts = new Transform[] { null, null, null, null, null };
             for (var index = 0; index < logoPartNames.Length; index++)
             {
@@ -101,7 +101,7 @@ namespace Auga
             __instance.m_csNewCharacterDone = newCharacter.Find("Panel/Done").GetComponent<Button>();
             __instance.m_newCharacterError = newCharacter.Find("Panel/Content/NameExistsWarning").gameObject;
             __instance.m_csNewCharacterName = newCharacter.Find("Panel/Content/CharacterName").GetComponent<InputField>();
-            SetButtonListener(newCharacter, "Panel/Done", __instance.OnNewCharacterDone);
+            SetButtonListener(newCharacter, "Panel/Done", () => __instance.OnNewCharacterDone(true));
             SetButtonListener(newCharacter, "Panel/Cancel", __instance.OnNewCharacterCancel);
 
             {
@@ -168,7 +168,7 @@ namespace Auga
             SetButtonListener(startGame, "RemoveWorldDialog/ButtonYes", __instance.OnButtonRemoveWorldYes);
             SetButtonListener(startGame, "RemoveWorldDialog/ButtonNo", __instance.OnButtonRemoveWorldNo);
             SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
-            SetButtonListener(startGame, "NewWorldDialog/Done", __instance.OnNewWorldDone);
+            SetButtonListener(startGame, "NewWorldDialog/Done", () => __instance.OnNewWorldDone(true));
             SetButtonListener(startGame, "JoinIP/Cancel", __instance.OnJoinIPBack);
             SetButtonListener(startGame, "JoinIP/Connect", __instance.OnJoinIPConnect);
 
@@ -190,10 +190,10 @@ namespace Auga
 
             Object.Instantiate(Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true), __instance.transform);
 
-            Localization.instance.Localize(__instance.transform);
+            Localization.instance.Localize(__instance.transform);*/
         }
 
-        private static void SetButtonListener(Transform root, string childName, UnityAction listener)
+        /*private static void SetButtonListener(Transform root, string childName, UnityAction listener)
         {
             var button = root.Find(childName).GetComponent<Button>();
             button.onClick = new Button.ButtonClickedEvent();
@@ -212,10 +212,10 @@ namespace Auga
             var toggle = root.Find(childName).GetComponent<Toggle>();
             toggle.onValueChanged = new Toggle.ToggleEvent();
             toggle.onValueChanged.AddListener(listener);
-        }
+        }*/
     }
-    
-    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateCharacterList))]
+
+    /*[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateCharacterList))]
     public static class FejdStartup_UpdateCharacterList_Patch
     {
         [UsedImplicitly]
@@ -247,7 +247,8 @@ namespace Auga
         public static void Postfix(FejdStartup __instance)
         {
             var photoBooth = __instance.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true);
-            photoBooth.StartCoroutine(NewCharPhotoCoroutine(__instance, photoBooth));
+            if (photoBooth != null)
+                photoBooth.StartCoroutine(NewCharPhotoCoroutine(__instance, photoBooth));
         }
 
         private static IEnumerator NewCharPhotoCoroutine(FejdStartup instance, AugaCharacterSelectPhotoBooth photoBooth)
@@ -272,5 +273,5 @@ namespace Auga
 
             return true;
         }
-    }
+    }*/
 }

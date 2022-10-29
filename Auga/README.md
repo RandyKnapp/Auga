@@ -1,4 +1,4 @@
-﻿# Project Auga
+# Project Auga
 ##### by RandyKnapp / n4
 
 Project Auga is a completely re-imagined, modder-friendly UI-overhaul for Valheim. Every last piece of UI was considered and reworked from the ground-up to create a more helpful and immersive player experience, all while remaining familiar to Valheim veterans.
@@ -64,6 +64,9 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.0.12
+  * Temporary fix for Valheim v0.211 - disabled auga in main menu until I have time to build the new save management menus
+  * Settings menu fixed
 ### 1.0.11
   * Hotfix for Valheim v0.209.8
 ### 1.0.10
