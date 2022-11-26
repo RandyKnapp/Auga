@@ -118,6 +118,21 @@ namespace Auga
             return go.transform.Replace(findPath, other.transform, otherFindPath, flags);
         }
 
+        public static Transform CopyOver(this GameObject go, string findPath, GameObject other, int siblingIndex)
+        {
+            var foundOther = other.transform.Find(findPath);
+            if (foundOther == null)
+            {
+                return null;
+            }
+
+            foundOther = Object.Instantiate(foundOther, go.transform);
+            foundOther.name = foundOther.name.Replace("(Clone)", "").Replace("(clone)", "");
+            foundOther.SetSiblingIndex(siblingIndex);
+
+            return foundOther;
+        }
+
         public static T RequireComponent<T>(this Component c) where T : Component
         {
             var t = c.GetComponent<T>();

@@ -186,6 +186,21 @@ namespace AugaUnity
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);
         }
 
+        public virtual bool HaveRequirementsHelper(Player player, Piece.Requirement[] requirements, int qualityLevel)
+        {
+            foreach (var resource in requirements)
+            {
+                if (resource.m_resItem)
+                {
+                    var amount = resource.GetAmount(qualityLevel);
+                    var num = player.m_inventory.CountItems(resource.m_resItem.m_itemData.m_shared.m_name);
+                    if (num < amount)
+                        return false;
+                }
+            }
+            return true;
+        }
+
         public virtual void PostSetupRequirementList(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedWorkbenchQuality)
         {
             if (TabController.SelectedIndex == 1 && item != null)
@@ -218,7 +233,7 @@ namespace AugaUnity
                     var amountRequired = resource.GetAmount(quality);
                     if (resource.m_resItem != null && amountRequired > 0)
                     {
-                        var have = player.HaveRequirements(new[] { resource }, false, quality);
+                        var have = HaveRequirementsHelper(player, new[] { resource }, quality);
                         states.Add(have ? WireState.Have : WireState.DontHave);
                         canCraft = canCraft && have;
                         ++index;
@@ -283,6 +298,7 @@ namespace AugaUnity
             _multiCraftEnabled = multiCraftEnabled;
         }
 
+        [UsedImplicitly]
         public void Update()
         {
             if (InventoryGui.instance?.m_craftTimer >= 0)

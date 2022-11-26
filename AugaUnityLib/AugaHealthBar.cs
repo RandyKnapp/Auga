@@ -8,9 +8,11 @@ namespace AugaUnity
     [ExecuteInEditMode]
     public class AugaHealthBar : MonoBehaviour
     {
-        public enum ModeType { Health, Stamina };
+        public enum ModeType { Health, Stamina, Eitr };
+        public enum TextPosition { Off = -1, Above, Below, Center, Start, End };
 
         public ModeType Mode;
+        public TextPosition DisplayTextPosition = TextPosition.Above;
         public float PixelsPerUnit = 500.0f / 270.0f;
         public float MinBackgroundSize;
         public float MinBarSize;
@@ -24,7 +26,8 @@ namespace AugaUnity
         public float UnitsPerTick = 25;
         public float FirstTickAlpha = 0.6666f;
         public float OtherTickAlpha = 0.4f;
-        public Text CurrentValueText;
+        [Header("Above, Below, Center, Start, End")]
+        public Text[] CurrentValueText = { null, null, null, null, null };
 
         [Range(0, 270)]
         public float CurrentValue;
@@ -61,13 +64,23 @@ namespace AugaUnity
                             MaxValue = player.GetMaxStamina();
                             MaxPotentialValue = GetMaxPotentialStamina(player);
                             break;
+
+                        case ModeType.Eitr:
+                            CurrentValue = player.GetEitr();
+                            MaxValue = player.GetMaxEitr();
+                            MaxPotentialValue = GetMaxPotentialEitr(player);
+                            break;
                     }
                 }
             }
 
+            var barIsVisible = MaxValue > 0;
+            Background.gameObject.SetActive(barIsVisible);
+            BackgroundPotential.gameObject.SetActive(barIsVisible);
+            TickContainer.gameObject.SetActive(barIsVisible);
+
             var backgroundWidth = MinBackgroundSize + (MaxValue * PixelsPerUnit);
             Background.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, backgroundWidth);
-            Border.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, backgroundWidth);
             BackgroundPotential.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, MinBackgroundSize + (MaxPotentialValue * PixelsPerUnit));
 
             var minPercent = MinBarSize / backgroundWidth;
@@ -84,7 +97,16 @@ namespace AugaUnity
             SlowBar.SetMaxValue(MaxValue);
             SlowBar.SetValue(slowValue);
 
-            CurrentValueText.text = Mathf.CeilToInt(CurrentValue).ToString();
+            var currentValueDisplay = Mathf.CeilToInt(CurrentValue).ToString();
+            for (var index = 0; index < CurrentValueText.Length; index++)
+            {
+                var textDisplay = CurrentValueText[index];
+                if (!textDisplay)
+                    continue;
+
+                textDisplay.gameObject.SetActive(barIsVisible && DisplayTextPosition == (TextPosition)index);
+                textDisplay.text = currentValueDisplay;
+            }
 
             if (Application.isEditor)
             {
@@ -131,6 +153,12 @@ namespace AugaUnity
         {
             var baseStamina = player.GetMaxStamina() - player.m_foods.Sum(x => x.m_stamina);
             return baseStamina + player.m_foods.Sum(x => x.m_item.m_shared.m_foodStamina);
+        }
+
+        public virtual float GetMaxPotentialEitr(Player player)
+        {
+            var baseEitr = player.GetMaxEitr() - player.m_foods.Sum(x => x.m_eitr);
+            return baseEitr + player.m_foods.Sum(x => x.m_item.m_shared.m_foodEitr);
         }
     }
 }

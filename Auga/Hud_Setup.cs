@@ -47,7 +47,7 @@ namespace Auga
             __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
             __instance.m_crosshairBow = newCrosshair.Find("crosshair_bow").GetComponent<Image>();
             __instance.m_hoverName = newCrosshair.Find("Dummy/HoverName").GetComponent<Text>();
-            __instance.m_pieceHealthRoot = (RectTransform) newCrosshair.Find("PieceHealthRoot");
+            __instance.m_pieceHealthRoot = (RectTransform)newCrosshair.Find("PieceHealthRoot");
             __instance.m_pieceHealthBar = newCrosshair.Find("PieceHealthRoot/PieceHealthBar").GetComponent<GuiBar>();
             __instance.m_targetedAlert = newCrosshair.Find("Sneak/Alert").gameObject;
             __instance.m_targeted = newCrosshair.Find("Sneak/Detected").gameObject;
@@ -61,23 +61,41 @@ namespace Auga
             __instance.m_gpIcon.material = originalGuardianPowerMaterial;
             __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
 
-            var newHealthPanel = __instance.Replace("hudroot/healthpanel", Auga.Assets.Hud);
+            foreach (Transform child in __instance.m_healthPanel)
+            {
+                Object.Destroy(child.gameObject);
+            }
             Object.Destroy(__instance.m_staminaBar2Root.gameObject);
+            Object.Destroy(__instance.m_eitrBarRoot.gameObject);
+
+            var hudroot = __instance.transform.Find("hudroot");
+            hudroot.gameObject.CopyOver("hudroot/FoodPanel0", Auga.Assets.Hud, 5);
+            hudroot.gameObject.CopyOver("hudroot/FoodPanel1", Auga.Assets.Hud, 6);
+            hudroot.gameObject.CopyOver("hudroot/FoodPanel2", Auga.Assets.Hud, 7);
+            var newHealthPanel = hudroot.gameObject.CopyOver("hudroot/HealthBar", Auga.Assets.Hud, 8);
+            var newStaminaPanel = hudroot.gameObject.CopyOver("hudroot/StaminaBar", Auga.Assets.Hud, 9);
+            var newEitrPanel = hudroot.gameObject.CopyOver("hudroot/EitrBar", Auga.Assets.Hud, 10);
+
             __instance.m_healthBarRoot = null;
-            __instance.m_healthPanel = null;
-            __instance.m_healthAnimator = newHealthPanel.Find("HealthBar").GetComponent<Animator>();
+            __instance.m_healthAnimator = newHealthPanel.GetComponent<Animator>();
             __instance.m_healthBarFast = null;
             __instance.m_healthBarSlow = null;
             __instance.m_healthText = null;
-            __instance.m_foodBars = new Image[0];
-            __instance.m_foodIcons = new Image[0];
+            __instance.m_foodBars = Array.Empty<Image>();
+            __instance.m_foodIcons = Array.Empty<Image>();
             __instance.m_foodBarRoot = null;
             __instance.m_foodBaseBar = null;
             __instance.m_foodText = null;
-            __instance.m_staminaAnimator = newHealthPanel.Find("StaminaBar").GetComponent<Animator>();
+            __instance.m_staminaAnimator = newStaminaPanel.GetComponent<Animator>();
             __instance.m_staminaBar2Root = null;
             __instance.m_staminaBar2Fast = null;
             __instance.m_staminaBar2Slow = null;
+            __instance.m_staminaText = null;
+            __instance.m_eitrAnimator = newEitrPanel.GetComponent<Animator>();
+            __instance.m_eitrBarRoot = null;
+            __instance.m_eitrBarFast = null;
+            __instance.m_eitrBarSlow = null;
+            __instance.m_eitrText = null;
 
             __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
             __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
@@ -220,6 +238,13 @@ namespace Auga
         [HarmonyPatch(nameof(Hud.UpdateStamina))]
         [HarmonyPrefix]
         public static bool Hud_UpdateStamina_Prefix()
+        {
+            return false;
+        }
+
+        [HarmonyPatch(nameof(Hud.UpdateEitr))]
+        [HarmonyPrefix]
+        public static bool Hud_UpdateEitr_Prefix()
         {
             return false;
         }
@@ -410,9 +435,9 @@ namespace Auga
         }
     }
 
-    //StaminaBarNoStaminaFlash
-    [HarmonyPatch(typeof(Hud), nameof(Hud.StaminaBarNoStaminaFlash))]
-    public static class Hud_StaminaBarNoStaminaFlash_Patch
+    //StaminaBarEmptyFlash
+    [HarmonyPatch(typeof(Hud), nameof(Hud.StaminaBarEmptyFlash))]
+    public static class Hud_StaminaBarEmptyFlash_Patch
     {
         private const float FlashDuration = 0.15f;
         private static Coroutine _staminaFlashCoroutine;
@@ -430,7 +455,7 @@ namespace Auga
 
         private static IEnumerator FlashStaminaBar(Hud instance)
         {
-            var staminaBarBorder = instance.m_staminaAnimator.transform.Find("Border").GetComponent<Image>();
+            var staminaBarBorder = instance.m_staminaAnimator.transform.Find("Background/Border").GetComponent<Image>();
 
             for (var i = 0; i < 3; i++)
             {

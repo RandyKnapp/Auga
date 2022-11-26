@@ -358,7 +358,8 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "$item_crafter", item.m_crafterName);
             }
 
-            var statusEffectTooltip = item.GetStatusEffectTooltip();
+            var skillLevel = Player.m_localPlayer.GetSkillLevel(item.m_shared.m_skillType);
+            var statusEffectTooltip = item.GetStatusEffectTooltip(quality, skillLevel);
             switch (item.m_shared.m_itemType)
             {
                 case ItemDrop.ItemData.ItemType.Consumable:
@@ -456,7 +457,7 @@ namespace AugaUnity
                 }
             }
 
-            var setStatusEffect = item.GetSetStatusEffectTooltip();
+            var setStatusEffect = item.GetSetStatusEffectTooltip(quality, skillLevel);
             if (!string.IsNullOrEmpty(setStatusEffect))
             {
                 var textBox = AddTextBox(TwoColumnTextBoxPrefab);
@@ -579,7 +580,8 @@ namespace AugaUnity
 
         public virtual void AddAttackStatusTextBox(ItemDrop.ItemData item)
         {
-            var statusEffectTooltip = item.GetStatusEffectTooltip();
+            var skillLevel = Player.m_localPlayer.GetSkillLevel(item.m_shared.m_skillType);
+            var statusEffectTooltip = item.GetStatusEffectTooltip(item.m_quality, skillLevel);
             if (statusEffectTooltip.Length > 0)
             {
                 var textBox = AddTextBox(CenteredTextBoxPrefab);
@@ -623,6 +625,8 @@ namespace AugaUnity
                 var percent = food.m_health / food.m_item.m_shared.m_food;
                 textBox.AddLine("$item_food_health", $"<color=#FF8080>{item.m_shared.m_food:0} ({food.m_health:0})</color>");
                 textBox.AddLine("$item_food_stamina", $"<color=#FFFF80>{item.m_shared.m_foodStamina:0} ({food.m_stamina:0})</color>");
+                if (food.m_eitr > 0)
+                    textBox.AddLine("$item_food_eitr", $"<color=#9C5ACF>{item.m_shared.m_foodEitr:0} ({food.m_eitr:0})</color>");
                 textBox.AddLine("$item_food_regen", healingText);
                 textBox.AddLine("$item_food_duration", $"{currentTime}/{durationText}");
                 textBox.AddLine("$percent_effective", $"{percent:P0}");
@@ -631,6 +635,8 @@ namespace AugaUnity
             {
                 textBox.AddLine("$item_food_health", $"<color=#FF8080>{item.m_shared.m_food:0}</color>");
                 textBox.AddLine("$item_food_stamina", $"<color=#FFFF80>{item.m_shared.m_foodStamina:0}</color>");
+                if (item.m_shared.m_foodEitr > 0)
+                    textBox.AddLine("$item_food_eitr", $"<color=#9C5ACF>{item.m_shared.m_foodEitr:0}</color>");
                 textBox.AddLine("$item_food_regen", healingText);
                 textBox.AddLine("$item_food_duration", durationText);
             }

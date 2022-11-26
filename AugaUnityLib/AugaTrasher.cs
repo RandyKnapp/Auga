@@ -28,7 +28,7 @@ namespace AugaUnity
 
                 if (dragAmount == dragItem.m_stack)
                 {
-                    Player.m_localPlayer.RemoveFromEquipQueue(dragItem);
+                    Player.m_localPlayer.RemoveEquipAction(dragItem);
                     Player.m_localPlayer.UnequipItem(dragItem, false);
                     dragInventory.RemoveItem(dragItem);
                 }

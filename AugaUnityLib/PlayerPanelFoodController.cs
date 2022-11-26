@@ -20,9 +20,11 @@ namespace AugaUnity
         [CanBeNull] public Text HealthText;
         [CanBeNull] public Text StaminaText;
         [CanBeNull] public Text HealingText;
+        [CanBeNull] public Text EitrText;
         [CanBeNull] public Image HealthIcon;
         [CanBeNull] public Image StaminaIcon;
         [CanBeNull] public Image HealingIcon;
+        [CanBeNull] public Image EitrIcon;
 
         [CanBeNull] protected UITooltip _tooltip;
         protected FoodTooltip _foodTooltip;
@@ -42,51 +44,39 @@ namespace AugaUnity
         {
             _hasFood = hasFood;
             if (NameText != null)
-            {
                 NameText.enabled = hasFood;
-            }
 
             Icon.enabled = hasFood;
             CountdownImage.enabled = hasFood;
             if (TimeRemainingText != null)
-            {
                 TimeRemainingText.enabled = hasFood;
-            }
 
             if (HealthText != null)
-            {
                 HealthText.enabled = hasFood;
-            }
 
             if (StaminaText != null)
-            {
                 StaminaText.enabled = hasFood;
-            }
 
             if (HealingText != null)
-            {
                 HealingText.enabled = hasFood;
-            }
+
+            if (EitrText != null)
+                EitrText.enabled = hasFood;
 
             if (HealthIcon != null)
-            {
                 HealthIcon.enabled = hasFood;
-            }
 
             if (StaminaIcon != null)
-            {
                 StaminaIcon.enabled = hasFood;
-            }
 
             if (HealingIcon != null)
-            {
                 HealingIcon.enabled = hasFood;
-            }
+
+            if (EitrIcon != null)
+                EitrIcon.enabled = hasFood;
 
             if (_tooltip != null)
-            {
                 _tooltip.enabled = hasFood;
-            }
         }
 
         public virtual void Update()
@@ -100,9 +90,7 @@ namespace AugaUnity
             var foods = player.GetFoods();
             var hasFood = Index < foods.Count;
             if (hasFood != _hasFood)
-            {
                 Show(hasFood);
-            }
 
             if (_hasFood)
             {
@@ -150,18 +138,18 @@ namespace AugaUnity
             }
 
             if (HealthText != null)
-            {
                 HealthText.text = Mathf.CeilToInt(food.m_health).ToString();
-            }
 
             if (StaminaText != null)
-            {
                 StaminaText.text = Mathf.CeilToInt(food.m_stamina).ToString();
-            }
 
             if (HealingText != null)
-            {
                 HealingText.text = food.m_item.m_shared.m_foodRegen.ToString("0.#");
+
+            if (EitrText != null)
+            {
+                EitrText.text = Mathf.CeilToInt(food.m_eitr).ToString();
+                EitrText.gameObject.SetActive(food.m_eitr > 0);
             }
         }
     }
