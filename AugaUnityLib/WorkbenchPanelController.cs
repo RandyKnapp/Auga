@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -85,7 +86,7 @@ namespace AugaUnity
             return WorkbenchTabController.TabButtons.Exists(x => x.name == tabID);
         }
 
-        private void AddTab(AugaTabController controller, Text titlePrefab, Transform titleContainer, Transform tabButtonContainer, string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, GameObject content)
+        private void AddTab(AugaTabController controller, Text titlePrefab, Transform titleContainer, Transform tabButtonContainer, string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out Text tabTitle, out TabButton tabButton, GameObject content)
         {
             tabTitle = Instantiate(titlePrefab, titleContainer, true);
             tabTitle.text = Localization.instance.Localize(tabLabel);
@@ -104,10 +105,16 @@ namespace AugaUnity
             controller.TabContents.Add(content);
 
             var index = controller.TabButtons.Count - 1;
-            controller.OnTabChanged += (_, current) =>
+            var mimicVanilla = mimicVanillaDescription;
+            controller.OnTabChanged += (previous, current) =>
             {
                 if (current == index)
                 {
+                    var tabContent = controller.TabContents[current];
+                    var mimic = tabContent.GetComponent<MimicVanillaCraftingTab>();
+                    if (mimic != null)
+                        mimic.enabled = mimicVanilla;
+
                     onTabSelected(index);
                 }
             };
@@ -134,13 +141,13 @@ namespace AugaUnity
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 564);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 780);
 
-            AddTab(DefaultTabController, PlayerPanelTabTitlePrefab, PlayerPanelTabTitleContainer, PlayerPanelTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, out tabTitle, out tabButton, content);
+            AddTab(DefaultTabController, PlayerPanelTabTitlePrefab, PlayerPanelTabTitleContainer, PlayerPanelTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, false, out tabTitle, out tabButton, content);
 
             var index = DefaultTabController.TabButtons.Count - 1;
             tabButton.Button.onClick.AddListener(() => DefaultTabController.SelectTab(index));
         }
 
-        public virtual void AddWorkbenchTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, out CraftingRequirementsPanel requirementsPanel, out ComplexTooltip itemInfo)
+        public virtual void AddWorkbenchTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out Text tabTitle, out TabButton tabButton, out CraftingRequirementsPanel requirementsPanel, out ComplexTooltip itemInfo)
         {
             tabTitle = null;
             tabButton = null;
@@ -154,7 +161,7 @@ namespace AugaUnity
 
             itemInfo = CraftingPanel.ItemInfo;
             requirementsPanel = CraftingPanel.GenericCraftingRequirementsPanel;
-            AddTab(WorkbenchTabController, WorkbenchTabTitlePrefab, WorkbenchTabTitleContainer, WorkbenchTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, out tabTitle, out tabButton, requirementsPanel.gameObject);
+            AddTab(WorkbenchTabController, WorkbenchTabTitlePrefab, WorkbenchTabTitleContainer, WorkbenchTabButtonContainer, tabID, tabIcon, tabLabel, onTabSelected, mimicVanillaDescription, out tabTitle, out tabButton, requirementsPanel.gameObject);
         }
 
         public bool IsTabActive(GameObject tabButton)
@@ -172,6 +179,15 @@ namespace AugaUnity
             }
 
             return false;
+        }
+
+        public bool IsTabActiveById(string tabID)
+        {
+            var tabButton = WorkbenchTabController.TabButtons.Find(x => x.name == tabID);
+            if (tabButton == null)
+                return false;
+
+            return tabButton.Selected;
         }
     }
 }

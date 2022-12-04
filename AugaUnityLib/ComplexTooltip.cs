@@ -382,6 +382,7 @@ namespace AugaUnity
                     AddDamageTextbox(item, quality, upgrade);
                     AddBlockingTextBox(item, quality, upgrade);
                     AddProjectileTextBox(item, quality);
+                    AddResourceUseTextbox(item);
                     AddAttackStatusTextBox(item);
                     break;
 
@@ -464,6 +465,29 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "$item_seteffect", "", $"{item.m_shared.m_setSize} $item_parts");
                 TextBoxAddPreprocessedLine(textBox, item, "", setStatusEffect);
             }
+        }
+
+        private void AddResourceUseTextbox(ItemDrop.ItemData item)
+        {
+            if (item.m_shared.m_attack.m_attackStamina <= 0.0 &&
+                item.m_shared.m_attack.m_attackEitr <= 0.0 &&
+                item.m_shared.m_attack.m_attackHealth <= 0.0 &&
+                item.m_shared.m_attack.m_attackHealthPercentage <= 0.0 &&
+                item.m_shared.m_attack.m_drawStaminaDrain <= 0.0)
+                return;
+
+            var textBox = AddTextBox(TwoColumnTextBoxPrefab);
+
+            if (item.m_shared.m_attack.m_attackStamina > 0.0)
+                TextBoxAddPreprocessedLine(textBox, item, "$item_staminause", item.m_shared.m_attack.m_attackStamina);
+            if (item.m_shared.m_attack.m_attackEitr > 0.0)
+                TextBoxAddPreprocessedLine(textBox, item, "$item_eitruse", item.m_shared.m_attack.m_attackEitr);
+            if (item.m_shared.m_attack.m_attackHealth > 0.0)
+                TextBoxAddPreprocessedLine(textBox, item, "$item_healthuse", item.m_shared.m_attack.m_attackHealth);
+            if (item.m_shared.m_attack.m_attackHealthPercentage > 0.0)
+                TextBoxAddPreprocessedLine(textBox, item, "$item_healthuse", item.m_shared.m_attack.m_attackHealthPercentage.ToString("0.0"));
+            if (item.m_shared.m_attack.m_drawStaminaDrain > 0.0)
+                TextBoxAddPreprocessedLine(textBox, item, "$item_staminahold", item.m_shared.m_attack.m_drawStaminaDrain);
         }
 
         public virtual void AddDamageTextbox(ItemDrop.ItemData item, int quality, bool upgrade)

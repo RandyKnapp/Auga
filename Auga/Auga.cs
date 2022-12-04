@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using AugaUnity;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -11,6 +14,7 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -51,6 +55,7 @@ namespace Auga
         public GameObject DividerMedium;
         public GameObject DividerLarge;
         public GameObject ConfirmDialog;
+        public Sprite RecyclingPanelIcon;
 
         public GameObject LeftWristMountUI;
     }
@@ -72,6 +77,7 @@ namespace Auga
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
@@ -87,10 +93,14 @@ namespace Auga
 
         public static bool HasBetterTrader = false;
         public static bool HasMultiCraft = false;
+        public static bool HasSimpleRecycling = false;
 
         private static Auga _instance;
         private Harmony _harmony;
         private static Type _multiCraftUiType;
+        private static Type _recyclingContainerButtonHolderType;
+        private static Type _recyclingStationButtonHolderType;
+        private static WorkbenchTabData _recyclingTabData;
 
         public void Awake()
         {
@@ -107,7 +117,7 @@ namespace Auga
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
-            // patch MultiCraft_UI.CreateSpaceFromCraftButton
+            // Patch MultiCraft_UI.CreateSpaceFromCraftButton
             var multiCraftPlugin = gameObject.GetComponent("MultiCraftPlugin");
             if (multiCraftPlugin != null)
             {
@@ -122,6 +132,28 @@ namespace Auga
                     _harmony.Patch(createCraftButtonSpaceMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_UI_CreateSpaceFromCraftButton_Patch)));
                     _harmony.Patch(isCraftingMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_Logic_IsCrafting_Patch)));
                 }
+            }
+
+            // Patch Simple Recycling
+            var recyclingPlugin = gameObject.GetComponent("ABearCodes.Valheim.SimpleRecycling.Plugin");
+            if (recyclingPlugin)
+            {
+                HasSimpleRecycling = true;
+                var pluginType = recyclingPlugin.GetType();
+                _recyclingContainerButtonHolderType = pluginType.Assembly.GetType("ABearCodes.Valheim.SimpleRecycling.UI.ContainerRecyclingButtonHolder");
+                _recyclingStationButtonHolderType = pluginType.Assembly.GetType("ABearCodes.Valheim.SimpleRecycling.UI.StationRecyclingTabHolder");
+                var containerButtonMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "SetupButton");
+                var tabButtonMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetupTabButton");
+                var setActiveMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetActive");
+                var inRecycleTabMethod = AccessTools.Method(_recyclingStationButtonHolderType, "InRecycleTab");
+                if (containerButtonMethod != null)
+                    _harmony.Patch(containerButtonMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_ContainerRecyclingButtonHolder_SetupButton_Patch)));
+                if (tabButtonMethod != null)
+                    _harmony.Patch(tabButtonMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_SetupTabButton_Patch)));
+                if (setActiveMethod != null)
+                    _harmony.Patch(setActiveMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_SetActive_Patch)));
+                if (inRecycleTabMethod != null)
+                    _harmony.Patch(inRecycleTabMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_InRecycleTab_Patch)));
             }
         }
 
@@ -143,6 +175,57 @@ namespace Auga
         public static bool MultiCraft_Logic_IsCrafting_Patch(ref bool __result)
         {
             __result = InventoryGui.instance.m_craftTimer >= 0;
+            return false;
+        }
+
+        public static bool SimpleRecycling_ContainerRecyclingButtonHolder_SetupButton_Patch()
+        {
+            var recycleAllButtonGO = InventoryGui.instance.m_container.Find("RecycleAll").gameObject;
+
+            var onRecycleAllPressedMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "OnRecycleAllPressed");
+            var setButtonStateMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "SetButtonState");
+            var recycleAllButtonFieldRef = AccessTools.FieldRefAccess<Button>(_recyclingContainerButtonHolderType, "_recycleAllButton");
+            var textComponentFieldRef = AccessTools.FieldRefAccess<Text>(_recyclingContainerButtonHolderType, "_textComponent");
+            var imageComponentFieldRef = AccessTools.FieldRefAccess<Image>(_recyclingContainerButtonHolderType, "_imageComponent");
+
+            var component = _instance.gameObject.GetComponent("ContainerRecyclingButtonHolder");
+            var recycleAllButton = recycleAllButtonGO.GetComponent<Button>();
+            recycleAllButtonFieldRef(component) = recycleAllButton;
+            recycleAllButton.onClick.RemoveAllListeners();
+            recycleAllButton.onClick.AddListener(() => { onRecycleAllPressedMethod.Invoke(component, new object[]{}); });
+
+            textComponentFieldRef(component) = recycleAllButton.GetComponentInChildren<Text>();
+            imageComponentFieldRef(component) = recycleAllButton.GetComponentInChildren<Image>();
+            setButtonStateMethod.Invoke(component, new object[] { false });
+
+            return false;
+        }
+
+        public static bool SimpleRecycling_StationRecyclingTabHolder_SetupTabButton_Patch()
+        {
+            var recyclingTabButtonFieldRef = AccessTools.FieldRefAccess<Button>(_recyclingStationButtonHolderType, "_recyclingTabButtonComponent");
+            var recyclingTabButtonGOFieldRef = AccessTools.FieldRefAccess<GameObject>(_recyclingStationButtonHolderType, "_recyclingTabButtonGameObject");
+            var updateCraftingPanelMethod = AccessTools.Method(_recyclingStationButtonHolderType, "UpdateCraftingPanel");
+            var component = _instance.gameObject.GetComponent("StationRecyclingTabHolder");
+
+            _recyclingTabData = API.Workbench_AddVanillaWorkbenchTab("RECYCLE", Assets.RecyclingPanelIcon, "Recycle", (_) =>
+            {
+                updateCraftingPanelMethod.Invoke(component, new object[] { });
+            });
+            recyclingTabButtonFieldRef(component) = _recyclingTabData.TabButtonGO.GetComponent<Button>();
+            recyclingTabButtonGOFieldRef(component) = _recyclingTabData.TabButtonGO;
+
+            return false;
+        }
+
+        public static bool SimpleRecycling_StationRecyclingTabHolder_SetActive_Patch()
+        {
+            return false;
+        }
+
+        public static bool SimpleRecycling_StationRecyclingTabHolder_InRecycleTab_Patch(ref bool __result)
+        {
+            __result = WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActiveById("RECYCLE");
             return false;
         }
 
@@ -240,6 +323,7 @@ namespace Auga
             Assets.DividerMedium = assetBundle.LoadAsset<GameObject>("DividerMedium");
             Assets.DividerLarge = assetBundle.LoadAsset<GameObject>("DividerLarge");
             Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
+            Assets.RecyclingPanelIcon = assetBundle.LoadAsset<Sprite>("RecyclingPanel");
             Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
         }
 

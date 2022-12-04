@@ -358,7 +358,26 @@ namespace Auga
             {
                 var data = new WorkbenchTabData();
 
-                WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, false, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
+                data.TabButtonGO = tabButtonX.gameObject;
+                data.RequirementsPanelGO = requirementsPanelX.gameObject;
+                data.ItemInfoGO = itemInfoX.gameObject;
+
+                return data;
+            }
+
+            return null;
+        }
+
+        [UsedImplicitly]
+        public static WorkbenchTabData Workbench_AddVanillaWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        {
+            if (WorkbenchPanelController.instance != null)
+            {
+                var data = new WorkbenchTabData();
+
+                WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, true, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
                 data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
                 data.TabButtonGO = tabButtonX.gameObject;
                 data.RequirementsPanelGO = requirementsPanelX.gameObject;

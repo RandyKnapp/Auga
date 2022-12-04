@@ -101,6 +101,7 @@ namespace Auga
 
         public static bool Workbench_HasWorkbenchTab(string tabID) => false;
         public static WorkbenchTabData Workbench_AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
+        public static WorkbenchTabData Workbench_AddVanillaWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected) => null;
         public static bool Workbench_IsTabActive(GameObject tabButton) => false;
         public static Button Workbench_GetCraftingTabButton() => null;
         public static Button Workbench_GetUpgradeTabButton() => null;
