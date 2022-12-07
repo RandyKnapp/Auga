@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using AugaUnity;
 using BepInEx;
@@ -12,9 +10,7 @@ using BepInEx.Logging;
 using fastJSON;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -81,19 +77,18 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.0.12";
+        public const string Version = "1.1.0";
 
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
         public static ConfigEntry<bool> UseAugaTrash;
-        public static ConfigEntry<bool> UseAugaVR;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
 
-        public static bool HasBetterTrader = false;
-        public static bool HasMultiCraft = false;
-        public static bool HasSimpleRecycling = false;
+        public static bool HasBetterTrader;
+        public static bool HasMultiCraft;
+        public static bool HasSimpleRecycling;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -282,7 +277,6 @@ namespace Auga
             _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
             _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
             UseAugaTrash = Config.Bind("Options", "UseAugaTrash", false, "Enable Auga's built in trash button. Click on the button while holding an item or part of a stack with the mouse.");
-            UseAugaVR = Config.Bind("Options", "UseAugaVR", false, "Enable Auga's custom Valheim VR mode.");
         }
 
         private static void LoadAssets()

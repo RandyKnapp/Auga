@@ -170,36 +170,6 @@ namespace Auga
             Localization.instance.Localize(__instance.transform);
         }
 
-        private static GameObject _leftWristMountUI;
-
-        [HarmonyPatch(nameof(Hud.Update))]
-        [HarmonyPostfix]
-        private static void Hud_Update_Postfix()
-        {
-            var player = Player.m_localPlayer;
-            if (Auga.UseAugaVR.Value && player != null && _leftWristMountUI == null)
-            {
-                var leftForearm = player.transform.Find("Visual/Armature/Hips/Spine/Spine1/Spine2/LeftShoulder/LeftArm/LeftForeArm");
-                if (leftForearm != null)
-                {
-                    _leftWristMountUI = Object.Instantiate(Auga.Assets.LeftWristMountUI, leftForearm, false);
-                    var canvas = _leftWristMountUI.GetComponentInChildren<Canvas>();
-                    canvas.worldCamera = Camera.main;
-                    Debug.LogWarning("Created left wrist mount UI!");
-                }
-                else
-                {
-                    Debug.LogWarning("No LeftForeArm!");
-                }
-            }
-
-            if (player == null && _leftWristMountUI != null)
-            {
-                Object.Destroy(_leftWristMountUI);
-                _leftWristMountUI = null;
-            }
-        }
-
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
         [HarmonyPrefix]
         public static bool Hud_UpdateStatusEffects_Prefix()
