@@ -20,28 +20,11 @@ namespace Auga
 
             __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
-            /*var logoPartNames = new[] { "Menu/Embers (3)", "Menu/LOGO", "Menu/Embers", "Menu/Embers (1)", "Menu/Embers (2)" };
-            var logoParts = new Transform[] { null, null, null, null, null };
-            for (var index = 0; index < logoPartNames.Length; index++)
-            {
-                var logoPartName = logoPartNames[index];
-                var logoPart = __instance.transform.Find(logoPartName);
-                if (logoPart == null)
-                {
-                    Auga.LogError($"Logo Part changed, could not find logo part ('{logoPartName}')");
-                    continue;
-                }
-
-                logoParts[index] = logoPart;
-                logoPart.SetParent(__instance.transform.parent, true);
-            }
+            /*var originalLogo = __instance.transform.Find("Menu/Logo");
+            originalLogo.SetParent(__instance.transform, true);
 
             var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
-
-            foreach (var logoPart in logoParts)
-            {
-                logoPart?.SetParent(mainMenu, true);
-            }
+            originalLogo.SetParent(mainMenu, true);
 
             __instance.m_mainMenu = mainMenu.gameObject;
             __instance.m_menuList = mainMenu.Find("MenuList").gameObject;
@@ -86,6 +69,7 @@ namespace Auga
             SetButtonListener(charSelect, "Panel/Inset/NewButtonBig", __instance.OnCharacterNew);
             SetButtonListener(charSelect, "Panel/Back", __instance.OnSelelectCharacterBack);
             SetButtonListener(charSelect, "Panel/Start", __instance.OnCharacterStart);
+            SetButtonListener(charSelect, "Panel/ManageSaves", () => __instance.OnManageSaves(1));
             SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonYes", __instance.OnButtonRemoveCharacterYes);
             SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonNo", __instance.OnButtonRemoveCharacterNo);
 
@@ -178,13 +162,17 @@ namespace Auga
             tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
             tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
 
+            // Why doesn't this work?
+            //var pleaseWait = __instance.Replace("PleaseWait", Auga.Assets.MainMenuPrefab);
+            //__instance.m_pleaseWait = pleaseWait.gameObject;
+
             __instance.m_menuAnimator.runtimeAnimatorController = Auga.Assets.MainMenuPrefab.GetComponent<Animator>().runtimeAnimatorController;
 
             // New local/cloud save stuff
             __instance.m_csFileSource = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
             __instance.m_csSourceInfo = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Text>();
-            __instance.m_worldSourceInfoPanel = startGame.Find("Panel/WorldPanel/Server help").gameObject;
-            __instance.m_worldSourceInfo = startGame.Find("Panel/WorldPanel/Server help/Text").GetComponent<Text>();
+            //__instance.m_worldSourceInfoPanel = startGame.Find("Panel/WorldPanel/Server help").gameObject;
+            //__instance.m_worldSourceInfo = startGame.Find("Panel/WorldPanel/Server help/Text").GetComponent<Text>();
 
             __instance.OnSelectWorldTab();
 

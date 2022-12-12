@@ -9,6 +9,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using fastJSON;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -79,9 +80,30 @@ namespace Auga
         public const string PluginID = "randyknapp.mods.auga";
         public const string Version = "1.1.0";
 
+        public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
+        public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
+
         private static ConfigEntry<bool> _loggingEnabled;
         private static ConfigEntry<LogLevel> _logLevel;
         public static ConfigEntry<bool> UseAugaTrash;
+
+        public static ConfigEntry<bool> HealthBarShow;
+        public static ConfigEntry<int> HealthBarFixedSize;
+        public static ConfigEntry<StatBarTextDisplayMode> HealthBarTextDisplay;
+        public static ConfigEntry<StatBarTextPosition> HealthBarTextPosition;
+        public static ConfigEntry<bool> HealthBarShowTicks;
+
+        public static ConfigEntry<bool> StaminaBarShow;
+        public static ConfigEntry<int> StaminaBarFixedSize;
+        public static ConfigEntry<StatBarTextDisplayMode> StaminaBarTextDisplay;
+        public static ConfigEntry<StatBarTextPosition> StaminaBarTextPosition;
+        public static ConfigEntry<bool> StaminaBarShowTicks;
+
+        public static ConfigEntry<bool> EitrBarShow;
+        public static ConfigEntry<int> EitrBarFixedSize;
+        public static ConfigEntry<StatBarTextDisplayMode> EitrBarTextDisplay;
+        public static ConfigEntry<StatBarTextPosition> EitrBarTextPosition;
+        public static ConfigEntry<bool> EitrBarShowTicks;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -277,6 +299,24 @@ namespace Auga
             _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
             _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
             UseAugaTrash = Config.Bind("Options", "UseAugaTrash", false, "Enable Auga's built in trash button. Click on the button while holding an item or part of a stack with the mouse.");
+            
+            HealthBarShow = Config.Bind("StatBars", "HealthBarShow", true, "If false, hides the health bar completely.");
+            HealthBarFixedSize = Config.Bind("StatBars", "HealthBarFixedSize", 0, "If greater than 0, forces the health bar to be that many pixels long, regardless of the player's max health.");
+            HealthBarTextDisplay = Config.Bind("StatBars", "HealthBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the health bar is displayed.");
+            HealthBarTextPosition = Config.Bind("StatBars", "HealthBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the health bar is displayed.");
+            HealthBarShowTicks = Config.Bind("StatBars", "HealthBarShowTicks", true, "Show a faint line on the bar every 25 units");
+            
+            StaminaBarShow = Config.Bind("StatBars", "StaminaBarShow", true, "If false, hides the stamina bar completely.");
+            StaminaBarFixedSize = Config.Bind("StatBars", "StaminaBarFixedSize", 0, "If greater than 0, forces the stamina bar to be that many pixels long, regardless of the player's max stamina.");
+            StaminaBarTextDisplay = Config.Bind("StatBars", "StaminaBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the stamina bar is displayed.");
+            StaminaBarTextPosition = Config.Bind("StatBars", "StaminaBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the stamina bar is displayed.");
+            StaminaBarShowTicks = Config.Bind("StatBars", "StaminaBarShowTicks", true, "Show a faint line on the bar every 25 units");
+
+            EitrBarShow = Config.Bind("StatBars", "EitrBarShow", true, "If false, hides the eitr bar completely.");
+            EitrBarFixedSize = Config.Bind("StatBars", "EitrBarFixedSize", 0, "If greater than 0, forces the eitr bar to be that many pixels long, regardless of the player's max eitr. Eitr bar still hides if max eitr is zero.");
+            EitrBarTextDisplay = Config.Bind("StatBars", "EitrBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the eitr bar is displayed.");
+            EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
+            EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
         }
 
         private static void LoadAssets()
@@ -385,6 +425,49 @@ namespace Auga
             if (_loggingEnabled.Value && _logLevel.Value <= LogLevel.Error)
             {
                 _instance.Logger.LogError(message);
+            }
+        }
+
+        [UsedImplicitly]
+        public void Update()
+        {
+            UpdateStatBars();
+        }
+
+        public static void UpdateStatBars()
+        {
+            if (Hud.instance != null)
+            {
+                var newHealthPanel = Hud.instance.transform.Find("hudroot/HealthBar");
+                var newStaminaPanel = Hud.instance.transform.Find("hudroot/StaminaBar");
+                var newEitrPanel = Hud.instance.transform.Find("hudroot/EitrBar");
+
+                if (newHealthPanel != null && newHealthPanel.GetComponent<AugaHealthBar>() is AugaHealthBar healthBar)
+                {
+                    healthBar.Hide = !HealthBarShow.Value;
+                    healthBar.FixedLength = Auga.HealthBarFixedSize.Value;
+                    healthBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.HealthBarTextDisplay.Value;
+                    healthBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.HealthBarTextPosition.Value;
+                    healthBar.ShowTicks = HealthBarShowTicks.Value;
+                }
+
+                if (newStaminaPanel != null && newStaminaPanel.GetComponent<AugaHealthBar>() is AugaHealthBar staminaBar)
+                {
+                    staminaBar.Hide = !StaminaBarShow.Value;
+                    staminaBar.FixedLength = Auga.StaminaBarFixedSize.Value;
+                    staminaBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.StaminaBarTextDisplay.Value;
+                    staminaBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.StaminaBarTextPosition.Value;
+                    staminaBar.ShowTicks = StaminaBarShowTicks.Value;
+                }
+
+                if (newEitrPanel != null && newEitrPanel.GetComponent<AugaHealthBar>() is AugaHealthBar eitrBar)
+                {
+                    eitrBar.Hide = !EitrBarShow.Value;
+                    eitrBar.FixedLength = Auga.EitrBarFixedSize.Value;
+                    eitrBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.EitrBarTextDisplay.Value;
+                    eitrBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.EitrBarTextPosition.Value;
+                    eitrBar.ShowTicks = EitrBarShowTicks.Value;
+                }
             }
         }
     }

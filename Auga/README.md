@@ -67,6 +67,7 @@ Source: https://github.com/RandyKnapp/Auga
 ### 1.1.0
   * Updated for Mistlands!
   * Mistlands specific UI and tooltips added
+  * Compatibility with Simple Recycling Fixed by remmiz
 ### 1.0.12
   * Temporary fix for Valheim v0.211 - disabled auga in main menu until I have time to build the new save management menus
   * Settings menu fixed

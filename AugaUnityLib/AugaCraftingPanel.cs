@@ -283,6 +283,8 @@ namespace AugaUnity
 
         public virtual void DisableCustomVariantDialog()
         {
+            if (CustomVariantDialog != null)
+                CustomVariantDialog.gameObject.SetActive(false);
             _onShowCustomVariantDialog = null;
             CustomVariantButton.gameObject.SetActive(false);
             UpdateVariantButtonVisibility();

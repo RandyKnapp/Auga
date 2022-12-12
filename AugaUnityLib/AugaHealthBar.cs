@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ namespace AugaUnity
     {
         public enum ModeType { Health, Stamina, Eitr };
         public enum TextPosition { Off = -1, Above, Below, Center, Start, End };
+        public enum TextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
 
         public ModeType Mode;
         public TextPosition DisplayTextPosition = TextPosition.Above;
@@ -26,6 +28,10 @@ namespace AugaUnity
         public float UnitsPerTick = 25;
         public float FirstTickAlpha = 0.6666f;
         public float OtherTickAlpha = 0.4f;
+        public bool Hide = false;
+        public float FixedLength = 0;
+        public TextDisplayMode TextDisplay = TextDisplayMode.JustValue;
+        public bool ShowTicks = true;
         [Header("Above, Below, Center, Start, End")]
         public Text[] CurrentValueText = { null, null, null, null, null };
 
@@ -74,14 +80,15 @@ namespace AugaUnity
                 }
             }
 
-            var barIsVisible = MaxValue > 0;
+            var barIsVisible = !Hide && MaxValue > 0;
             Background.gameObject.SetActive(barIsVisible);
             BackgroundPotential.gameObject.SetActive(barIsVisible);
-            TickContainer.gameObject.SetActive(barIsVisible);
+            TickContainer.gameObject.SetActive(ShowTicks && barIsVisible);
 
-            var backgroundWidth = MinBackgroundSize + (MaxValue * PixelsPerUnit);
+            var currentUsablePercentage = MaxValue / MaxPotentialValue;
+            var backgroundWidth = FixedLength > 0 ? (MinBackgroundSize + (FixedLength * currentUsablePercentage)) : (MinBackgroundSize + (MaxValue * PixelsPerUnit));
             Background.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, backgroundWidth);
-            BackgroundPotential.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, MinBackgroundSize + (MaxPotentialValue * PixelsPerUnit));
+            BackgroundPotential.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, FixedLength > 0 ? (MinBackgroundSize + FixedLength) : (MinBackgroundSize + (MaxPotentialValue * PixelsPerUnit)));
 
             var minPercent = MinBarSize / backgroundWidth;
             var actualPercent = CurrentValue / MaxValue;
@@ -97,7 +104,26 @@ namespace AugaUnity
             SlowBar.SetMaxValue(MaxValue);
             SlowBar.SetValue(slowValue);
 
-            var currentValueDisplay = Mathf.CeilToInt(CurrentValue).ToString();
+            var currentValueDisplay = "";
+            switch (TextDisplay)
+            {
+                case TextDisplayMode.JustValue:
+                    currentValueDisplay = $"{Mathf.CeilToInt(CurrentValue)}";
+                    break;
+
+                case TextDisplayMode.ValueAndMax:
+                    currentValueDisplay = $"{Mathf.CeilToInt(CurrentValue)}  /  {Mathf.CeilToInt(MaxValue)}";
+                    break;
+
+                case TextDisplayMode.ValueMaxPercent:
+                    currentValueDisplay = $"{Mathf.CeilToInt(CurrentValue)}  /  {Mathf.CeilToInt(MaxValue)}     {Mathf.CeilToInt(actualPercent * 100)}%";
+                    break;
+
+                case TextDisplayMode.JustPercent:
+                    currentValueDisplay = $"{Mathf.CeilToInt(actualPercent * 100)}%";
+                    break;
+            }
+
             for (var index = 0; index < CurrentValueText.Length; index++)
             {
                 var textDisplay = CurrentValueText[index];
@@ -122,13 +148,18 @@ namespace AugaUnity
 
         private void SetupTicks()
         {
+            if (!ShowTicks)
+                return;
+
+            var modifiedPixelsPerUnit = FixedLength > 0 ? ((MinBackgroundSize + FixedLength) / MaxPotentialValue ) : PixelsPerUnit;
+
             var tickCount = Mathf.CeilToInt(MaxPotentialValue / UnitsPerTick) - 1;
             for (var index = 0; index < tickCount; ++index)
             {
                 if (index >= _ticks.Count)
                 {
                     var tick = Instantiate(TickPrefab, TickContainer);
-                    tick.anchoredPosition = new Vector2(UnitsPerTick * (index + 1) * PixelsPerUnit, 0);
+                    tick.anchoredPosition = new Vector2(UnitsPerTick * (index + 1) * modifiedPixelsPerUnit, 0);
                     _ticks.Add(tick);
                 }
             }

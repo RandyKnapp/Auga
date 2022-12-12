@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -25,11 +26,12 @@ namespace AugaUnity
 
         private Camera _camera;
         private Transform _lookTarget;
+        private PortraitMode _currentMode;
         private const float FOV = 11;
-        private Vector3 _offset = new Vector3(0, -0.05f, 0);
+        private readonly Vector3 _offset = new Vector3(0, -0.05f, 0);
         private PlayerCustomizaton _playerCustomizaton;
         private readonly List<CharacterPortrait> _characterPortraits = new List<CharacterPortrait>();
-        private readonly Renderer[] _noRenderers = new Renderer[0];
+        private readonly Renderer[] _noRenderers = Array.Empty<Renderer>();
 
         [UsedImplicitly]
         public void Awake()
@@ -38,6 +40,18 @@ namespace AugaUnity
 
             _camera = GetCamera(RenderTexture, Profile);
             _camera.name = "AugaCamera NewCharPortraits";
+
+            _currentMode = Mode;
+        }
+
+        public void SwitchToHairMode()
+        {
+            Mode = PortraitMode.Hair;
+        }
+
+        public void SwitchToBeardMode()
+        {
+            Mode = PortraitMode.Beard;
         }
 
         public static Camera GetCamera(RenderTexture renderTexture, PostProcessingProfile profile)
@@ -93,11 +107,12 @@ namespace AugaUnity
         public void Update()
         {
             var newLookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
-            if (_characterPortraits.Count == 0 || _lookTarget != newLookTarget)
+            if (_characterPortraits.Count == 0 || _lookTarget != newLookTarget || _currentMode != Mode)
             {
                 InitializeChraracterPortraits();
             }
 
+            _currentMode = Mode;
             _lookTarget = newLookTarget;
             _camera.transform.LookAt(_lookTarget.position + _offset);
 
@@ -149,6 +164,8 @@ namespace AugaUnity
 
         public void DoRender(VisEquipment visEquip, Camera camera)
         {
+            var motionBlur = PlatformPrefs.GetInt("MotionBlur");
+            PlatformPrefs.SetInt("MotionBlur", 0);
             var hairColor = Utils.Vec3ToColor(visEquip.m_nview.GetZDO()?.GetVec3("HairColor", Vector3.one) ?? visEquip.m_hairColor);
             foreach (var renderer in _renderers)
             {
@@ -163,6 +180,7 @@ namespace AugaUnity
             {
                 renderer.forceRenderingOff = true;
             }
+            PlatformPrefs.SetInt("MotionBlur", motionBlur);
         }
 
         public void SetTexture(RenderTexture renderTexture)
@@ -173,7 +191,7 @@ namespace AugaUnity
                 Image.texture = _texture;
             }
 
-            Graphics.CopyTexture(renderTexture, _texture);
+            Graphics.ConvertTexture(renderTexture, _texture);
         }
 
         [UsedImplicitly]

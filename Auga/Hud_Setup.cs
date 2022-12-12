@@ -167,6 +167,8 @@ namespace Auga
             __instance.m_shipRudderIndicator = shipHud.Find("Controls/RudderIndicatorBG/RudderIndicatorMask/RudderIndicator").GetComponent<Image>();
             __instance.m_shipRudderIcon = shipHud.Find("Controls/RudderIcon").GetComponent<Image>();
 
+            Auga.UpdateStatBars();
+
             Localization.instance.Localize(__instance.transform);
         }
 

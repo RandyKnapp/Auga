@@ -84,7 +84,7 @@ namespace AugaUnity
         public List<BestiaryStatBlock> StatBlocks;
 
         protected readonly List<KeyValuePair<string, GameObject>> _bestiaryItems = new List<KeyValuePair<string, GameObject>>();
-        protected int _selectedBestiaryItem = -1;
+        protected int _selectedBestiaryIndex = -1;
         protected Dictionary<string, Humanoid> _trophyToMonsterCache;
 
         protected virtual void SetupTrophyToMonsterCache()
@@ -219,15 +219,15 @@ namespace AugaUnity
 
         private void OnBestiaryItemClicked(int index)
         {
-            _selectedBestiaryItem = index;
+            _selectedBestiaryIndex = index;
 
             for (var i = 0; i < _bestiaryItems.Count; i++)
             {
                 var bestiaryItem = _bestiaryItems[i];
-                bestiaryItem.Value.transform.Find("selected").gameObject.SetActive(i == _selectedBestiaryItem);
+                bestiaryItem.Value.transform.Find("selected").gameObject.SetActive(i == _selectedBestiaryIndex);
             }
 
-            if (_selectedBestiaryItem < 0)
+            if (_selectedBestiaryIndex < 0 || _selectedBestiaryIndex >= _bestiaryItems.Count)
             {
                 return;
             }
@@ -238,8 +238,8 @@ namespace AugaUnity
                 return;
             }
 
-            _selectedBestiaryItem = Mathf.Clamp(_selectedBestiaryItem, 0, _bestiaryItems.Count - 1);
-            var selectedEntry = _bestiaryItems[_selectedBestiaryItem];
+            _selectedBestiaryIndex = Mathf.Clamp(_selectedBestiaryIndex, 0, _bestiaryItems.Count - 1);
+            var selectedEntry = _bestiaryItems[_selectedBestiaryIndex];
             var trophy = selectedEntry.Key;
             _trophyToMonsterCache.TryGetValue(trophy, out var humanoidPrefab);
             if (humanoidPrefab == null)
