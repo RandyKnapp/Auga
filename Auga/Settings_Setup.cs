@@ -79,15 +79,5 @@ namespace Auga
 
             return false;
         }
-
-        [HarmonyPatch(typeof(Settings), nameof(Settings.OnDestroy))]
-        [HarmonyPrefix]
-        public static bool OnDestroy_Prefix(Settings __instance)
-        {
-            if (Player.m_localPlayer != null && !Player.m_localPlayer.InCutscene())
-                Game.Unpause();
-
-            return true;
-        }
     }
 }

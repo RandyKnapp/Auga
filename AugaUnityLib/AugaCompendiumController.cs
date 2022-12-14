@@ -135,16 +135,12 @@ namespace AugaUnity
             Compendium.Setup(Player.m_localPlayer);
             SetupBestiary();
             Menu.instance.m_settingsInstance = gameObject;
-            if (Player.m_localPlayer != null && !Player.m_localPlayer.InCutscene())
-                Game.Pause();
         }
 
         public virtual void HideCompendium()
         {
             Menu.instance.m_settingsInstance = null;
             gameObject.SetActive(false);
-            if (Player.m_localPlayer != null && !Player.m_localPlayer.InCutscene())
-                Game.Unpause();
         }
 
         public virtual void Update()
