@@ -26,6 +26,17 @@ namespace Auga
             }
         }
 
+        [HarmonyPatch(typeof(Menu), nameof(Menu.OnSettings))]
+        public static class Menu_OnSettings_Patch
+        {
+            [UsedImplicitly]
+            public static void Postfix(Menu __instance)
+            {
+                if (Player.m_localPlayer != null && !Player.m_localPlayer.InCutscene())
+                    Game.Pause();
+            }
+        }
+
         [HarmonyPatch(typeof(Menu), nameof(Menu.OnClose))]
         public static class Menu_OnClose_Patch
         {
@@ -38,6 +49,24 @@ namespace Auga
                     compendium.HideCompendium();
                 }
             }
+        }
+
+        [HarmonyPatch(typeof(Menu), nameof(Menu.Show))]
+        public static class Menu_Show_Patch 
+        {
+            public static bool Prefix(Menu __instance)
+            {
+                Gogan.LogEvent("Screen", "Enter", nameof(Menu), 0L);
+                __instance.m_root.gameObject.SetActive(true);
+                __instance.m_menuDialog.gameObject.SetActive(true);
+                __instance.m_logoutDialog.gameObject.SetActive(false);
+                __instance.m_quitDialog.gameObject.SetActive(false);
+
+                JoinCode.Show();
+
+                return false;
+            }
+
         }
 
         [HarmonyPatch(typeof(TextsDialog))]
