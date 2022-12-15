@@ -78,7 +78,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -118,6 +118,8 @@ namespace Auga
         private static Type _recyclingContainerButtonHolderType;
         private static Type _recyclingStationButtonHolderType;
         private static WorkbenchTabData _recyclingTabData;
+
+        public static Auga instance => _instance;
 
         public void Awake()
         {
@@ -305,7 +307,7 @@ namespace Auga
             HealthBarTextDisplay = Config.Bind("StatBars", "HealthBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the health bar is displayed.");
             HealthBarTextPosition = Config.Bind("StatBars", "HealthBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the health bar is displayed.");
             HealthBarShowTicks = Config.Bind("StatBars", "HealthBarShowTicks", true, "Show a faint line on the bar every 25 units");
-            
+
             StaminaBarShow = Config.Bind("StatBars", "StaminaBarShow", true, "If false, hides the stamina bar completely.");
             StaminaBarFixedSize = Config.Bind("StatBars", "StaminaBarFixedSize", 0, "If greater than 0, forces the stamina bar to be that many pixels long, regardless of the player's max stamina.");
             StaminaBarTextDisplay = Config.Bind("StatBars", "StaminaBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the stamina bar is displayed.");

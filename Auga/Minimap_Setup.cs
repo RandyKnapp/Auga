@@ -25,6 +25,7 @@ namespace Auga
             minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/ship_marker");
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
+            newMiniMap.gameObject.AddComponent<MovableHudElement>().Init("Minimap", TextAnchor.UpperRight, -40, -40);
 
             var newMap = Hud.instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
             minimap.m_largeRoot = newMap.gameObject;
@@ -42,6 +43,14 @@ namespace Auga
             minimap.m_selectedIcon4 = newMap.Find("IconPanel/Icon4/Selected").GetComponent<Image>();
             minimap.m_selectedIconBoss = newMap.Find("IconBoss/Selected").GetComponent<Image>();
             minimap.m_selectedIconDeath = newMap.Find("IconDeath/Selected").GetComponent<Image>();
+            minimap.m_selectedIcons[Minimap.PinType.Death] = minimap.m_selectedIconDeath;
+            minimap.m_selectedIcons[Minimap.PinType.Boss]  = minimap.m_selectedIconBoss;
+            minimap.m_selectedIcons[Minimap.PinType.Icon0] = minimap.m_selectedIcon0;
+            minimap.m_selectedIcons[Minimap.PinType.Icon1] = minimap.m_selectedIcon1;
+            minimap.m_selectedIcons[Minimap.PinType.Icon2] = minimap.m_selectedIcon2;
+            minimap.m_selectedIcons[Minimap.PinType.Icon3] = minimap.m_selectedIcon3;
+            minimap.m_selectedIcons[Minimap.PinType.Icon4] = minimap.m_selectedIcon4;
+            minimap.SelectIcon(Minimap.PinType.Icon0);
             minimap.m_nameInput = newMap.Find("NameField").GetComponent<InputField>();
             minimap.m_sharedMapHint = newMap.Find("SharedPanel").gameObject;
             minimap.m_hints = new List<GameObject> { newMap.Find("PingPanel").gameObject };
@@ -90,6 +99,7 @@ namespace Auga
             mapInputHandler.m_onLeftUp += minimap.OnMapLeftUp;
 
             Localization.instance.Localize(__instance.transform);
+            minimap.Reset();
         }
 
         private static void SetButtonListener(Transform root, string childName, UnityAction listener)

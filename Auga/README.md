@@ -64,6 +64,10 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.1.1
+  * Fixed animating pause menu buttons
+  * All HUD elements are now freely movable and scalable, use the config
+  * Health bars are customizable: fixed size, text position, text display options
 ### 1.1.0
   * Updated for Mistlands!
   * Mistlands specific UI and tooltips added
