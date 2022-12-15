@@ -19,11 +19,13 @@ namespace Auga
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
-            __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+            var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+            hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
 
             __instance.m_statusEffectListRoot = null;
             __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
-            __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
+            var newStatusEffects = __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
+            newStatusEffects.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperRight, -40, -330);
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
             __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
@@ -40,6 +42,7 @@ namespace Auga
 
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
             __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
+            __instance.m_eventBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperCenter, 0, -90);
 
             __instance.m_damageScreen = __instance.Replace("hudroot/Damaged", Auga.Assets.Hud).GetComponent<Image>();
 
@@ -53,6 +56,8 @@ namespace Auga
             __instance.m_targeted = newCrosshair.Find("Sneak/Detected").gameObject;
             __instance.m_hidden = newCrosshair.Find("Sneak/Hidden").gameObject;
             __instance.m_stealthBar = newCrosshair.Find("Sneak/StealthBar").GetComponent<GuiBar>();
+            __instance.m_pieceHealthBar.gameObject.AddComponent<MovableHudElement>().Init("BuildPieceHealthBar", TextAnchor.MiddleCenter, 130, 0);
+            __instance.m_targetedAlert.transform.parent.gameObject.AddComponent<MovableHudElement>().Init("Stealth", TextAnchor.MiddleCenter, 0, 0);
 
             var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
             __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
@@ -60,6 +65,8 @@ namespace Auga
             __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
             __instance.m_gpIcon.material = originalGuardianPowerMaterial;
             __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
+            
+            __instance.m_gpRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 60, 70);
 
             foreach (Transform child in __instance.m_healthPanel)
             {
@@ -69,12 +76,19 @@ namespace Auga
             Object.Destroy(__instance.m_eitrBarRoot.gameObject);
 
             var hudroot = __instance.transform.Find("hudroot");
-            hudroot.gameObject.CopyOver("hudroot/FoodPanel0", Auga.Assets.Hud, 5);
-            hudroot.gameObject.CopyOver("hudroot/FoodPanel1", Auga.Assets.Hud, 6);
-            hudroot.gameObject.CopyOver("hudroot/FoodPanel2", Auga.Assets.Hud, 7);
+            var foodPanel0 = hudroot.gameObject.CopyOver("hudroot/FoodPanel0", Auga.Assets.Hud, 5);
+            var foodPanel1 = hudroot.gameObject.CopyOver("hudroot/FoodPanel1", Auga.Assets.Hud, 6);
+            var foodPanel2 = hudroot.gameObject.CopyOver("hudroot/FoodPanel2", Auga.Assets.Hud, 7);
             var newHealthPanel = hudroot.gameObject.CopyOver("hudroot/HealthBar", Auga.Assets.Hud, 8);
             var newStaminaPanel = hudroot.gameObject.CopyOver("hudroot/StaminaBar", Auga.Assets.Hud, 9);
             var newEitrPanel = hudroot.gameObject.CopyOver("hudroot/EitrBar", Auga.Assets.Hud, 10);
+
+            foodPanel0.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 138, 66);
+            foodPanel1.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 167, 95);
+            foodPanel2.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 138, 124);
+            newHealthPanel.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 208, 123.5f);
+            newStaminaPanel.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 208, 99.5f);
+            newEitrPanel.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 185, 74.5f);
 
             __instance.m_healthBarRoot = null;
             __instance.m_healthAnimator = newHealthPanel.GetComponent<Animator>();
@@ -100,10 +114,12 @@ namespace Auga
             __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
             __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
             __instance.m_actionProgress = __instance.m_actionBarRoot.GetComponent<GuiBar>();
+            __instance.m_actionBarRoot.gameObject.AddComponent<MovableHudElement>().Init("ActionProgress", TextAnchor.LowerCenter, 0, 226);
 
             var newStaggerPanel = __instance.Replace("hudroot/staggerpanel", Auga.Assets.Hud);
             __instance.m_staggerAnimator = newStaggerPanel.GetComponent<Animator>();
             __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
+            newStaggerPanel.gameObject.AddComponent<MovableHudElement>().Init("StaggerPanel", TextAnchor.LowerCenter, 0, 151);
 
             // Setup the icon material to grayscale the piece icons
             var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
@@ -147,7 +163,8 @@ namespace Auga
                 requirements.GetChild(5).gameObject,
             };
 
-            __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
+            var keyHints = __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
+            keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
 
             var shipHud = __instance.transform.Replace("hudroot/ShipHud", Auga.Assets.Hud);
             __instance.m_shipHudRoot = shipHud.gameObject;
@@ -166,6 +183,9 @@ namespace Auga
             __instance.m_shipWindIconRoot = (RectTransform)shipHud.Find("WindIndicator/Wind");
             __instance.m_shipRudderIndicator = shipHud.Find("Controls/RudderIndicatorBG/RudderIndicatorMask/RudderIndicator").GetComponent<Image>();
             __instance.m_shipRudderIcon = shipHud.Find("Controls/RudderIcon").GetComponent<Image>();
+
+            __instance.m_shipControlsRoot.AddComponent<MovableHudElement>().Init("ShipControls", TextAnchor.MiddleCenter, 263, -143);
+            __instance.m_shipWindIndicatorRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 57);
 
             Auga.UpdateStatBars();
 

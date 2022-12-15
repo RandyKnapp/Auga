@@ -61,6 +61,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -196,6 +197,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -277,6 +279,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Navigation:
     m_Mode: 3
+    m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
@@ -307,6 +310,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 5026525812570277222}
+        m_TargetAssemblyTypeName: 
         m_MethodName: OnClose
         m_Mode: 1
         m_Arguments:
@@ -333,18 +337,6 @@ MonoBehaviour:
     type: 3}
   m_selectSfxPrefab: {fileID: 1027288459373073, guid: 515393240de246c44a837291defbe135,
     type: 3}
---- !u!225 &2153224905614082578
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3080431417374144254}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!1 &5026525812570277220
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,9 +392,13 @@ MonoBehaviour:
   m_menuDialog: {fileID: 5026525812777297125}
   m_quitDialog: {fileID: 7680793598013717538}
   m_logoutDialog: {fileID: 6828305556800494344}
+  m_cloudStorageWarning: {fileID: 0}
   m_settingsPrefab: {fileID: 6379034644791463747, guid: 0ac5c3283b1cf6444bd7417013918aa6,
     type: 3}
   m_feedbackPrefab: {fileID: 0}
+  m_gamepadRoot: {fileID: 0}
+  m_gamepadImage: {fileID: 0}
+  m_gamepadImages: []
 --- !u!114 &1600549966284015957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1499,6 +1495,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Logout
       objectReference: {fileID: 0}
+    - target: {fileID: 3623317734267467663, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_UpdateMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4701555478415837273, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_Text
@@ -1718,6 +1719,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Compendium
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623317734267467663, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_UpdateMode
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4701555478415837273, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -2189,6 +2195,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Exit
       objectReference: {fileID: 0}
+    - target: {fileID: 3623317734267467663, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_UpdateMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4701555478415837273, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_Text
@@ -2409,6 +2420,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Settings
       objectReference: {fileID: 0}
+    - target: {fileID: 3623317734267467663, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_UpdateMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5003195230981158844, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -2609,3 +2625,15 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 8443070232976249204}
   m_PrefabAsset: {fileID: 0}
+--- !u!225 &2153224905614082578
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3080431417374144254}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

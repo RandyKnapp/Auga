@@ -1,5 +1,6 @@
 ﻿using AugaUnity;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Auga
 {
@@ -19,6 +20,7 @@ namespace Auga
             if (replaced)
             {
                 newStoreGui.GetComponent<StoreGui>().m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
+                newStoreGui.transform.Find("Store").gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 140, -180);
             }
             return !replaced;
         }

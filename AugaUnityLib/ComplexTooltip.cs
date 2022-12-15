@@ -317,7 +317,8 @@ namespace AugaUnity
             }
 
             if ((item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon 
-                || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon 
+                || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon
+                || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft
                 || item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Torch)
                 && item.m_shared.m_skillType != Skills.SkillType.None)
             {
@@ -377,6 +378,7 @@ namespace AugaUnity
                 case ItemDrop.ItemData.ItemType.OneHandedWeapon:
                 case ItemDrop.ItemData.ItemType.Bow:
                 case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
+                case ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft:
                 case ItemDrop.ItemData.ItemType.Torch:
                 case ItemDrop.ItemData.ItemType.Ammo:
                     AddDamageTextbox(item, quality, upgrade);
