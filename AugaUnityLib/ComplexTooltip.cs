@@ -408,7 +408,7 @@ namespace AugaUnity
                 {
                     TextBoxAddPreprocessedLine(textBox, item, "$item_value", item.GetValue(), item.m_shared.m_value);
                 }
-
+                
                 if (item.m_shared.m_maxQuality > 1)
                 {
                     TextBoxAddPreprocessedLine(textBox, item, "$item_quality", quality, upgrade);
@@ -443,13 +443,24 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "$item_weight", item.GetWeight().ToString("0.0"));
             }
 
-            if (!item.m_shared.m_teleportable || item.m_shared.m_movementModifier != 0)
+            if (!item.m_shared.m_teleportable || item.m_shared.m_movementModifier != 0 || item.m_shared.m_eitrRegenModifier != 0)
             {
                 var textBox = AddTextBox(CenteredTextBoxPrefab);
 
                 if (!item.m_shared.m_teleportable)
                 {
                     TextBoxAddPreprocessedLine(textBox, item, "$item_noteleport");
+                }
+
+
+                if (item.m_shared.m_eitrRegenModifier != 0)
+                {
+                    var eitrRegenModifier = (item.m_shared.m_eitrRegenModifier * 100).ToString("+0;-0");
+                    var totalEitrRegenModifier = (Player.m_localPlayer.GetEquipmentEitrRegenModifier() * 100).ToString("+0;-0");
+                    TextBoxAddPreprocessedLine(textBox, item, $"$item_eitrregen_modifier: <color=#D1C9C2>{eitrRegenModifier}%</color> ($item_total: <color={ParentheticalColor}>{totalEitrRegenModifier}%</color>)");
+                } else
+                {
+                    TextBoxAddPreprocessedLine(textBox, item, $"$item_eitrregen_modifier");
                 }
 
                 if (item.m_shared.m_movementModifier != 0)

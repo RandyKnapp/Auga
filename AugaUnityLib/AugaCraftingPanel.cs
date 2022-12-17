@@ -103,9 +103,14 @@ namespace AugaUnity
 
             var inventoryGui = InventoryGui.instance;
             _currentPanel = panel;
+            if (inventoryGui?.m_selectedRecipe.Value?.GetIcon() != null)
+            {
+                _currentPanel.Icon.sprite = inventoryGui.m_selectedRecipe.Value.GetIcon();
+            }
+            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
             panel.gameObject.SetActive(true);
             panel.Activate(inventoryGui, ItemInfo);
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            
         }
 
         [UsedImplicitly]
