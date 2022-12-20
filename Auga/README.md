@@ -64,6 +64,11 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.1.2
+  * Fixed an issue with Lore Compendium not populating
+  * Build Hud, Selected Piece, Top Left Message, Center Message, and Chat are all movable
+  * Eitr stats correctly visible in tooltips
+  * Upgrade item icon correctly displays on the crafting panel
 ### 1.1.1
   * Fixed animating pause menu buttons
   * All HUD elements are now freely movable and scalable, use the config

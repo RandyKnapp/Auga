@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Auga
 {
@@ -12,6 +13,12 @@ namespace Auga
             public static bool Prefix(Chat __instance)
             {
                 return !SetupHelper.IndirectTwoObjectReplace(__instance.transform, Auga.Assets.AugaChat, "Chat", "Chat_box", "AugaChat");
+            }
+
+            public static void Postfix(Chat __instance)
+            {
+                if (__instance.m_input != null)
+                    __instance.m_input.transform.parent.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, 0, 67);
             }
         }
 

@@ -74,6 +74,7 @@ namespace AugaUnity
     {
         public TabHandler TabController;
         public TextsDialog Compendium;
+        public TextsDialog LoreCompendium;
         public GameObject BestiaryContent;
         public RectTransform BestiaryList;
         public GameObject BestiaryListElementPrefab;
@@ -133,6 +134,7 @@ namespace AugaUnity
             gameObject.SetActive(true);
             TabController.SetActiveTab(0);
             Compendium.Setup(Player.m_localPlayer);
+            LoreCompendium.Setup(Player.m_localPlayer);
             SetupBestiary();
             Menu.instance.m_settingsInstance = gameObject;
         }

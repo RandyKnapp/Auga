@@ -148,11 +148,14 @@ namespace Auga
             __instance.m_pieceListMask = null;
             __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
             __instance.m_closePieceSelectionButton = __instance.m_buildHud.transform.Find("CloseButton").GetComponent<UIInputHandler>();
+            __instance.m_pieceSelectionWindow.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, 0);
 
             var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
             __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
             __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
             __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
+            selectedPiece.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 15);
+
             var requirements = selectedPiece.Find("Requirements");
             __instance.m_requirementItems = new [] {
                 requirements.GetChild(0).gameObject,
