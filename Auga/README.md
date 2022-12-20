@@ -69,6 +69,8 @@ Source: https://github.com/RandyKnapp/Auga
   * Build Hud, Selected Piece, Top Left Message, Center Message, and Chat are all movable
   * Eitr stats correctly visible in tooltips
   * Upgrade item icon correctly displays on the crafting panel
+  * Added two new loading screen art pieces from the official Valheim press kit
+  * Minor scrollbar fixes in Compendium and Crafting panel
 ### 1.1.1
   * Fixed animating pause menu buttons
   * All HUD elements are now freely movable and scalable, use the config

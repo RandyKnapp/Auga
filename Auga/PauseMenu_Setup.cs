@@ -66,7 +66,6 @@ namespace Auga
                 var filter = __instance.GetComponent<AugaTextsDialogFilter>();
                 foreach (var knownText in Player.m_localPlayer.GetKnownTexts())
                 {
-                    Auga.Log($"Filtering known text: key={knownText.Key}, filter={filter.Filter}");
                     if (filter == null || knownText.Key.Contains(filter.Filter))
                     {
                         var keyText = Localization.instance.Localize(knownText.Key);
