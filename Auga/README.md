@@ -64,6 +64,9 @@ Source: https://github.com/RandyKnapp/Auga
 
 ## Changelog
 
+### 1.1.3
+  * Hotfix for new settings from new Valheim version
+  * Fix for store item tooltips
 ### 1.1.2
   * Fixed an issue with Lore Compendium not populating
   * Build Hud, Selected Piece, Top Left Message, Center Message, and Chat are all movable

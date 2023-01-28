@@ -452,15 +452,11 @@ namespace AugaUnity
                     TextBoxAddPreprocessedLine(textBox, item, "$item_noteleport");
                 }
 
-
                 if (item.m_shared.m_eitrRegenModifier != 0)
                 {
                     var eitrRegenModifier = (item.m_shared.m_eitrRegenModifier * 100).ToString("+0;-0");
                     var totalEitrRegenModifier = (Player.m_localPlayer.GetEquipmentEitrRegenModifier() * 100).ToString("+0;-0");
                     TextBoxAddPreprocessedLine(textBox, item, $"$item_eitrregen_modifier: <color=#D1C9C2>{eitrRegenModifier}%</color> ($item_total: <color={ParentheticalColor}>{totalEitrRegenModifier}%</color>)");
-                } else
-                {
-                    TextBoxAddPreprocessedLine(textBox, item, $"$item_eitrregen_modifier");
                 }
 
                 if (item.m_shared.m_movementModifier != 0)
@@ -783,19 +779,22 @@ namespace AugaUnity
         protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, bool localize = true)
         {
             var result = ItemStatPreprocess(item, label.ToString(), null);
-            textBox.AddLine(result.Item1, localize);
+            if (result != null)
+                textBox.AddLine(result.Item1, localize);
         }
 
         protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, object value, bool localize = true)
         {
             var result = ItemStatPreprocess(item, label.ToString(), value.ToString());
-            textBox.AddLine(result.Item1, result.Item2, localize);
+            if (result != null)
+                textBox.AddLine(result.Item1, result.Item2, localize);
         }
 
         protected virtual void TextBoxAddPreprocessedLine(TooltipTextBox textBox, ItemDrop.ItemData item, object label, object value, object parenthetical, bool localize = true)
         {
             var result = ItemStatPreprocess(item, label.ToString(), textBox.GenerateParenthetical(value, parenthetical));
-            textBox.AddLine(result.Item1, result.Item2, localize);
+            if (result != null)
+                textBox.AddLine(result.Item1, result.Item2, localize);
         }
     }
 }

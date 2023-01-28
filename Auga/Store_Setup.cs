@@ -34,7 +34,7 @@ namespace Auga
                 return;
             }
 
-            var items = __instance.m_trader.m_items;
+            var items = __instance.m_trader.GetAvailableItems();
             for (var index = 0; index < __instance.m_itemList.Count; index++)
             {
                 var item = items[index];

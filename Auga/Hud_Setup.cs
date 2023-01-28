@@ -188,7 +188,7 @@ namespace Auga
             __instance.m_shipRudderIcon = shipHud.Find("Controls/RudderIcon").GetComponent<Image>();
 
             __instance.m_shipControlsRoot.AddComponent<MovableHudElement>().Init("ShipControls", TextAnchor.MiddleCenter, 263, -143);
-            __instance.m_shipWindIndicatorRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 57);
+            __instance.m_shipWindIndicatorRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, -418);
 
             Auga.UpdateStatBars();
 
