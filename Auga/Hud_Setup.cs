@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using AugaUnity;
 using HarmonyLib;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -49,7 +50,7 @@ namespace Auga
             var newCrosshair = __instance.Replace("hudroot/crosshair", Auga.Assets.Hud);
             __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
             __instance.m_crosshairBow = newCrosshair.Find("crosshair_bow").GetComponent<Image>();
-            __instance.m_hoverName = newCrosshair.Find("Dummy/HoverName").GetComponent<Text>();
+            __instance.m_hoverName = newCrosshair.Find("Dummy/HoverName").GetComponent<TextMeshProUGUI>();
             __instance.m_pieceHealthRoot = (RectTransform)newCrosshair.Find("PieceHealthRoot");
             __instance.m_pieceHealthBar = newCrosshair.Find("PieceHealthRoot/PieceHealthBar").GetComponent<GuiBar>();
             __instance.m_targetedAlert = newCrosshair.Find("Sneak/Alert").gameObject;
@@ -326,7 +327,7 @@ namespace Auga
     public static class Hud_UpdateCrosshair_Patch
     {
         public static Transform AugaHoverText;
-        public static Text HoverTextPrefab;
+        public static TextMeshProUGUI HoverTextPrefab;
         public static GameObject HoverTextWithButtonPrefab;
         public static GameObject HoverTextWithButtonRangePrefab;
 
