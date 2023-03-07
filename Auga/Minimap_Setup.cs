@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -21,7 +22,7 @@ namespace Auga
             minimap.m_smallRoot = newMiniMap.gameObject;
             minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/pin_root");
-            minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<Text>();
+            minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<TextMeshProUGUI>();
             minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/ship_marker");
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
@@ -31,7 +32,7 @@ namespace Auga
             minimap.m_largeRoot = newMap.gameObject;
             minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootLarge = (RectTransform)newMap.Find("map/pin_root");
-            minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<Text>();
+            minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<TextMeshProUGUI>();
             minimap.m_largeShipMarker = (RectTransform)newMap.Find("map/ship_marker");
             minimap.m_largeMarker = (RectTransform)newMap.Find("map/player_marker");
             minimap.m_gamepadCrosshair = (RectTransform)newMap.Find("GamepadCrosshair");
