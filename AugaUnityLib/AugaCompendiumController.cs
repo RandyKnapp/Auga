@@ -90,15 +90,14 @@ namespace AugaUnity
 
         protected virtual void SetupTrophyToMonsterCache()
         {
-            if (ZNetScene.instance == null)
-            {
+            if (ZNetScene.instance == null || ZNetScene.instance.m_namedPrefabs == null)
                 return;
-            }
 
             if (_trophyToMonsterCache != null)
-            {
                 return;
-            }
+
+            if (!ZNetScene.instance.m_namedPrefabs.Values.Any())
+                return;
 
             _trophyToMonsterCache = new Dictionary<string, Humanoid>();
 
@@ -106,13 +105,16 @@ namespace AugaUnity
             {
                 var humanoid = prefab.GetComponent<Humanoid>();
                 var characterDrop = prefab.GetComponent<CharacterDrop>();
-                if (characterDrop == null || humanoid == null)
+                if (characterDrop == null || humanoid == null || characterDrop.m_drops == null || !characterDrop.m_drops.Any())
                 {
                     continue;
                 }
 
                 foreach (var drop in characterDrop.m_drops)
                 {
+                    if (drop == null)
+                        continue;
+
                     var itemDrop = drop.m_prefab.GetComponent<ItemDrop>();
                     if (itemDrop != null)
                     {
