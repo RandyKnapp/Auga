@@ -1,11 +1,4 @@
-﻿using System.Collections;
-using AugaUnity;
-using HarmonyLib;
-using JetBrains.Annotations;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
+﻿using HarmonyLib;
 
 namespace Auga
 {

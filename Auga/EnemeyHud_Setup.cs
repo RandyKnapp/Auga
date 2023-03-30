@@ -13,6 +13,7 @@ namespace Auga
         {
             public static bool Prefix(EnemyHud __instance)
             {
+                return true;
                 return !SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.EnemyHud, "EnemyHud");
             }
         }
@@ -22,6 +23,7 @@ namespace Auga
         {
             public static void Postfix(EnemyHud __instance, Character c)
             {
+                return;
                 if (c == null || __instance.m_huds.TryGetValue(c, out EnemyHud.HudData _))
                 {
                     return;
@@ -76,6 +78,7 @@ namespace Auga
         {
             public static void Postfix(EnemyHud __instance)
             {
+                return;
                 foreach (var hud in __instance.m_huds)
                 {
                     if (hud.Key != null && hud.Value != null && hud.Value.m_gui != null)

@@ -1,5 +1,4 @@
-﻿using System;
-using AugaUnity;
+﻿using AugaUnity;
 using HarmonyLib;
 
 namespace Auga
