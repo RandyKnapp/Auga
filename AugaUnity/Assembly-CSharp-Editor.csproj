@@ -291,11 +291,23 @@
     <Reference Include="Unity.Auga">
       <HintPath>Assets\ExternalLibraries\Unity.Auga.dll</HintPath>
     </Reference>
+    <Reference Include="Fishlabs.Core">
+      <HintPath>Packages\valheim\Fishlabs.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Fishlabs.Common">
+      <HintPath>Packages\valheim\Fishlabs.Common.dll</HintPath>
+    </Reference>
     <Reference Include="PlayFab">
       <HintPath>Packages\valheim\PlayFab.dll</HintPath>
     </Reference>
     <Reference Include="PlayFabParty">
       <HintPath>Packages\valheim\PlayFabParty.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>Packages\valheim\Unity.InputSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="ConnectedStorage">
+      <HintPath>Packages\valheim\ConnectedStorage.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>
@@ -672,8 +684,18 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp.csproj">
+      <Project>{45D838A5-AA7F-28D7-6654-2095AAAE5683}</Project>
+      <Name>Assembly-CSharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

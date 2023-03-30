@@ -7,7 +7,6 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -20,6 +19,7 @@ namespace Auga
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
+            return;
             var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
 
@@ -200,49 +200,56 @@ namespace Auga
         [HarmonyPrefix]
         public static bool Hud_UpdateStatusEffects_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateFood))]
         [HarmonyPrefix]
         public static bool Hud_UpdateFood_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.SetHealthBarSize))]
         [HarmonyPrefix]
         public static bool Hud_SetHealthBarSize_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.SetStaminaBarSize))]
         [HarmonyPrefix]
         public static bool Hud_SetStaminaBarSize_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateHealth))]
         [HarmonyPrefix]
         public static bool Hud_UpdateHealth_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStamina))]
         [HarmonyPrefix]
         public static bool Hud_UpdateStamina_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateEitr))]
         [HarmonyPrefix]
         public static bool Hud_UpdateEitr_Prefix()
         {
-            return false;
+            //return false;
+            return true;
         }
 
         public static void SetBuildCategory(int index)
@@ -259,6 +266,7 @@ namespace Auga
     {
         public static void Postfix(HotkeyBar __instance)
         {
+            return;
             if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
             {
                 return;
@@ -290,6 +298,7 @@ namespace Auga
 
         public static void Postfix(Hud __instance, Player player, float dt)
         {
+            return;
             var ship = player.GetControlledShip();
             if (ship == null || !__instance.m_shipRudderIndicator.gameObject.activeSelf)
             {
@@ -316,6 +325,7 @@ namespace Auga
     {
         public static void Postfix(Hud __instance, Piece piece)
         {
+            return;
             __instance.m_pieceDescription.gameObject.SetActive(!string.IsNullOrEmpty(__instance.m_pieceDescription.text));
 
             var requireItemsContainer = __instance.m_requirementItems[0].transform.parent;
@@ -336,6 +346,8 @@ namespace Auga
 
         public static void Postfix(Hud __instance)
         {
+            return;
+            
             if (HoverTextPrefab == null)
             {
                 AugaHoverText = __instance.m_crosshair.transform.parent.Find("AugaHoverText");
@@ -440,6 +452,9 @@ namespace Auga
 
         public static bool Prefix(Hud __instance)
         {
+            //return false;
+            return true;
+
             if (_staminaFlashCoroutine != null)
             {
                 __instance.StopCoroutine(_staminaFlashCoroutine);
@@ -490,6 +505,9 @@ namespace Auga
     {
         public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
         {
+            //return false;
+            return true;
+
             var buildPieces = player.GetBuildPieces();
             var pieceIcons = __instance.m_pieceIcons;
             var selectedIndex = selectedNr.x + selectedNr.y * 13;

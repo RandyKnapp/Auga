@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Linq;
+﻿using System.Linq;
 using AugaUnity;
 using HarmonyLib;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace Auga
@@ -12,7 +10,8 @@ namespace Auga
     {
         public static Dropdown ResolutionDropdown;
         public static Dropdown LanguageDropdown;
-
+        
+        
         [HarmonyPatch(typeof(Settings), nameof(Settings.Awake))]
         [HarmonyPostfix]
         public static void Awake_Postfix(Settings __instance)
@@ -74,9 +73,19 @@ namespace Auga
                     continue;
                 }
                 bindingDisplay.SetBinding(key.m_keyName);
-                //key.m_keyTransform.GetComponentInChildren<Button>().GetComponentInChildren<Text>().text = Localization.instance.GetBoundKeyString(key.m_keyName);
-            }
 
+                var keyButton = key.m_keyTransform.GetComponentInChildren<Button>();
+                if (keyButton != null)
+                {
+                    var textComponent = keyButton.GetComponentInChildren<Text>();
+                    if (textComponent != null)
+                    {
+                        textComponent.text = Localization.instance.GetBoundKeyString(key.m_keyName, true);
+                    }
+                }
+            }
+            
+            Settings.UpdateGamepadMap(__instance.m_gamepadRoot, __instance.m_alternativeGlyphs.isOn, ZInput.InputLayout, true);
             return false;
         }
     }
