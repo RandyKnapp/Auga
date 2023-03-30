@@ -3,6 +3,8 @@
   * All Menu's, Compendium, Settings, Inventory, and Crafting Interactions SHOULD be working without error.
   * All HUD Elements, like status bars, have been disabled, and the vanilla versions should be displayed.
     * This is temporary as we update the rest of the mod.
+  * Adding in DiamondButton to Asset Bundle
+  * Fixing Compendium Scroll Bar so that it will scroll all entries.
 ### 1.1.3
   * Hotfix for new settings from new Valheim version
   * Fix for store item tooltips
