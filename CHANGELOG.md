@@ -1,10 +1,17 @@
-### 1.2.0
-  * Initial Compatibility for Valheim 0.214.300 Update
+### 1.2.1
+* Now Compatible with 0.214.300.5 of Valheim (latest branch)
+* 1.2.0 was one version behind and the latest version changed a field name breaking the Compendium. 
+* NOTE:
   * All Menu's, Compendium, Settings, Inventory, and Crafting Interactions SHOULD be working without error.
   * All HUD Elements, like status bars, have been disabled, and the vanilla versions should be displayed.
+      * This is temporary as we update the rest of the mod.
+### 1.2.0
+* Initial Compatibility for Valheim 0.214.300 Update
+* All Menu's, Compendium, Settings, Inventory, and Crafting Interactions SHOULD be working without error.
+* All HUD Elements, like status bars, have been disabled, and the vanilla versions should be displayed.
     * This is temporary as we update the rest of the mod.
-  * Adding in DiamondButton to Asset Bundle
-  * Fixing Compendium Scroll Bar so that it will scroll all entries.
+* Adding in DiamondButton to Asset Bundle
+* Fixing Compendium Scroll Bar so that it will scroll all entries.
 ### 1.1.3
   * Hotfix for new settings from new Valheim version
   * Fix for store item tooltips
