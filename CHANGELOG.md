@@ -1,11 +1,11 @@
 ### 1.2.2
 * Fixed Chat Box
 * Fixed resolution settings from resetting everytime settings are changed.
-* 
-* NOTE:
-  * All Menu's, Compendium, Settings, Inventory, and Crafting Interactions SHOULD be working without error.
-  * All HUD Elements, like status bars, have been disabled, and the vanilla versions should be displayed.
-    * This is temporary as we update the rest of the mod.
+* All Player HUD Elements have been activated. 
+* Build Menu has been restored.
+* Minimap has been restored.
+* Enemy Hud Restored
+* All Features of Auga should now be working.
 ### 1.2.1
 * Now Compatible with 0.214.300.5 of Valheim (latest branch)
 * 1.2.0 was one version behind and the latest version changed a field name breaking the Compendium.

@@ -14,8 +14,6 @@ namespace Auga
         [HarmonyPostfix]
         public static void Minimap_Start_Postfix(Minimap __instance)
         {
-            return;
-            
             var minimap = __instance;
             var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
             var originalMiniMapMaterialLarge = minimap.m_mapImageLarge.material;

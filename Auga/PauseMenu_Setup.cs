@@ -119,7 +119,6 @@ namespace Auga
             public static void UpdateNavigation(Menu instance)
             {
                 //Debug.LogWarning($"Start Menu Navigation Update {instance.name}");
-                var counter = 0;
                 try
                 {
                     Button component1;

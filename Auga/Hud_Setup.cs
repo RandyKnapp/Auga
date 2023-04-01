@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
 using AugaUnity;
 using HarmonyLib;
@@ -19,10 +20,10 @@ namespace Auga
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
-            return;
+
             var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
-
+            
             __instance.m_statusEffectListRoot = null;
             __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
             var newStatusEffects = __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
@@ -30,6 +31,8 @@ namespace Auga
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
             __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
+
+
 
             var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
             var loadingScreen = __instance.Replace("LoadingBlack", Auga.Assets.Hud);
@@ -41,11 +44,13 @@ namespace Auga
             __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
             __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
 
+            
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
             __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
             __instance.m_eventBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperCenter, 0, -90);
 
             __instance.m_damageScreen = __instance.Replace("hudroot/Damaged", Auga.Assets.Hud).GetComponent<Image>();
+
 
             var newCrosshair = __instance.Replace("hudroot/crosshair", Auga.Assets.Hud);
             __instance.m_crosshair = newCrosshair.Find("crosshair").GetComponent<Image>();
@@ -59,6 +64,7 @@ namespace Auga
             __instance.m_stealthBar = newCrosshair.Find("Sneak/StealthBar").GetComponent<GuiBar>();
             __instance.m_pieceHealthBar.gameObject.AddComponent<MovableHudElement>().Init("BuildPieceHealthBar", TextAnchor.MiddleCenter, 130, 0);
             __instance.m_targetedAlert.transform.parent.gameObject.AddComponent<MovableHudElement>().Init("Stealth", TextAnchor.MiddleCenter, 0, 0);
+
 
             var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
             __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
@@ -166,7 +172,7 @@ namespace Auga
                 requirements.GetChild(4).gameObject,
                 requirements.GetChild(5).gameObject,
             };
-
+            
             var keyHints = __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
             keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
 
@@ -200,56 +206,49 @@ namespace Auga
         [HarmonyPrefix]
         public static bool Hud_UpdateStatusEffects_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateFood))]
         [HarmonyPrefix]
         public static bool Hud_UpdateFood_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.SetHealthBarSize))]
         [HarmonyPrefix]
         public static bool Hud_SetHealthBarSize_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.SetStaminaBarSize))]
         [HarmonyPrefix]
         public static bool Hud_SetStaminaBarSize_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateHealth))]
         [HarmonyPrefix]
         public static bool Hud_UpdateHealth_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateStamina))]
         [HarmonyPrefix]
         public static bool Hud_UpdateStamina_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         [HarmonyPatch(nameof(Hud.UpdateEitr))]
         [HarmonyPrefix]
         public static bool Hud_UpdateEitr_Prefix()
         {
-            //return false;
-            return true;
+            return false;
         }
 
         public static void SetBuildCategory(int index)
@@ -266,7 +265,6 @@ namespace Auga
     {
         public static void Postfix(HotkeyBar __instance)
         {
-            return;
             if (Player.m_localPlayer == null || Player.m_localPlayer.IsDead())
             {
                 return;
@@ -298,7 +296,6 @@ namespace Auga
 
         public static void Postfix(Hud __instance, Player player, float dt)
         {
-            return;
             var ship = player.GetControlledShip();
             if (ship == null || !__instance.m_shipRudderIndicator.gameObject.activeSelf)
             {
@@ -323,9 +320,109 @@ namespace Auga
     [HarmonyPatch(typeof(Hud), nameof(Hud.SetupPieceInfo))]
     public static class Hud_SetupPieceInfo_Patch
     {
+
+        public static void SetupPieceInfo(Hud instance, Piece piece)
+        {
+                if (piece == null)
+                {
+                    instance.m_buildSelection.text = Localization.instance.Localize("$hud_nothingtobuild");
+                    instance.m_pieceDescription.text = "";
+                    instance.m_buildIcon.enabled = false;
+                    instance.m_snappingIcon.enabled = false;
+                    for (int index = 0; index < instance.m_requirementItems.Length; ++index)
+                        instance.m_requirementItems[index].SetActive(false);
+                }
+                else
+                {
+                    Player localPlayer = Player.m_localPlayer;
+                    instance.m_buildSelection.text = Localization.instance.Localize(piece.m_name);
+                    instance.m_pieceDescription.text = Localization.instance.Localize(piece.m_description);
+                    instance.m_buildIcon.enabled = true;
+                    instance.m_buildIcon.sprite = piece.m_icon;
+                    Sprite snappingIconForPiece = instance.GetSnappingIconForPiece(piece);
+                    if (snappingIconForPiece != null)
+                    {
+                        instance.m_snappingIcon.sprite = snappingIconForPiece;
+                        instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == Piece.PieceCategory.Building || piece.m_groundPiece || piece.m_waterPiece);
+                    }
+                    for (int index = 0; index < instance.m_requirementItems.Length; ++index)
+                    {
+                        if (index < piece.m_resources.Length)
+                        {
+                            Piece.Requirement resource = piece.m_resources[index];
+                            instance.m_requirementItems[index].SetActive(true);
+                            InventoryGui.SetupRequirement(instance.m_requirementItems[index].transform, resource, localPlayer, false, 0);
+                        }
+                        else
+                            instance.m_requirementItems[index].SetActive(false);
+                    }
+                    if (!(bool) (Object) piece.m_craftingStation)
+                        return;
+                    CraftingStation craftingStation = CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, localPlayer.transform.position);
+                    GameObject requirementItem = instance.m_requirementItems[piece.m_resources.Length];
+                    requirementItem.SetActive(true);
+                    Image component1 = requirementItem.transform.Find("res_icon").GetComponent<Image>();
+                    Text component2 = requirementItem.transform.Find("res_name").GetComponent<Text>();
+                    Text component3 = requirementItem.transform.Find("res_amount").GetComponent<Text>();
+                    UITooltip component4 = requirementItem.GetComponent<UITooltip>();
+                    component1.sprite = piece.m_craftingStation.m_icon;
+                    component2.text = Localization.instance.Localize(piece.m_craftingStation.m_name);
+                    string name = piece.m_craftingStation.m_name;
+                    component4.m_text = name;
+                    if (craftingStation != null)
+                    {
+                        craftingStation.ShowAreaMarker();
+                        component1.color = Color.white;
+                        component3.text = "";
+                        component3.color = Color.white;
+                    }
+                    else
+                    {
+                        component1.color = Color.gray;
+                        component3.text = "None";
+                        component3.color = Mathf.Sin(Time.time * 10f) > 0.0 ? Color.red : Color.white;
+                    }
+                }
+
+        }
+        
+        [UsedImplicitly]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var instrs = instructions.ToList();
+
+            var counter = 0;
+
+            CodeInstruction LogMessage(CodeInstruction instruction)
+            {
+                //Debug.LogWarning($"IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+                return instruction;
+            }
+
+            for (int i = 0; i < instrs.Count; ++i)
+            {
+                if (i == 0)
+                {
+                    yield return LogMessage(new CodeInstruction(OpCodes.Ldarg_0));
+                    counter++;
+
+                    yield return LogMessage(new CodeInstruction(OpCodes.Ldarg_1));
+                    counter++;
+
+                    yield return LogMessage(new CodeInstruction(OpCodes.Call,AccessTools.DeclaredMethod(typeof(Hud_SetupPieceInfo_Patch), nameof(SetupPieceInfo))));
+                    counter++;
+
+                    yield return LogMessage(new CodeInstruction(OpCodes.Ret));
+                    counter++;
+
+                }
+            }
+        }
+
+        
+        
         public static void Postfix(Hud __instance, Piece piece)
         {
-            return;
             __instance.m_pieceDescription.gameObject.SetActive(!string.IsNullOrEmpty(__instance.m_pieceDescription.text));
 
             var requireItemsContainer = __instance.m_requirementItems[0].transform.parent;
@@ -346,8 +443,6 @@ namespace Auga
 
         public static void Postfix(Hud __instance)
         {
-            return;
-            
             if (HoverTextPrefab == null)
             {
                 AugaHoverText = __instance.m_crosshair.transform.parent.Find("AugaHoverText");
@@ -452,9 +547,6 @@ namespace Auga
 
         public static bool Prefix(Hud __instance)
         {
-            //return false;
-            return true;
-
             if (_staminaFlashCoroutine != null)
             {
                 __instance.StopCoroutine(_staminaFlashCoroutine);
@@ -505,9 +597,6 @@ namespace Auga
     {
         public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
         {
-            //return false;
-            return true;
-
             var buildPieces = player.GetBuildPieces();
             var pieceIcons = __instance.m_pieceIcons;
             var selectedIndex = selectedNr.x + selectedNr.y * 13;
