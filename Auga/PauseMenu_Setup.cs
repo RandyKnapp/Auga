@@ -26,9 +26,9 @@ namespace Auga
                 if (instance.m_texts.Count <= 0)
                     return;
                 
-                if (instance.leftScrollbar != null && instance.leftScrollRect != null)
+                if (instance.m_leftScrollbar != null && instance.m_leftScrollRect != null)
                 {
-                    instance.leftScrollbar.size = ((RectTransform)instance.leftScrollRect.transform).rect.height / instance.m_listRoot.rect.height;    
+                    instance.m_leftScrollbar.size = ((RectTransform)instance.m_leftScrollRect.transform).rect.height / instance.m_listRoot.rect.height;    
                 }
             }
             
@@ -73,9 +73,9 @@ namespace Auga
                 foreach (TextsDialog.TextInfo text1 in instance.m_texts)
                     text1.m_selected.SetActive(false);
                 text.m_selected.SetActive(true);
-                if (instance.leftScrollRect != null)
+                if (instance.m_leftScrollRect != null)
                 {
-                    instance.StartCoroutine(instance.FocusOnCurrentLevel(instance.leftScrollRect, instance.m_listRoot, text.m_selected.transform as RectTransform));                    
+                    instance.StartCoroutine(instance.FocusOnCurrentLevel(instance.m_leftScrollRect, instance.m_listRoot, text.m_selected.transform as RectTransform));                    
                 }
             }
             
@@ -119,7 +119,6 @@ namespace Auga
             public static void UpdateNavigation(Menu instance)
             {
                 //Debug.LogWarning($"Start Menu Navigation Update {instance.name}");
-                var counter = 0;
                 try
                 {
                     Button component1;
