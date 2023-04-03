@@ -104,6 +104,8 @@ namespace Auga
         public static ConfigEntry<StatBarTextDisplayMode> EitrBarTextDisplay;
         public static ConfigEntry<StatBarTextPosition> EitrBarTextPosition;
         public static ConfigEntry<bool> EitrBarShowTicks;
+        
+        public static ConfigEntry<bool> BuildMenuShow;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -319,6 +321,8 @@ namespace Auga
             EitrBarTextDisplay = Config.Bind("StatBars", "EitrBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the eitr bar is displayed.");
             EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
             EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
+            
+            BuildMenuShow = Config.Bind("BuildMenu", "Use Auga Build Menu (Requires Restart)", true, "If false, disables the Auga Build Menu display");
         }
 
         private static void LoadAssets()
