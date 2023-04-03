@@ -21,20 +21,23 @@ namespace Auga
             var newMiniMap = Hud.instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
             minimap.m_smallRoot = newMiniMap.gameObject;
             minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
-            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/pin_root");
+            minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_root");
+            minimap.m_pinNameRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_name_root");
             minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<TextMeshProUGUI>();
-            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/ship_marker");
-            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/player_marker");
+            minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/small_ship_marker");
+            minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/small_player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
             newMiniMap.gameObject.AddComponent<MovableHudElement>().Init("Minimap", TextAnchor.UpperRight, -40, -40);
 
             var newMap = Hud.instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
             minimap.m_largeRoot = newMap.gameObject;
             minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
-            minimap.m_pinRootLarge = (RectTransform)newMap.Find("map/pin_root");
+            minimap.m_pinRootLarge = (RectTransform)newMap.Find("large_map/large_pin_root");
+            minimap.m_pinNameRootLarge = (RectTransform)newMap.Find("large_map/large_pin_name_root");
             minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<TextMeshProUGUI>();
-            minimap.m_largeShipMarker = (RectTransform)newMap.Find("map/ship_marker");
-            minimap.m_largeMarker = (RectTransform)newMap.Find("map/player_marker");
+            minimap.m_largeShipMarker = (RectTransform)newMap.Find("large_map/large_ship_marker");
+            minimap.m_largeMarker = (RectTransform)newMap.Find("large_map/large_player_marker");
+            
             minimap.m_gamepadCrosshair = (RectTransform)newMap.Find("GamepadCrosshair");
             minimap.m_publicPosition = newMap.Find("PublicPanel").GetComponent<Toggle>();
             minimap.m_selectedIcon0 = newMap.Find("IconPanel/Icon0/Selected").GetComponent<Image>();

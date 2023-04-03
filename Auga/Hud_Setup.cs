@@ -30,6 +30,7 @@ namespace Auga
             newStatusEffects.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperRight, -40, -330);
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
+            __instance.m_saveIconImage = __instance.m_saveIcon.GetComponent<Image>();
             __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
 
 
@@ -128,50 +129,53 @@ namespace Auga
             __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
             newStaggerPanel.gameObject.AddComponent<MovableHudElement>().Init("StaggerPanel", TextAnchor.LowerCenter, 0, 151);
 
-            // Setup the icon material to grayscale the piece icons
-            var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
-            Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
-
-            __instance.m_buildHud = __instance.Replace("hudroot/BuildHud/", Auga.Assets.Hud).gameObject;
-            var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs");
-            __instance.m_pieceCategoryTabs = new[] {
-                tabContainer.Find("Misc").gameObject,
-                tabContainer.Find("Crafting").gameObject,
-                tabContainer.Find("Building").gameObject,
-                tabContainer.Find("Furniture").gameObject,
-            };
-            Localization.instance.Localize(tabContainer);
-
-            for (var index = 0; index < __instance.m_pieceCategoryTabs.Length; index++)
+            if (Auga.BuildMenuShow.Value)
             {
-                var categoryTab = __instance.m_pieceCategoryTabs[index];
-                var i = index;
-                categoryTab.GetComponent<Button>().onClick.AddListener(() => SetBuildCategory(i));
+                // Setup the icon material to grayscale the piece icons
+                var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
+                Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
+
+                __instance.m_buildHud = __instance.Replace("hudroot/BuildHud/", Auga.Assets.Hud).gameObject;
+                var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs");
+                __instance.m_pieceCategoryTabs = new[] {
+                    tabContainer.Find("Misc").gameObject,
+                    tabContainer.Find("Crafting").gameObject,
+                    tabContainer.Find("Building").gameObject,
+                    tabContainer.Find("Furniture").gameObject,
+                };
+                Localization.instance.Localize(tabContainer);
+
+                for (var index = 0; index < __instance.m_pieceCategoryTabs.Length; index++)
+                {
+                    var categoryTab = __instance.m_pieceCategoryTabs[index];
+                    var i = index;
+                    categoryTab.GetComponent<Button>().onClick.AddListener(() => SetBuildCategory(i));
+                }
+
+                __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
+                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge").gameObject;
+                __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
+                __instance.m_pieceListMask = null;
+                __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
+                __instance.m_closePieceSelectionButton = __instance.m_buildHud.transform.Find("CloseButton").GetComponent<UIInputHandler>();
+                __instance.m_pieceSelectionWindow.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, 0);
+
+                var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
+                __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
+                __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
+                __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
+                selectedPiece.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 15);
+
+                var requirements = selectedPiece.Find("Requirements");
+                __instance.m_requirementItems = new [] {
+                    requirements.GetChild(0).gameObject,
+                    requirements.GetChild(1).gameObject,
+                    requirements.GetChild(2).gameObject,
+                    requirements.GetChild(3).gameObject,
+                    requirements.GetChild(4).gameObject,
+                    requirements.GetChild(5).gameObject,
+                };
             }
-
-            __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
-            __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge").gameObject;
-            __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
-            __instance.m_pieceListMask = null;
-            __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
-            __instance.m_closePieceSelectionButton = __instance.m_buildHud.transform.Find("CloseButton").GetComponent<UIInputHandler>();
-            __instance.m_pieceSelectionWindow.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, 0);
-
-            var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
-            __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
-            __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
-            __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
-            selectedPiece.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 15);
-
-            var requirements = selectedPiece.Find("Requirements");
-            __instance.m_requirementItems = new [] {
-                requirements.GetChild(0).gameObject,
-                requirements.GetChild(1).gameObject,
-                requirements.GetChild(2).gameObject,
-                requirements.GetChild(3).gameObject,
-                requirements.GetChild(4).gameObject,
-                requirements.GetChild(5).gameObject,
-            };
             
             var keyHints = __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
             keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
@@ -597,6 +601,9 @@ namespace Auga
     {
         public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
         {
+            if (!Auga.BuildMenuShow.Value)
+                return true;
+            
             var buildPieces = player.GetBuildPieces();
             var pieceIcons = __instance.m_pieceIcons;
             var selectedIndex = selectedNr.x + selectedNr.y * 13;
@@ -668,6 +675,9 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
+            if (!Auga.BuildMenuShow.Value)
+                return true;
+
             return Input.GetAxis("Mouse ScrollWheel") == 0;
         }
     }
@@ -677,6 +687,9 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
+            if (!Auga.BuildMenuShow.Value)
+                return true;
+            
             return Input.GetAxis("Mouse ScrollWheel") == 0;
         }
     }

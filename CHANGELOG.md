@@ -1,7 +1,15 @@
+### 1.2.3
+* Updating Map to show Pin Labels
+* Updating Minimap Biome Label
+* Updating Inventory to load item Quality Diamond correctly.
+* Updating TextInput dialog boxes and providing Cancel and OK buttons
+* Added Build Menu Toggle Configuration setting for turning off the Auga Build Menu
+  * This is for mod compatibility where otherwise the build menu would break
+  * Setting requires a game relog/restart.
 ### 1.2.2
 * Fixed Chat Box
 * Fixed resolution settings from resetting everytime settings are changed.
-* All Player HUD Elements have been activated. 
+* All Player HUD Elements have been activated.
 * Build Menu has been restored.
 * Minimap has been restored.
 * Enemy Hud Restored

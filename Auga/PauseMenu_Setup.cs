@@ -25,11 +25,15 @@ namespace Auga
                 instance.UpdateGamepadInput();
                 if (instance.m_texts.Count <= 0)
                     return;
+
+                if (instance.m_leftScrollbar == null)
+                    return;
                 
-                if (instance.m_leftScrollbar != null && instance.m_leftScrollRect != null)
-                {
-                    instance.m_leftScrollbar.size = ((RectTransform)instance.m_leftScrollRect.transform).rect.height / instance.m_listRoot.rect.height;    
-                }
+                if (instance.m_leftScrollRect == null)
+                    return;
+                
+                instance.m_leftScrollbar.size = ((RectTransform)instance.m_leftScrollRect.transform).rect.height / instance.m_listRoot.rect.height;    
+                
             }
             
             [UsedImplicitly]
@@ -118,7 +122,6 @@ namespace Auga
         {
             public static void UpdateNavigation(Menu instance)
             {
-                //Debug.LogWarning($"Start Menu Navigation Update {instance.name}");
                 try
                 {
                     Button component1;

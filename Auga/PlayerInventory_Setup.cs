@@ -156,6 +156,19 @@ namespace Auga
                     //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
                     foreach (var element in __instance.m_elements)
                     {
+                        var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
+                        var item = Player.m_localPlayer.GetInventory().GetItemAt(element.m_pos.x, element.m_pos.y);
+                        
+                        if (itemTooltip != null && !element.m_used)
+                        {
+                            itemTooltip.Item = null;
+                        }
+
+                        if (element.m_used)
+                        {
+                            itemTooltip.Item = item;
+                        }
+                        
                         if (element.m_pos.y == 0)
                         {
                             element.m_go.transform.SetParent(TopRowInventory);
@@ -166,15 +179,6 @@ namespace Auga
                             //Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 26);
                             //element.m_go.RectTransform().anchoredPosition = startPos + currentPosition;
                         }
-                    }
-                }
-
-                foreach (var element in __instance.m_elements)
-                {
-                    var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
-                    if (itemTooltip != null && !element.m_used)
-                    {
-                        itemTooltip.Item = null;
                     }
                 }
             }
