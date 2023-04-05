@@ -1,6 +1,10 @@
-﻿using AugaUnity;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
+using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -9,20 +13,29 @@ namespace Auga
     {
         [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.Awake))]
         [HarmonyPrefix]
-        public static bool Awake_Prefix(StoreGui __instance)
+        public static bool Awake_Pretfix(StoreGui __instance)
         {
+            if(__instance.gameObject.name.StartsWith("Auga"))return false;
+            if (!Auga.Assets.StoreGui) return true;
             if (Auga.HasBetterTrader)
             {
                 return true;
             }
 
-            var replaced = SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.StoreGui, "Store_Screen", out var newStoreGui);
-            if (replaced)
-            {
-                newStoreGui.GetComponent<StoreGui>().m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
-                newStoreGui.transform.Find("Store").gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 140, -180);
-            }
-            return !replaced;
+            Auga.Assets.StoreGui = (GameObject)Object.Instantiate(Auga.Assets.StoreGui,
+                __instance.gameObject.GetComponentInParent<Transform>(), false);
+            return true;
+        }
+        
+        [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.Awake))]
+        [HarmonyPostfix]
+        public static void AwakePostfix(StoreGui __instance)
+        {
+            if (__instance.gameObject.name.StartsWith("Auga")) return;
+            StoreGui.m_instance = Auga.Assets.StoreGui.GetComponent<StoreGui>();
+            __instance.m_itemlistBaseSize = Auga.Assets.StoreGui.GetComponent<StoreGui>().m_listRoot.rect.height;
+            Auga.Assets.StoreGui.GetComponent<StoreGui>().m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
+            Auga.Assets.StoreGui.transform.Find("Store").gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 140, -180);
         }
 
         [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.FillList))]
