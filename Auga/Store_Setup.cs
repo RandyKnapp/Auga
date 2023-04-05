@@ -23,7 +23,7 @@ namespace Auga
             }
 
             Auga.Assets.StoreGui = (GameObject)Object.Instantiate(Auga.Assets.StoreGui,
-                __instance.gameObject.GetComponentInParent<Transform>(), false);
+                __instance.gameObject.transform.parent, false);
             return true;
         }
         
