@@ -153,22 +153,27 @@ namespace Auga
                         TopRowInventory = __instance.transform.Find("Top");
                         MainRowsInventory = __instance.transform.Find("Main/Grid");
                     }
-                    //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
-                    foreach (var element in __instance.m_elements)
-                    {
-                        var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
-                        var item = Player.m_localPlayer.GetInventory().GetItemAt(element.m_pos.x, element.m_pos.y);
-                        
-                        if (itemTooltip != null && !element.m_used)
-                        {
-                            itemTooltip.Item = null;
-                        }
+                }
 
-                        if (element.m_used)
-                        {
-                            itemTooltip.Item = item;
-                        }
-                        
+                //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
+                foreach (var element in __instance.m_elements)
+                {
+                    var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
+                    
+                    var item = __instance.m_inventory.GetItemAt(element.m_pos.x, element.m_pos.y);
+                    
+                    if (itemTooltip != null && !element.m_used)
+                    {
+                        itemTooltip.Item = null;
+                    }
+
+                    if (element.m_used)
+                    {
+                        itemTooltip.Item = item;
+                    }
+
+                    if (__instance.name == "PlayerGrid")
+                    {
                         if (element.m_pos.y == 0)
                         {
                             element.m_go.transform.SetParent(TopRowInventory);

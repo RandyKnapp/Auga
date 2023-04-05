@@ -1,3 +1,5 @@
+### 1.2.4
+* All Inventories now display Quality Diamond Correctly.
 ### 1.2.3
 * Updating Map to show Pin Labels
 * Updating Minimap Biome Label
