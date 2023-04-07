@@ -24,6 +24,8 @@ namespace Auga
             minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_root");
             minimap.m_pinNameRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_name_root");
             minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<TextMeshProUGUI>();
+            minimap.m_biomeNameSmall.outlineWidth = 0.2f;
+            minimap.m_biomeNameSmall.outlineColor = new Color32(0, 0, 0, 255);
             minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/small_ship_marker");
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/small_player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
@@ -35,6 +37,8 @@ namespace Auga
             minimap.m_pinRootLarge = (RectTransform)newMap.Find("large_map/large_pin_root");
             minimap.m_pinNameRootLarge = (RectTransform)newMap.Find("large_map/large_pin_name_root");
             minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<TextMeshProUGUI>();
+            minimap.m_biomeNameLarge.outlineWidth = 0.2f;
+            minimap.m_biomeNameLarge.outlineColor = new Color32(0, 0, 0, 255);
             minimap.m_largeShipMarker = (RectTransform)newMap.Find("large_map/large_ship_marker");
             minimap.m_largeMarker = (RectTransform)newMap.Find("large_map/large_player_marker");
             

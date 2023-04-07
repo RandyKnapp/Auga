@@ -14,6 +14,8 @@ namespace AugaUnity
         public RectTransform WorkbenchLevelRoot;
         public Button RepairButton;
         public Image RepairGlow;
+        public Button DefaultRepairButton;
+        public Image DefaultRepairGlow;
         public AugaTabController TabController;
         public CraftingRequirementsPanel CraftingRequirementsPanel;
         public CraftingRequirementsPanel UpgradeRequirementsPanel;

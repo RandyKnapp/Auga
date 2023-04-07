@@ -135,7 +135,11 @@ namespace Auga
                 var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
                 Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
 
-                __instance.m_buildHud = __instance.Replace("hudroot/BuildHud/", Auga.Assets.Hud).gameObject;
+                __instance.m_buildHud = __instance.Replace("hudroot/BuildHud", Auga.Assets.Hud).gameObject;
+                var tabController = __instance.m_buildHud.GetComponent<BuildMenuPaginationController>();
+                tabController.hud = __instance;
+                tabController.buildMenu = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
+                
                 var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs");
                 __instance.m_pieceCategoryTabs = new[] {
                     tabContainer.Find("Misc").gameObject,

@@ -1,3 +1,8 @@
+### 1.2.5
+* Build Menu now respects other mods changes to Categories
+* Build menu now has pagination of categories when needed.
+* Repair Icon is now activated and visible when in Debug/No Cost mode.
+* Store Gui has been reconfigured to allow other mods to utilize the Store/Trader
 ### 1.2.4
 * All Inventories now display Quality Diamond Correctly.
 ### 1.2.3
