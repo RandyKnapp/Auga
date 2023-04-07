@@ -1,3 +1,8 @@
+### 1.2.6
+* Better Trader now loads fully, and has been tested for compatibilty.
+* Knarr the Trader compatibility has been set.
+  * Known Issue: Both Knarr and Better Trader currently don't work at the same time with Auga
+* Additional tweaks to Build Menu Controller in order to support Jotunn and HammerTime Compatibility
 ### 1.2.5
 * Build Menu now respects other mods changes to Categories
 * Build menu now has pagination of categories when needed.
