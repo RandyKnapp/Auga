@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using AugaUnity;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using fastJSON;
@@ -73,12 +75,13 @@ namespace Auga
     }
 
     [BepInPlugin(PluginID, "Project Auga", Version)]
+    [BepInDependency("Menthus.bepinex.plugins.BetterTrader", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.5";
+        public const string Version = "1.2.6";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -134,18 +137,19 @@ namespace Auga
 
             ApplyCursor();
 
-            HasBetterTrader = gameObject.GetComponent("BetterTrader") != null;
+            HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
+            HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
+            HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
             // Patch MultiCraft_UI.CreateSpaceFromCraftButton
-            var multiCraftPlugin = gameObject.GetComponent("MultiCraftPlugin");
-            if (multiCraftPlugin != null)
+            
+            if (HasMultiCraft)
             {
-                HasMultiCraft = true;
-                var multiCraftPluginType = multiCraftPlugin.GetType();
-                _multiCraftUiType = multiCraftPluginType.Assembly.GetType("MultiCraft.MultiCraft_UI");
-                var multicraftLogicType = multiCraftPluginType.Assembly.GetType("MultiCraft.MultiCraft_Logic");
+                var multiCraftPluginType = Assembly.LoadFile(multiCraftPlugin.Location);
+                _multiCraftUiType = multiCraftPluginType.GetType("MultiCraft.MultiCraft_UI");
+                var multicraftLogicType = multiCraftPluginType.GetType("MultiCraft.MultiCraft_Logic");
                 var createCraftButtonSpaceMethod = AccessTools.Method(_multiCraftUiType, "CreateSpaceFromCraftButton");
                 var isCraftingMethod = AccessTools.Method(multicraftLogicType, "IsCrafting");
                 if (createCraftButtonSpaceMethod != null)
@@ -156,13 +160,12 @@ namespace Auga
             }
 
             // Patch Simple Recycling
-            var recyclingPlugin = gameObject.GetComponent("ABearCodes.Valheim.SimpleRecycling.Plugin");
-            if (recyclingPlugin)
+
+            if (HasSimpleRecycling)
             {
-                HasSimpleRecycling = true;
-                var pluginType = recyclingPlugin.GetType();
-                _recyclingContainerButtonHolderType = pluginType.Assembly.GetType("ABearCodes.Valheim.SimpleRecycling.UI.ContainerRecyclingButtonHolder");
-                _recyclingStationButtonHolderType = pluginType.Assembly.GetType("ABearCodes.Valheim.SimpleRecycling.UI.StationRecyclingTabHolder");
+                var pluginType = Assembly.LoadFile(recyclingPlugin.Location);
+                _recyclingContainerButtonHolderType = pluginType.GetType("ABearCodes.Valheim.SimpleRecycling.UI.ContainerRecyclingButtonHolder");
+                _recyclingStationButtonHolderType = pluginType.GetType("ABearCodes.Valheim.SimpleRecycling.UI.StationRecyclingTabHolder");
                 var containerButtonMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "SetupButton");
                 var tabButtonMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetupTabButton");
                 var setActiveMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetActive");

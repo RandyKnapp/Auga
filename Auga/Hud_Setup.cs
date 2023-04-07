@@ -157,7 +157,7 @@ namespace Auga
                 }
 
                 __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
-                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge").gameObject;
+                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs").gameObject;
                 __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
                 __instance.m_pieceListMask = null;
                 __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;

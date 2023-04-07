@@ -29,6 +29,12 @@ namespace Auga
         public static void Awake_Postfix(StoreGui __instance)
         {
             if (__instance.gameObject.name.StartsWith("Auga")) return;
+
+            if (Auga.HasBetterTrader)
+            {
+                return;
+            }
+            
             StoreGui.m_instance = Auga.Assets.StoreGui.GetComponent<StoreGui>();
             __instance.m_itemlistBaseSize = Auga.Assets.StoreGui.GetComponent<StoreGui>().m_listRoot.rect.height;
             Auga.Assets.StoreGui.GetComponent<StoreGui>().m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
