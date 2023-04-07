@@ -23,6 +23,7 @@ namespace AugaUnity
         public TabButton TabButtonBasePrefab;
 
         private int _rememberTabIndex = -1;
+        private InventoryGui _inventoryGui;
 
         // ReSharper disable once InconsistentNaming
         public static WorkbenchPanelController instance;
@@ -30,6 +31,7 @@ namespace AugaUnity
         public virtual void Awake()
         {
             instance = this;
+            _inventoryGui = InventoryGui.instance;
         }
 
         public virtual void Destroy()
@@ -49,7 +51,34 @@ namespace AugaUnity
             {
                 var atWorkbench = player.GetCurrentCraftingStation() != null;
                 DefaultContent.SetActive(!atWorkbench);
-                WorkbenchContent.SetActive(atWorkbench);
+                WorkbenchContent.SetActive(atWorkbench); 
+                if (atWorkbench)
+                {
+                    _inventoryGui.m_repairButton = CraftingPanel.RepairButton;
+                    _inventoryGui.m_repairButtonGlow = CraftingPanel.RepairGlow;
+                    _inventoryGui.m_repairPanel = CraftingPanel.RepairButton.transform;
+                    _inventoryGui.m_repairButton.onClick.RemoveAllListeners();
+                    _inventoryGui.m_repairButton.onClick.AddListener(_inventoryGui.OnRepairPressed);
+                    CraftingPanel.DefaultRepairButton.gameObject.SetActive(false);
+                }
+                else
+                {
+                    if (player.m_noPlacementCost)
+                    {
+                        CraftingPanel.DefaultRepairButton.gameObject.SetActive(true);
+                        _inventoryGui.m_repairButton = CraftingPanel.DefaultRepairButton;
+                        _inventoryGui.m_repairButtonGlow = CraftingPanel.DefaultRepairGlow;
+                        _inventoryGui.m_repairPanel = CraftingPanel.DefaultRepairButton.transform;
+                        _inventoryGui.m_repairButton.onClick.RemoveAllListeners();
+                        _inventoryGui.m_repairButton.onClick.AddListener(_inventoryGui.OnRepairPressed);
+                    }
+                    else
+                    {
+                        CraftingPanel.DefaultRepairButton.gameObject.SetActive(false);
+                    }
+                }
+                
+                
 
                 var tabController = GetComponent<AugaTabController>();
                 if (atWorkbench)
