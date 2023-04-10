@@ -336,7 +336,10 @@ namespace Auga
                     instance.m_buildSelection.text = Localization.instance.Localize("$hud_nothingtobuild");
                     instance.m_pieceDescription.text = "";
                     instance.m_buildIcon.enabled = false;
-                    instance.m_snappingIcon.enabled = false;
+                    
+                    if (instance.m_snappingIcon != null)
+                        instance.m_snappingIcon.enabled = false;
+                    
                     for (int index = 0; index < instance.m_requirementItems.Length; ++index)
                         instance.m_requirementItems[index].SetActive(false);
                 }
@@ -434,7 +437,9 @@ namespace Auga
             __instance.m_pieceDescription.gameObject.SetActive(!string.IsNullOrEmpty(__instance.m_pieceDescription.text));
 
             var requireItemsContainer = __instance.m_requirementItems[0].transform.parent;
-            requireItemsContainer.gameObject.SetActive(piece.m_resources?.Length > 0);
+            
+            if (requireItemsContainer == null) return;
+            requireItemsContainer.gameObject.SetActive(piece != null && piece.m_resources is { Length: > 0 });
         }
     }
 

@@ -1,3 +1,7 @@
+### 1.2.7
+* Fixes random loading issues with camera and UI lock out.
+* Completely redesigned how StoreGui is attached to Auga.
+* Better Trader and Knarr the Trader both now work together
 ### 1.2.6
 * Better Trader now loads fully, and has been tested for compatibilty.
 * Knarr the Trader compatibility has been set.
