@@ -1,44 +1,95 @@
-﻿using AugaUnity;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
+    public class StoreMethods
+    {
+        public StoreGui SetupAugaStoreGui(StoreGui instance)
+        {
+            if (instance.name.StartsWith("Auga")) return instance;
+            
+            try
+            {
+                var originalTransform = instance.transform;
+                var parent = originalTransform.parent;
+                var siblingIndex = parent.GetSiblingIndex();
+                var newStoreGui = GetAugaStoreGui(parent);
+                newStoreGui.transform.SetAsLastSibling();
+
+                if (instance.transform.name.Equals("Store_Screen") && instance.m_rootPanel.name.Equals("Store"))
+                {
+                    originalTransform.gameObject.SetActive(false);
+                    instance = newStoreGui;
+                    return instance;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Error In Store: {e.Message}");
+            }
+
+            return instance;
+        }
+
+        private StoreGui GetAugaStoreGui(Transform parent)
+        {
+            var newStore = Object.Instantiate(Auga.Assets.StoreGui, parent, false);
+            var newStoreGui = newStore.GetComponent<StoreGui>();
+            
+            newStoreGui.m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
+            newStoreGui.transform.Find("Store").gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 140, -180);
+
+            return newStoreGui;
+        }
+        
+    }
+    
     [HarmonyPatch]
     public class Store_Setup
     {
-        [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.Awake))]
-        [HarmonyPrefix]
-        public static bool Awake_Prefix(StoreGui __instance)
-        {
-            if(__instance.gameObject.name.StartsWith("Auga"))return false;
-            if (!Auga.Assets.StoreGui) return true;
-            
-            if (Auga.HasBetterTrader)
-            {
-                return true;
-            }
-
-            Auga.Assets.StoreGui = Object.Instantiate(Auga.Assets.StoreGui,
-                __instance.gameObject.transform.parent, false);
-            return true;
-        }
 
         [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.Awake))]
-        [HarmonyPostfix]
-        public static void Awake_Postfix(StoreGui __instance)
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> Awake_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
-            if (__instance.gameObject.name.StartsWith("Auga")) return;
+            var instrs = instructions.ToList();
 
-            if (Auga.HasBetterTrader)
+            var counter = 0;
+
+            CodeInstruction LogMessage(CodeInstruction instruction)
             {
-                return;
+                //Debug.LogWarning($"IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+                return instruction;
             }
-            
-            StoreGui.m_instance = Auga.Assets.StoreGui.GetComponent<StoreGui>();
-            __instance.m_itemlistBaseSize = Auga.Assets.StoreGui.GetComponent<StoreGui>().m_listRoot.rect.height;
-            Auga.Assets.StoreGui.GetComponent<StoreGui>().m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();
-            Auga.Assets.StoreGui.transform.Find("Store").gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 140, -180);
+
+            for (int i = 0; i < instrs.Count; ++i)
+            {
+                if (i == 0)
+                {
+                    yield return LogMessage(new CodeInstruction(OpCodes.Ldarg_0));
+                    counter++;
+                    
+                    yield return LogMessage(new CodeInstruction(OpCodes.Ldarg_0));
+                    counter++;
+                    
+                    yield return LogMessage(new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(StoreMethods), nameof(StoreMethods.SetupAugaStoreGui))));
+                    counter++;
+                    
+                    //skip next this;
+                    i++;
+
+                }
+                
+                yield return LogMessage(instrs[i]);
+                counter++;
+            }
         }
 
         [HarmonyPatch(typeof(StoreGui), nameof(StoreGui.FillList))]

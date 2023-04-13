@@ -63,7 +63,7 @@ namespace AugaUnity
                     currentStartIndex = (int)_player.m_buildPieces.m_selectedCategory;
                     if ((buildMenu.activeSelf && lastActiveState) && currentStartIndex == lastCategory) 
                         return;
-                
+
                     ToggleBuildMenuTabs(currentStartIndex);
                     lastCategory = currentStartIndex;
                     lastActiveState = true;
