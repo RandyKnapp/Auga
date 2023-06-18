@@ -1,5 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Threading;
+using AugaUnity;
+using Fishlabs;
 using HarmonyLib;
+using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -7,9 +13,110 @@ using UnityEngine.UI;
 
 namespace Auga
 {
+    [HarmonyPatch(typeof(Minimap), nameof(Minimap.Update))]
+    static class MinimapUpdateTranspiler
+    {
+        private static void CheckForPinSubmit(Minimap instance)
+        {
+            if (ZInput.GetKeyDown(KeyCode.Return))
+            {
+                instance.OnPinTextEntered(instance.m_nameInput.text);
+            }
+        }
+        
+        [UsedImplicitly]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
+        {
+            var instrs = instructions.ToList();
+
+            var counter = 0;
+
+            CodeInstruction LogMessage(CodeInstruction instruction)
+            {
+                Debug.LogWarning($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+                return instruction;
+            }
+            
+            CodeInstruction FindInstructionWithLabel(List<CodeInstruction> codeInstructions, int index, Label label)
+            {
+                if (index >= codeInstructions.Count)
+                    return null;
+                
+                if (codeInstructions[index].labels.Contains(label))
+                    return codeInstructions[index];
+                
+                return FindInstructionWithLabel(codeInstructions, index + 1, label);
+            }
+
+            var checkForSubmitMethod = AccessTools.DeclaredMethod(typeof(MinimapUpdateTranspiler), nameof(CheckForPinSubmit));
+            var inTextInputMethod = AccessTools.DeclaredMethod(typeof(Minimap), nameof(Minimap.InTextInput));
+            var getKeyDownMethod = AccessTools.DeclaredMethod(typeof(ZInput), nameof(ZInput.GetKeyDown));
+            
+            for (int i = 0; i < instrs.Count; ++i)
+            {
+                if (i > 6 && instrs[i-2].opcode == OpCodes.Call && instrs[i-2].operand.Equals(inTextInputMethod) &&
+                    instrs[i+1].opcode == OpCodes.Call && instrs[i+1].operand.Equals(getKeyDownMethod))
+                {
+                    //Call Method needs Minimap Instance as parameter
+                    var ldArgInstruction = new CodeInstruction(OpCodes.Ldarg_0);
+                    //Move Any Labels from the instruction position being patched to new instruction.
+                    if (instrs[i].labels.Count > 0)
+                        instrs[i].MoveLabelsTo(ldArgInstruction);
+                    //Output LdArg
+                    yield return LogMessage(ldArgInstruction);
+                    counter++;
+
+                    //Output Call
+                    yield return LogMessage(new CodeInstruction(OpCodes.Call, checkForSubmitMethod));
+                    counter++;
+
+                    //Output Current Operation
+                    yield return LogMessage(instrs[i]);
+                    counter++;
+                }
+                else
+                {
+                    yield return LogMessage(instrs[i]);
+                    counter++;
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(Minimap))]
     public static class Minimap_Setup
     {
+        [HarmonyPatch(nameof(Minimap.ShowPinNameInput))]
+        [HarmonyPrefix]
+        public static bool Minimap_ShowPinNameInput_Prefix(Minimap __instance, Vector3 pos)
+        {
+            Debug.LogWarning("VAPOK: Adding Pin");
+            __instance.m_namePin = __instance.AddPin(pos, __instance.m_selectedType, "", true, false);
+            Debug.LogWarning("VAPOK: reseting text");
+            __instance.m_nameInput.text = "";
+            Debug.LogWarning("VAPOK: showing input");
+            __instance.m_nameInput.gameObject.SetActive(true);
+            Debug.LogWarning("VAPOK: activating input");
+            __instance.m_nameInput.ActivateInputField();
+            Debug.LogWarning("VAPOK: checking GamePad");
+            if (ZInput.IsGamepadActive())
+            {
+                Debug.LogWarning("VAPOK: is GamePad");
+                __instance.m_nameInput.gameObject.transform.localPosition = new Vector3(0.0f, -30f, 0.0f);
+            }
+            else
+            {
+                Debug.LogWarning("VAPOK: is not GamePad");
+                Vector2 localPoint;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(__instance.m_nameInput.gameObject.transform.parent.GetComponent<RectTransform>(), ZInput.mousePosition, null, out localPoint);
+                Debug.LogWarning("VAPOK: setting local position");
+                __instance.m_nameInput.gameObject.transform.localPosition = new Vector3(localPoint.x, localPoint.y - 30f);
+            }
+            Debug.LogWarning("VAPOK: setting wasFocused to true");
+            __instance.m_wasFocused = true;
+            return false;
+        }
+        
         [HarmonyPatch(nameof(Minimap.Start))]
         [HarmonyPostfix]
         public static void Minimap_Start_Postfix(Minimap __instance)
@@ -59,7 +166,8 @@ namespace Auga
             minimap.m_selectedIcons[Minimap.PinType.Icon3] = minimap.m_selectedIcon3;
             minimap.m_selectedIcons[Minimap.PinType.Icon4] = minimap.m_selectedIcon4;
             minimap.SelectIcon(Minimap.PinType.Icon0);
-            minimap.m_nameInput = newMap.Find("NameField").GetComponent<InputField>();
+            minimap.m_nameInput = newMap.Find("NameField").GetComponent<GuiInputField>();
+
             minimap.m_sharedMapHint = newMap.Find("SharedPanel").gameObject;
             minimap.m_hints = new List<GameObject> { newMap.Find("PingPanel").gameObject };
 
@@ -132,3 +240,4 @@ namespace Auga
         }
     }
 }
+

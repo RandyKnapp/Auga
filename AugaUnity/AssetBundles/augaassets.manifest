@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1099356338
+CRC: 1528149215
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 8c7b89fee8cb9e5091c0e4b752fb32ba
+    Hash: 2b8a718174b837e0c12fc99cd1d0c3b8
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 2f90946e2b7feb468c52c7920cc5d646
+    Hash: 7c0c2c47bffb048bf8c909cb89c6ba24
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -293,6 +293,8 @@ ClassTypes:
   Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 2fafe2cfe61f6974895a912c3755e8f1, type: 3}
+- Class: 114
+  Script: {fileID: -560918846, guid: 62dbc8bcfe4d46286720838a35c33018, type: 3}
 - Class: 115
   Script: {instanceID: 0}
 - Class: 128
@@ -326,6 +328,16 @@ SerializeReferenceClassIdentifiers:
   ClassName: TMPro.TMP_GlyphPairAdjustmentRecord
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_GlyphValueRecord
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_InputField/OnChangeEvent
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_InputField/SelectionEvent
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_InputField/SubmitEvent
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_InputField/TextSelectionEvent
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_InputField/TouchScreenKeyboardEvent
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.VertexGradient
 - AssemblyName: UnityEngine.CoreModule
@@ -486,88 +498,95 @@ SerializeReferenceClassIdentifiers:
   ClassName: Settings/KeySetting
 Assets:
 - Assets/Sprites/HUD/legacy_save.png
-- Assets/Prefabs/TabButton_Base.prefab
-- Assets/Fonts/SourceSansPro-Regular.asset
 - Assets/Prefabs/AugaTextViewer.prefab
 - Assets/Prefabs/AugaTextInput.prefab
-- Assets/Prefabs/TabButton_PlayerPanel.prefab
-- Assets/Prefabs/MainMenu.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_cauldron.prefab
 - Assets/Fonts/SourceSansPro-Regular.ttf
-- Assets/Prefabs/MainMenu/ServerListElement.prefab
-- Assets/Sprites/Cursor.png
-- Assets/Prefabs/InventoryElement.prefab
-- Assets/Prefabs/TabContent_PlayerPanel.prefab
-- Assets/Sprites/HUD/save_icon.png
-- Assets/Fonts/Norsebold-RASTER-HINTED.asset
-- Assets/Prefabs/AugaDamageText.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_repairitem_workbench.prefab
-- Assets/Prefabs/AugaLogo.prefab
-- Assets/Fonts/SourceSansPro-Bold.asset
-- Assets/Prefabs/DiamondButton.prefab
-- Assets/Prefabs/TabButton_Skills.prefab
 - Assets/Fonts/SourceSansPro-Bold SDF.asset
+- Assets/Prefabs/TabContent_PlayerPanel.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_repairitem_workbench.prefab
+- Assets/Prefabs/TabButton_Skills.prefab
+- Assets/Prefabs/DiamondButton.prefab
+- Assets/Fonts/SourceSansPro-Bold SDF-old.asset
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_end.prefab
 - Assets/Prefabs/AugaSettings.prefab
-- Assets/Fonts/Norsebold.asset
-- Assets/Prefabs/ButtonSmall.prefab
-- Assets/Prefabs/Inventory_screen.prefab
-- Assets/Prefabs/HotKeyElement.prefab
+- Assets/Fonts/Norsebold-RASTER-HINTED.asset
 - Assets/Prefabs/AugaMenu.prefab
-- Assets/Prefabs/TabButton_PVP.prefab
 - Assets/Prefabs/MainMenu/WorldListElement.prefab
 - Assets/Prefabs/TabButton_MessageLog.prefab
 - Assets/Prefabs/AugaConnecting.prefab
-- Assets/Prefabs/TabButton_Crafting.prefab
+- Assets/Prefabs/TabButton_PlayerPanel.prefab
 - Assets/Fonts/SourceSansPro-SemiBold.ttf
+- Assets/Prefabs/ButtonMedium.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_sell.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_craftitem_forge.prefab
+- Assets/Sprites/HUD/cloud.png
+- Assets/Prefabs/LeftKnot.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_inventory_close.prefab
+- Assets/Fonts/SourceSansPro-Bold.ttf
+- Assets/Prefabs/AugaBiomeFoundMessage.prefab
+- Assets/Prefabs/TabContent_Skills.prefab
+- Assets/Prefabs/AugaPanelBase.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_craftitem.prefab
+- Assets/Fonts/Norse-Old.asset
+- Assets/Fonts/Noto Sans CJK Regular SDF.asset
+- Assets/Fonts/SourceSansPro-SemiBoldItalic.ttf
+- Assets/Prefabs/AugaStoreScreen.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_craftitem_workbench_end.prefab
+- Assets/Prefabs/ButtonSettings.prefab
+- Assets/Prefabs/MainMenu.prefab
+- Assets/Prefabs/ButtonDiamond.prefab
+- Assets/Prefabs/AugaChat.prefab
+- Assets/Fonts/SourceSansPro-SemiBoldItalic-old.asset
+- Assets/Prefabs/BuildHudElement.prefab
+- Assets/Prefabs/TabContent_MessageLog.prefab
+- Assets/Prefabs/VR/LeftWristMountUI.prefab
+- Assets/Prefabs/AugaMessageHud.prefab
+- Assets/Prefabs/TabButton_Base.prefab
+- Assets/Fonts/SourceSansPro-Regular-old.asset
+- Assets/Fonts/Norsebold SDF.asset
+- Assets/Prefabs/MainMenu/ServerListElement.prefab
+- Assets/Sprites/Cursor.png
+- Assets/Prefabs/InventoryElement.prefab
+- Assets/Sprites/HUD/save_icon.png
+- Assets/Fonts/Norsebold-RASTER-HINTED-old.asset
+- Assets/Prefabs/AugaDamageText.prefab
+- Assets/Prefabs/AugaLogo.prefab
+- Assets/Fonts/SourceSansPro-Bold-old.asset
+- Assets/Fonts/Norsebold-old.asset
+- Assets/Prefabs/ButtonSmall.prefab
+- Assets/Prefabs/Inventory_screen.prefab
+- Assets/Fonts/SourceHanSansCN-Bold SDF.asset
+- Assets/Prefabs/HotKeyElement.prefab
+- Assets/Prefabs/TabButton_PVP.prefab
+- Assets/Prefabs/TabButton_Crafting.prefab
 - Assets/Prefabs/RightKnot.prefab
 - Assets/Sprites/Cursor2.png
-- Assets/Prefabs/ButtonMedium.prefab
 - Assets/Prefabs/TeleportStage.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_moveitem.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_sell.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_workbench.prefab
 - Assets/Prefabs/ButtonFancy.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_craftitem_forge.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_inventory_open.prefab
-- Assets/Sprites/HUD/cloud.png
 - Assets/Prefabs/ZSFX/sfx_gui_select.prefab
-- Assets/Prefabs/LeftKnot.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_cauldron_end.prefab
-- Assets/Fonts/SourceSansPro-Bold.ttf
+- Assets/Sprites/TabIcons/RecyclingPanel.png
 - Assets/Prefabs/AugaPassword.prefab
 - Assets/Prefabs/DividerMedium.prefab
-- Assets/Prefabs/TabContent_Skills.prefab
-- Assets/Prefabs/AugaBiomeFoundMessage.prefab
-- Assets/Sprites/TabIcons/RecyclingPanel.png
-- Assets/Prefabs/ZSFX/sfx_gui_inventory_close.prefab
-- Assets/Prefabs/AugaPanelBase.prefab
 - Assets/Prefabs/TabContent_PVP.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_craftitem.prefab
-- Assets/Fonts/Norse.asset
-- Assets/Fonts/SourceSansPro-SemiBoldItalic.ttf
+- Assets/Fonts/SourceSansPro-Regular SDF.asset
 - Assets/Prefabs/DividerSmall.prefab
 - Assets/Prefabs/SimpleTooltip.prefab
 - Assets/Prefabs/DividerLarge.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_repairitem_forge.prefab
-- Assets/Prefabs/AugaStoreScreen.prefab
 - Assets/Prefabs/AugaEnemyHud.prefab
-- Assets/Prefabs/ButtonSettings.prefab
 - Assets/Prefabs/HUD.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_craftitem_workbench_end.prefab
 - Assets/Prefabs/AugaUnlockMessageBase.prefab
 - Assets/Prefabs/TabContent_Crafting.prefab
-- Assets/Prefabs/ZSFX/sfx_gui_biomefound.prefab
 - Assets/Prefabs/ConfirmDialog.prefab
+- Assets/Prefabs/ZSFX/sfx_gui_biomefound.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_forge_end.prefab
 - Assets/Prefabs/InventoryTooltip.prefab
 - Assets/Sprites/Container_Square_A.png
-- Assets/Prefabs/ButtonDiamond.prefab
-- Assets/Prefabs/AugaChat.prefab
-- Assets/Fonts/SourceSansPro-SemiBoldItalic.asset
-- Assets/Prefabs/BuildHudElement.prefab
-- Assets/Prefabs/TabContent_MessageLog.prefab
-- Assets/Prefabs/VR/LeftWristMountUI.prefab
+- Assets/Fonts/Norse SDF.asset
 - Assets/Prefabs/ZSFX/sfx_gui_button.prefab
-- Assets/Prefabs/AugaMessageHud.prefab
 Dependencies: []

@@ -8640,8 +8640,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Biome
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0516ef0e0a66a8c4dbe43ab270f468f5, type: 2}
-  m_sharedMaterial: {fileID: -4178978819702891669, guid: 0516ef0e0a66a8c4dbe43ab270f468f5,
+  m_fontAsset: {fileID: 11400000, guid: 33b6aa921aad61546af2e589f5ed4d80, type: 2}
+  m_sharedMaterial: {fileID: -3110042199786686896, guid: 33b6aa921aad61546af2e589f5ed4d80,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -12580,7 +12580,7 @@ MonoBehaviour:
   m_mapLarge: {fileID: 0}
   m_pinPrefab: {fileID: 0}
   m_pinNamePrefab: {fileID: 0}
-  m_nameInput: {fileID: 6632552602595598553}
+  m_nameInput: {fileID: 2502374150943073219}
   m_textureSize: 256
   m_pixelSize: 64
   m_minZoom: 0.01
@@ -17339,9 +17339,6 @@ MonoBehaviour:
   m_teleportingProgress: {fileID: 115116160650783136}
   m_loadingImage: {fileID: 8795976329770111074}
   m_loadingTip: {fileID: 8795700765787466178}
-  m_useRandomImages: 0
-  m_loadingImagePath: /loadingscreens/
-  m_loadingImages: 10
   m_loadingTips:
   - $loadscreen_tip01
   - $loadscreen_tip02
@@ -23092,9 +23089,26 @@ PrefabInstance:
     - target: {fileID: 4754684309381547899, guid: ae0d5c8245b17784e9c15381084fd582,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8011462034261889355, guid: ae0d5c8245b17784e9c15381084fd582,
+        type: 3}
+      propertyPath: m_CharacterLimit
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011462034261889355, guid: ae0d5c8245b17784e9c15381084fd582,
+        type: 3}
+      propertyPath: m_GlobalFontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 9ee39a652f6aee74b9f41551f590c49e,
+        type: 2}
+    - target: {fileID: 8011462034261889355, guid: ae0d5c8245b17784e9c15381084fd582,
+        type: 3}
+      propertyPath: m_GlobalPointSize
+      value: 20
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 1269972479018537553, guid: ae0d5c8245b17784e9c15381084fd582, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: ae0d5c8245b17784e9c15381084fd582, type: 3}
 --- !u!224 &5666234962559352951 stripped
 RectTransform:
@@ -23102,16 +23116,16 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 5590187931313746568}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6632552602595598553 stripped
+--- !u!114 &2502374150943073219 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1269972479018537553, guid: ae0d5c8245b17784e9c15381084fd582,
+  m_CorrespondingSourceObject: {fileID: 8011462034261889355, guid: ae0d5c8245b17784e9c15381084fd582,
     type: 3}
   m_PrefabInstance: {fileID: 5590187931313746568}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
+  m_Script: {fileID: -560918846, guid: 62dbc8bcfe4d46286720838a35c33018, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &5887808204010465926
@@ -24654,7 +24668,7 @@ PrefabInstance:
     - target: {fileID: 5624776327286275315, guid: d5582ad55a419814c99eb57e1372eef7,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 72.97
+      value: 72.91
       objectReference: {fileID: 0}
     - target: {fileID: 6231870838444059013, guid: d5582ad55a419814c99eb57e1372eef7,
         type: 3}
@@ -24689,12 +24703,12 @@ PrefabInstance:
     - target: {fileID: 6812693189497101486, guid: d5582ad55a419814c99eb57e1372eef7,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 77.515
+      value: 77.545
       objectReference: {fileID: 0}
     - target: {fileID: 6873284564679346276, guid: d5582ad55a419814c99eb57e1372eef7,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 77.515
+      value: 77.545
       objectReference: {fileID: 0}
     - target: {fileID: 7872785740370379027, guid: d5582ad55a419814c99eb57e1372eef7,
         type: 3}
@@ -24894,15 +24908,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: Meadows
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0516ef0e0a66a8c4dbe43ab270f468f5, type: 2}
-  m_sharedMaterial: {fileID: -4178978819702891669, guid: 0516ef0e0a66a8c4dbe43ab270f468f5,
+  m_fontAsset: {fileID: 11400000, guid: 33b6aa921aad61546af2e589f5ed4d80, type: 2}
+  m_sharedMaterial: {fileID: -3110042199786686896, guid: 33b6aa921aad61546af2e589f5ed4d80,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4287207075
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
