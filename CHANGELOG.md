@@ -1,7 +1,8 @@
 ### 1.2.11
 * Mini-map pins were not working.
   * Now have mini-map pins working.
-
+* Chat Window text now wraps
+* NPC Dialog now wraps
 ### 1.2.10
 * Updates Valheim 0.216.9
 * Adds in additional fonts to hopfully fix blurry text on unit frames.

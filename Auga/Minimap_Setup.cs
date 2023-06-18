@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using LogType = UnityEngine.LogType;
 
 namespace Auga
 {
@@ -33,7 +34,7 @@ namespace Auga
 
             CodeInstruction LogMessage(CodeInstruction instruction)
             {
-                Debug.LogWarning($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+                //Debug.LogFormat($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
                 return instruction;
             }
             
