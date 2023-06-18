@@ -1,3 +1,22 @@
+### 1.2.11
+* Mini-map pins were not working.
+  * Now have mini-map pins working.
+
+### 1.2.10
+* Updates Valheim 0.216.9
+* Adds in additional fonts to hopfully fix blurry text on unit frames.
+### 1.2.9
+* Hotfix for Blurry Text
+* Added in Chinese, Japanese, Korean, Russian, and other languages to fonts.
+  * This should now make most languages appear correctly.
+  * If you are still seeing boxes, please report that to the Discord.
+### 1.2.8
+* Build Menu has been rebuilt to work with other mods that add hammers/categories.
+  * Any mod using Jotunn 2.11.4 or higher to add categories will now work in build menu
+  * This includes Odin Architect and ValheimRaft to name a few.
+* Added in Chinese, Japanese, Korean, Russian, and other languages to fonts.
+  * This should now make most languages appear correctly.
+  * If you are still seeing boxes, please report that to the Discord.
 ### 1.2.7
 * Fixes random loading issues with camera and UI lock out.
 * Completely redesigned how StoreGui is attached to Auga.
