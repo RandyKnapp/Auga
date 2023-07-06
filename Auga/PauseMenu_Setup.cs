@@ -14,9 +14,6 @@ namespace Auga
     [HarmonyPatch]
     public static class PauseMenu_Setup
     {
-
-        
-        
         [HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.Update))]
         public static class TextDialog_Update_Patch
         {
@@ -33,7 +30,6 @@ namespace Auga
                     return;
                 
                 instance.m_leftScrollbar.size = ((RectTransform)instance.m_leftScrollRect.transform).rect.height / instance.m_listRoot.rect.height;    
-                
             }
             
             [UsedImplicitly]
