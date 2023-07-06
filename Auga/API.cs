@@ -431,56 +431,86 @@ namespace Auga
         [UsedImplicitly]
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true)
         {
+            TooltipTextBox_AddLine(tooltipTextBoxGO, t, s, localize, false);
+        }
+        
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize, bool overwrite)
+        {
             if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
             {
                 return;
             }
 
-            tooltipTextBox.AddLine(t, s, localize);
+            tooltipTextBox.AddLine(t, s, localize, overwrite);
         }
 
         [UsedImplicitly]
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize = true)
         {
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,localize,false);
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize, bool overwrite)
+        {
             if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
             {
                 return;
             }
 
-            tooltipTextBox.AddLine(a, localize);
+            tooltipTextBox.AddLine(a, localize, overwrite);
         }
 
         [UsedImplicitly]
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize = true)
         {
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,b,localize,false);
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize, bool overwrite)
+        {
             if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
             {
                 return;
             }
 
-            tooltipTextBox.AddLine(a, b, localize);
+            tooltipTextBox.AddLine(a, b, localize, overwrite);
         }
 
         [UsedImplicitly]
         public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize = true)
         {
-            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
-            {
-                return;
-            }
-
-            tooltipTextBox.AddLine(a, b, parenthetical, localize);
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,b,parenthetical,localize,false);
         }
 
         [UsedImplicitly]
-        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true)
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize, bool overwrite)
         {
             if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
             {
                 return;
             }
 
-            tooltipTextBox.AddUpgradeLine(label, value1, value2, color2, localize);
+            tooltipTextBox.AddLine(a, b, parenthetical, localize, overwrite);
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true)
+        {
+            TooltipTextBox_AddUpgradeLine(tooltipTextBoxGO,label,value1,value2,color2, localize,false);
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize, bool overwrite)
+        {
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            tooltipTextBox.AddUpgradeLine(label, value1, value2, color2, localize, overwrite);
         }
 
 

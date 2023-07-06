@@ -77,9 +77,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextCoreModule_publicized">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\publicized_assemblies\UnityEngine.TextCoreModule_publicized.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.TextRenderingModule.dll</HintPath>
@@ -91,6 +88,9 @@
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\Unity.TextMeshPro.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +114,7 @@
     <Compile Include="BuildHudTabFixer.cs" />
     <Compile Include="BuildMenuPaginationController.cs" />
     <Compile Include="CharacterPortrait.cs" />
+    <Compile Include="ChatWindowController.cs" />
     <Compile Include="ColorButtonText.cs" />
     <Compile Include="ColoredItemBar.cs" />
     <Compile Include="ComplexTooltip.cs" />
@@ -125,6 +126,7 @@
     <Compile Include="HideTextIfEmpty.cs" />
     <Compile Include="HideTheseIfThisIsHidden.cs" />
     <Compile Include="HorizontalDividerFitter.cs" />
+    <Compile Include="InputFieldSubmitEvents.cs" />
     <Compile Include="KeyBindDisplay.cs" />
     <Compile Include="LetterSpacing.cs" />
     <Compile Include="MatchColor.cs" />
