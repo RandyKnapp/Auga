@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1443944689
+CRC: 195547066
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 340ed61889ab2f11418272e0fa103233
+    Hash: 7a94e9a3e1530bbf7c29b04bde37d2a0
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 96648c77313b15463439a3824d93a756
+    Hash: d36dc1614ed6b69bc7202af1cf0ae9d4
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -88,6 +88,8 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
 - Class: 114
+  Script: {fileID: -560918846, guid: b5cd06fc9be3c4b458ca2eada68967c7, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
 - Class: 114
   Script: {fileID: -7747446, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
@@ -160,13 +162,13 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 762496766, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
+  Script: {fileID: 1614837281, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
+- Class: 114
   Script: {fileID: 1132889836, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
   Script: {fileID: 520119090, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
   Script: {fileID: -2043776059, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
-- Class: 114
-  Script: {fileID: 1646491415, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
   Script: {fileID: 1852703575, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
@@ -216,8 +218,6 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: 0d0b652f32a2cc243917e4028fa0f046, type: 3}
 - Class: 114
-  Script: {fileID: -560918846, guid: 62dbc8bcfe4d46286720838a35c33018, type: 3}
-- Class: 114
   Script: {fileID: 2033781369, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
 - Class: 114
   Script: {fileID: -481414458, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
@@ -225,10 +225,6 @@ ClassTypes:
   Script: {fileID: 182242463, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
 - Class: 114
   Script: {fileID: -1753158740, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
-- Class: 114
-  Script: {fileID: -259742986, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
-- Class: 114
-  Script: {fileID: 702673311, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
 - Class: 114
   Script: {fileID: -626263950, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
 - Class: 114
@@ -282,6 +278,8 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -1352019697, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -259742986, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 664413397, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -294815404, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
@@ -289,6 +287,8 @@ ClassTypes:
   Script: {fileID: -772854383, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 469224316, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 702673311, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1791954445, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -398,8 +398,6 @@ SerializeReferenceClassIdentifiers:
   ClassName: UnityEngine.UI.SpriteState
 - AssemblyName: UnityEngine.UI
   ClassName: UnityEngine.UI.Toggle/ToggleEvent
-- AssemblyName: assembly_guiutils
-  ClassName: TabHandler/Tab
 - AssemblyName: assembly_postprocessing
   ClassName: UnityEngine.PostProcessing.AmbientOcclusionModel
 - AssemblyName: assembly_postprocessing
@@ -500,6 +498,10 @@ SerializeReferenceClassIdentifiers:
   ClassName: EffectList/EffectData
 - AssemblyName: assembly_valheim
   ClassName: Settings/KeySetting
+- AssemblyName: assembly_valheim
+  ClassName: TabHandler/Tab
+- AssemblyName: ui_lib
+  ClassName: Fishlabs.OnInputSubmitEvent
 Assets:
 - Assets/Sprites/HUD/legacy_save.png
 - Assets/Prefabs/AugaTextViewer.prefab
@@ -514,7 +516,6 @@ Assets:
 - Assets/Fonts/SourceSansPro-Bold SDF-old.asset
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_end.prefab
 - Assets/Prefabs/AugaSettings.prefab
-- Assets/Fonts/Norsebold-RASTER-HINTED.asset
 - Assets/Prefabs/AugaMenu.prefab
 - Assets/Prefabs/MainMenu/WorldListElement.prefab
 - Assets/Prefabs/TabButton_MessageLog.prefab
@@ -530,6 +531,7 @@ Assets:
 - Assets/Fonts/SourceSansPro-Bold.ttf
 - Assets/Prefabs/AugaBiomeFoundMessage.prefab
 - Assets/Prefabs/TabContent_Skills.prefab
+- Assets/Fonts/Norsebold-RASTER-HINTED.asset
 - Assets/Prefabs/AugaPanelBase.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem.prefab
 - Assets/Fonts/Norse-Old.asset

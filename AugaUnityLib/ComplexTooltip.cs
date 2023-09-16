@@ -511,8 +511,8 @@ namespace AugaUnity
 
             var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
 
-            var damage = item.GetDamage(quality);
-            var previousDamage = item.GetDamage(item.m_quality);
+            var damage = item.GetDamage(quality, Game.m_worldLevel);
+            var previousDamage = item.GetDamage(item.m_quality, Game.m_worldLevel);
             var skillType = item.m_shared.m_skillType;
 
             Player.m_localPlayer.GetSkills().GetRandomSkillRange(out var min, out var max, skillType);
@@ -628,8 +628,8 @@ namespace AugaUnity
         public virtual void AddArmorTextBox(ItemDrop.ItemData item, int quality, bool upgrade)
         {
             var textBox = AddTextBox(upgrade ? UpgradeTwoColumnTextBoxPrefab : TwoColumnTextBoxPrefab);
-            var armor = item.GetArmor(quality);
-            var previousArmor = item.GetArmor(item.m_quality);
+            var armor = item.GetArmor(quality, Game.m_worldLevel);
+            var previousArmor = item.GetArmor(item.m_quality, Game.m_worldLevel);
             if (upgrade)
             {
                 textBox.AddUpgradeLine("$item_armor", previousArmor, armor, armor > previousArmor ? UpgradeColor : null);
