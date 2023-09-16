@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using AugaUnity;
 using Fishlabs;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -11,15 +12,12 @@ using UnityEngine.UI;
 
 namespace Auga
 {
-    [HarmonyPatch(typeof(Minimap), nameof(Minimap.Update))]
-    static class MinimapUpdateTranspiler
+    [HarmonyPatch(typeof(Minimap), nameof(Minimap.ShowPinNameInput))]
+    static class MinimapShowPinNameInputTranspiler
     {
-        private static void CheckForPinSubmit(Minimap instance)
+        private static void AddSubmitAction(Minimap instance)
         {
-            if (ZInput.GetKeyDown(KeyCode.Return))
-            {
-                instance.OnPinTextEntered(instance.m_nameInput.text);
-            }
+            instance.m_nameInput.GetComponentInChildren<GuiInputFieldSubmit>().m_onSubmit = instance.OnPinTextEntered;
         }
         
         [UsedImplicitly]
@@ -31,7 +29,7 @@ namespace Auga
 
             CodeInstruction LogMessage(CodeInstruction instruction)
             {
-                //Debug.LogFormat($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+                //Debug.LogWarning($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
                 return instruction;
             }
             
@@ -46,14 +44,13 @@ namespace Auga
                 return FindInstructionWithLabel(codeInstructions, index + 1, label);
             }
 
-            var checkForSubmitMethod = AccessTools.DeclaredMethod(typeof(MinimapUpdateTranspiler), nameof(CheckForPinSubmit));
-            var inTextInputMethod = AccessTools.DeclaredMethod(typeof(Minimap), nameof(Minimap.InTextInput));
-            var getKeyDownMethod = AccessTools.DeclaredMethod(typeof(ZInput), nameof(ZInput.GetKeyDown));
+            var addSubmitMethod = AccessTools.DeclaredMethod(typeof(MinimapShowPinNameInputTranspiler), nameof(AddSubmitAction));
+            var wasFocusedField = AccessTools.DeclaredField(typeof(Minimap), nameof(Minimap.m_wasFocused));
             
             for (int i = 0; i < instrs.Count; ++i)
             {
-                if (i > 6 && instrs[i-2].opcode == OpCodes.Call && instrs[i-2].operand.Equals(inTextInputMethod) &&
-                    instrs[i+1].opcode == OpCodes.Call && instrs[i+1].operand.Equals(getKeyDownMethod))
+                if (i > 6 && instrs[i].opcode == OpCodes.Ldarg_0 && instrs[i+1].opcode == OpCodes.Ldc_I4_1 && 
+                    instrs[i+2].opcode == OpCodes.Stfld && instrs[i+2].operand.Equals(wasFocusedField) )
                 {
                     //Call Method needs Minimap Instance as parameter
                     var ldArgInstruction = new CodeInstruction(OpCodes.Ldarg_0);
@@ -65,7 +62,7 @@ namespace Auga
                     counter++;
 
                     //Output Call
-                    yield return LogMessage(new CodeInstruction(OpCodes.Call, checkForSubmitMethod));
+                    yield return LogMessage(new CodeInstruction(OpCodes.Call, addSubmitMethod));
                     counter++;
 
                     //Output Current Operation

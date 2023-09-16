@@ -38,31 +38,43 @@ namespace Auga
         /// <returns>true if the objects were replaced (this was called on the original), false otherwise (this was called on the replacement)</returns>
         public static bool IndirectTwoObjectReplace(Transform primaryOriginal, GameObject prefab, string originalName, string secondaryName, string newPrimaryName)
         {
+            if (primaryOriginal.name.StartsWith("Auga"))
+                return false;
+            
             if (primaryOriginal.name != originalName)
             {
                 return false;
             }
 
             var parent = primaryOriginal.parent;
-            var secondaryOriginal = parent.Find(secondaryName);
-            var secondarySiblingIndex = secondaryOriginal.GetSiblingIndex();
-            var primarySiblingINdex = primaryOriginal.GetSiblingIndex();
+            if (parent != null)
+            {
+                
+                var secondaryOriginal = parent.Find(secondaryName);
+                if (secondaryOriginal != null)
+                {
+                    var secondarySiblingIndex = secondaryOriginal.GetSiblingIndex();
+                    var primarySiblingIndex = primaryOriginal.GetSiblingIndex();
+                    
+                    Object.DestroyImmediate(secondaryOriginal.gameObject);
+                    Object.DestroyImmediate(primaryOriginal.gameObject);
 
-            Object.DestroyImmediate(secondaryOriginal.gameObject);
-            Object.DestroyImmediate(primaryOriginal.gameObject);
+                    var newPrefab = Object.Instantiate(prefab, parent);
+                    var secondary = newPrefab.transform.Find(secondaryName);
+                    var primary = newPrefab.transform.Find(newPrimaryName);
 
-            var newPrefab = Object.Instantiate(prefab, parent);
-            var secondary = newPrefab.transform.Find(secondaryName);
-            var primary = newPrefab.transform.Find(newPrimaryName);
+                    secondary.SetParent(parent);
+                    primary.SetParent(parent);
+                    secondary.SetSiblingIndex(secondarySiblingIndex);
+                    primary.SetSiblingIndex(primarySiblingIndex);
 
-            secondary.SetParent(parent);
-            primary.SetParent(parent);
-            secondary.SetSiblingIndex(secondarySiblingIndex);
-            primary.SetSiblingIndex(primarySiblingINdex);
+                    Object.Destroy(newPrefab);
+                    
+                    return true;                    
+                }
+            }
 
-            Object.Destroy(newPrefab);
-
-            return true;
+            return false;
         }
     }
 }
