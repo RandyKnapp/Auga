@@ -25,7 +25,7 @@ public class AugaLauncher : EditorWindow
 
         if (GUILayout.Button(new GUIContent("..."), GUILayout.Width(18)))
         {
-            var startPath = string.IsNullOrEmpty(valheimPath) ? @"C:\Program Files (x86)\Steam\steamapps\common\Valheim\" : valheimPath;
+            var startPath = string.IsNullOrEmpty(valheimPath) ? @"G:\Steam\steamapps\common\Valheim\" : valheimPath;
             var newPath = EditorUtility.OpenFolderPanel("Select Location of valheim.exe", startPath, "");
             if (!string.IsNullOrEmpty(newPath))
             {
@@ -86,7 +86,7 @@ public class AugaLauncher : EditorWindow
         var valheimPath = EditorPrefs.GetString(ValheimPathPref);
         if (string.IsNullOrEmpty(valheimPath))
         {
-            valheimPath = Path.GetFullPath(EditorUtility.OpenFolderPanel("Select Location of valheim.exe", @"C:\Program Files (x86)\Steam\steamapps\common\Valheim\", ""));
+            valheimPath = Path.GetFullPath(EditorUtility.OpenFolderPanel("Select Location of valheim.exe", @"G:\Steam\steamapps\common\Valheim\", ""));
             EditorPrefs.SetString(ValheimPathPref, valheimPath);
         }
 

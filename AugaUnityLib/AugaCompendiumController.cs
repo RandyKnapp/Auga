@@ -118,7 +118,7 @@ namespace AugaUnity
                     var itemDrop = drop.m_prefab.GetComponent<ItemDrop>();
                     if (itemDrop != null)
                     {
-                        if (itemDrop.m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Trophie)
+                        if (itemDrop.m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Trophy)
                         {
                             if (!_trophyToMonsterCache.ContainsKey(drop.m_prefab.name))
                             {

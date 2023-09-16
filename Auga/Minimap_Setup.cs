@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Threading;
-using AugaUnity;
 using Fishlabs;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -10,7 +8,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using LogType = UnityEngine.LogType;
 
 namespace Auga
 {
@@ -87,36 +84,6 @@ namespace Auga
     [HarmonyPatch(typeof(Minimap))]
     public static class Minimap_Setup
     {
-        [HarmonyPatch(nameof(Minimap.ShowPinNameInput))]
-        [HarmonyPrefix]
-        public static bool Minimap_ShowPinNameInput_Prefix(Minimap __instance, Vector3 pos)
-        {
-            Debug.LogWarning("VAPOK: Adding Pin");
-            __instance.m_namePin = __instance.AddPin(pos, __instance.m_selectedType, "", true, false);
-            Debug.LogWarning("VAPOK: reseting text");
-            __instance.m_nameInput.text = "";
-            Debug.LogWarning("VAPOK: showing input");
-            __instance.m_nameInput.gameObject.SetActive(true);
-            Debug.LogWarning("VAPOK: activating input");
-            __instance.m_nameInput.ActivateInputField();
-            Debug.LogWarning("VAPOK: checking GamePad");
-            if (ZInput.IsGamepadActive())
-            {
-                Debug.LogWarning("VAPOK: is GamePad");
-                __instance.m_nameInput.gameObject.transform.localPosition = new Vector3(0.0f, -30f, 0.0f);
-            }
-            else
-            {
-                Debug.LogWarning("VAPOK: is not GamePad");
-                Vector2 localPoint;
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(__instance.m_nameInput.gameObject.transform.parent.GetComponent<RectTransform>(), ZInput.mousePosition, null, out localPoint);
-                Debug.LogWarning("VAPOK: setting local position");
-                __instance.m_nameInput.gameObject.transform.localPosition = new Vector3(localPoint.x, localPoint.y - 30f);
-            }
-            Debug.LogWarning("VAPOK: setting wasFocused to true");
-            __instance.m_wasFocused = true;
-            return false;
-        }
         
         [HarmonyPatch(nameof(Minimap.Start))]
         [HarmonyPostfix]
@@ -132,8 +99,6 @@ namespace Auga
             minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_root");
             minimap.m_pinNameRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_name_root");
             minimap.m_biomeNameSmall = newMiniMap.Find("biome/Content").GetComponent<TextMeshProUGUI>();
-            minimap.m_biomeNameSmall.outlineWidth = 0.2f;
-            minimap.m_biomeNameSmall.outlineColor = new Color32(0, 0, 0, 255);
             minimap.m_smallShipMarker = (RectTransform)newMiniMap.Find("map/small_ship_marker");
             minimap.m_smallMarker = (RectTransform)newMiniMap.Find("map/small_player_marker");
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
@@ -145,8 +110,6 @@ namespace Auga
             minimap.m_pinRootLarge = (RectTransform)newMap.Find("large_map/large_pin_root");
             minimap.m_pinNameRootLarge = (RectTransform)newMap.Find("large_map/large_pin_name_root");
             minimap.m_biomeNameLarge = newMap.Find("biome").GetComponent<TextMeshProUGUI>();
-            minimap.m_biomeNameLarge.outlineWidth = 0.2f;
-            minimap.m_biomeNameLarge.outlineColor = new Color32(0, 0, 0, 255);
             minimap.m_largeShipMarker = (RectTransform)newMap.Find("large_map/large_ship_marker");
             minimap.m_largeMarker = (RectTransform)newMap.Find("large_map/large_player_marker");
             

@@ -140,7 +140,7 @@ namespace Auga
                 tabController.hud = __instance;
                 tabController.buildMenu = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
                 
-                var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs");
+                var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/TabContainer/Tabs");
                 __instance.m_pieceCategoryTabs = new[] {
                     tabContainer.Find("Misc").gameObject,
                     tabContainer.Find("Crafting").gameObject,
@@ -157,7 +157,7 @@ namespace Auga
                 }
 
                 __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
-                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/Tabs").gameObject;
+                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/TabContainer/Tabs").gameObject;
                 __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
                 __instance.m_pieceListMask = null;
                 __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
@@ -503,7 +503,7 @@ namespace Auga
                                 var bindings = lineWithRange.GetComponentsInChildren<AugaBindingDisplay>();
                                 bindings[0].SetText("1");
                                 bindings[1].SetText("8");
-                                var text = lineWithRange.transform.Find("Text").GetComponent<Text>();
+                                var text = lineWithRange.transform.Find("Text").GetComponent<TextMeshProUGUI>();
                                 text.text = otherText;
 
                                 continue;
@@ -527,7 +527,7 @@ namespace Auga
                                 lineWithBinding.SetActive(true);
                                 var binding = lineWithBinding.GetComponentInChildren<AugaBindingDisplay>();
                                 binding.SetBinding(keyName);
-                                var text = lineWithBinding.transform.Find("Text").GetComponent<Text>();
+                                var text = lineWithBinding.transform.Find("Text").GetComponent<TextMeshProUGUI>();
                                 text.text = otherText;
                                 continue;
                             }
@@ -689,6 +689,23 @@ namespace Auga
 
             return Input.GetAxis("Mouse ScrollWheel") == 0;
         }
+
+        /*public static void Postfix(ref PieceTable __instance)
+        {
+            if (!Auga.BuildMenuShow.Value)
+                return;
+
+            var player = Player.m_localPlayer;
+            var selectedCategory = player.m_buildPieces.m_selectedCategory;
+            if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
+                selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
+                selectedCategory.Equals(Piece.PieceCategory.Building) ||
+                selectedCategory.Equals(Piece.PieceCategory.Furniture))
+            {
+                if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
+                    player.m_buildPieces.PrevCategory();
+            }
+        }*/
     }
 
     [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory))]
@@ -701,5 +718,27 @@ namespace Auga
             
             return Input.GetAxis("Mouse ScrollWheel") == 0;
         }
+
+        /*
+        public static void Postfix(ref PieceTable __instance)
+        {
+            if (!Auga.BuildMenuShow.Value)
+                return;
+
+            var player = Player.m_localPlayer;
+            if (player != null)
+            {
+                var selectedCategory = player.m_buildPieces.m_selectedCategory;
+                if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
+                    selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
+                    selectedCategory.Equals(Piece.PieceCategory.Building) ||
+                    selectedCategory.Equals(Piece.PieceCategory.Furniture))
+                {
+                    if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
+                        player.m_buildPieces.NextCategory();
+                }
+            }
+        }
+    */
     }
 }

@@ -1,3 +1,15 @@
+### 1.2.14
+* Fixed the TextMeshPro Blurry Fonts (thanks to Azumatt).
+* Put NPC Text back into a smaller box so that the text wraps appropriately.
+* Fixed Outline around Biome Name
+### 1.2.13
+* Password dialogue now hides password.
+* Auga API has been updated to allow TooltipTextBox AddLine to overwrite instead of add.
+* Fixed (again) Enemy Nameplates to be clear.
+* Added Outlines on some HUD TMP Text boxes that were missing
+### 1.2.12
+* Fixing Password, Portal, Signs, and Tamable Inputs
+* Removed some left over debugging
 ### 1.2.11
 * Mini-map pins were not working.
   * Now have mini-map pins working.

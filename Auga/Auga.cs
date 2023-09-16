@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Threading;
 using AugaUnity;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -81,7 +80,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.11";
+        public const string Version = "1.2.14";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -488,7 +487,9 @@ namespace Auga
         {
             new Terminal.ConsoleCommand("resetbiomes", "", args =>
             {
-                Player.m_localPlayer.m_knownBiome = new HashSet<Heightmap.Biome>();
+                var t = typeof(Player).GetField(nameof(Player.m_knownBiome),
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                t.SetValue(Player.m_localPlayer,new HashSet<Heightmap.Biome>());
             });
         }
     }

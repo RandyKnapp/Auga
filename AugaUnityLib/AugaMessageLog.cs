@@ -183,7 +183,7 @@ namespace AugaUnity
         public void AddDeathLog(Player player, HitData lastHit)
         {
             var isLocalPlayer = player == Player.m_localPlayer;
-            var noCause = lastHit == null || (!lastHit.HaveAttacker() && lastHit.m_point == Vector3.zero && string.IsNullOrEmpty(lastHit.m_statusEffect));
+            var noCause = lastHit == null || (!lastHit.HaveAttacker() && lastHit.m_point == Vector3.zero && lastHit.m_statusEffectHash > 0);
             string message;
             if (noCause)
             {

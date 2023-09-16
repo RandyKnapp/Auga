@@ -107,11 +107,11 @@ namespace Auga
         public static Button Workbench_GetUpgradeTabButton() => null;
         public static GameObject Workbench_CreateNewResultsPanel() => null;
 
-        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true) { }
-        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize = true) { }
-        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize = true) { }
-        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize = true) { }
-        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true) { }
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true, bool overwrite = false) { }
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize = true, bool overwrite = false) { }
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize = true, bool overwrite = false) { }
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize = true, bool overwrite = false) { }
+        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true, bool overwrite = false) { }
 
         public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener) { }
         public static void ComplexTooltip_AddFoodTooltipCreatedListener(Action<GameObject, Player.Food> listener) { }

@@ -39,33 +39,36 @@ namespace AugaUnity
         public Text RightColumnText;
         public Text ThirdColumnText;
 
-        public virtual void AddLine(Text t, object s, bool localize = true)
+        public virtual void AddLine(Text t, object s, bool localize = true, bool overwrite = false)
         {
             if (t == null)
             {
                 return;
             }
 
-            if (!string.IsNullOrEmpty(t.text))
+            if (!string.IsNullOrEmpty(t.text)  && !overwrite)
             {
                 t.text += "\n";
             }
 
-            t.text += (localize ? Localization.instance.Localize(s.ToString()) : s).ToString().Trim();
+            if (overwrite)
+                t.text = (localize ? Localization.instance.Localize(s.ToString()) : s).ToString().Trim();
+            else
+                t.text += (localize ? Localization.instance.Localize(s.ToString()) : s).ToString().Trim();
         }
 
-        public virtual void AddLine(object a, bool localize = true)
+        public virtual void AddLine(object a, bool localize = true, bool overwrite = false)
         {
-            AddLine(Text, a, localize);
-            AddLine(RightColumnText, "", false);
-            AddLine(ThirdColumnText, "", false);
+            AddLine(Text, a, localize, overwrite);
+            AddLine(RightColumnText, "", false, overwrite);
+            AddLine(ThirdColumnText, "", false, overwrite);
         }
 
-        public virtual void AddLine(object a, object b, bool localize = true)
+        public virtual void AddLine(object a, object b, bool localize = true, bool overwrite = false)
         {
-            AddLine(Text, a, localize);
-            AddLine(RightColumnText, b, localize);
-            AddLine(ThirdColumnText, b, false);
+            AddLine(Text, a, localize, overwrite);
+            AddLine(RightColumnText, b, localize, overwrite);
+            AddLine(ThirdColumnText, b, false, overwrite);
         }
 
         public virtual string GenerateParenthetical(object b, object parenthetical)
@@ -73,18 +76,18 @@ namespace AugaUnity
             return $"{b} <color={ComplexTooltip.ParentheticalColor}>({parenthetical})</color>";
         }
 
-        public virtual void AddLine(object a, object b, object parenthetical, bool localize = true)
+        public virtual void AddLine(object a, object b, object parenthetical, bool localize = true, bool overwrite = false)
         {
-            AddLine(Text, a, localize);
-            AddLine(RightColumnText, GenerateParenthetical(b, parenthetical), localize);
-            AddLine(ThirdColumnText, b, false);
+            AddLine(Text, a, localize, overwrite);
+            AddLine(RightColumnText, GenerateParenthetical(b, parenthetical), localize, overwrite);
+            AddLine(ThirdColumnText, b, false, overwrite);
         }
 
-        public virtual void AddUpgradeLine(object label, object value1, object value2, string color2, bool localize = true)
+        public virtual void AddUpgradeLine(object label, object value1, object value2, string color2, bool localize = true, bool overwrite = false)
         {
-            AddLine(Text, label, localize);
-            AddLine(RightColumnText, value1, localize);
-            AddLine(ThirdColumnText, string.IsNullOrEmpty(color2) ? value2 : $"<color={color2}>{value2}</color>", localize);
+            AddLine(Text, label, localize, overwrite);
+            AddLine(RightColumnText, value1, localize, overwrite);
+            AddLine(ThirdColumnText, string.IsNullOrEmpty(color2) ? value2 : $"<color={color2}>{value2}</color>", localize, overwrite);
         }
     }
 

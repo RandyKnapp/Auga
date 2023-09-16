@@ -41,10 +41,12 @@ namespace Auga
                 __instance.m_containerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_containerGrid.m_onRightClick += __instance.OnRightClickItem;
                 __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<Text>();
-                containerInventory.Find("TakeAll").GetComponent<Button>().onClick.AddListener(__instance.OnTakeAll);
-
+                __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
+                __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
+                
                 var oldCraftingPanel = __instance.transform.Find("root/Crafting");
                 var craftingPanelSiblingIndex = oldCraftingPanel.GetSiblingIndex();
+                oldCraftingPanel.gameObject.SetActive(false);
                 Object.Destroy(oldCraftingPanel.gameObject);
 
                 var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog");

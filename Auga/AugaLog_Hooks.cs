@@ -59,7 +59,7 @@ namespace Auga
             {
                 AugaMessageLog.instance.AddNewMaterialLog(item);
             }
-            else if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Trophie)
+            else if (item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Trophy)
             {
                 AugaMessageLog.instance.AddNewTrophyLog(item);
             }

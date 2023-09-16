@@ -1,5 +1,5 @@
 # Project Auga
-##### by RandyKnapp / n4
+##### by RandyKnapp / n4 / Vapok
 
 Project Auga is a completely re-imagined, modder-friendly UI-overhaul for Valheim. Every last piece of UI was considered and reworked from the ground-up to create a more helpful and immersive player experience, all while remaining familiar to Valheim veterans.
 
@@ -13,9 +13,7 @@ Basically everything:
   * Redesigned Player & Container inventories
   * New Consolidated Player Panels
   * Improved Crafting Panels
-  * Expanded Character Select & New Character Screens
-  * Overhauled Loading Screens
-  * Auga-Style EVERYTHING
+    
 
 SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Auga/Screenshots
 
