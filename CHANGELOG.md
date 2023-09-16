@@ -1,3 +1,6 @@
+### 1.2.15
+* Hildir's Request 0.217.14 Update
+* Known Issue: The chat input box is in the middle of the box.  Minor issue. Not game breaking.
 ### 1.2.14
 * Fixed the TextMeshPro Blurry Fonts (thanks to Azumatt).
 * Put NPC Text back into a smaller box so that the text wraps appropriately.

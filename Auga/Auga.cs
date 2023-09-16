@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using AugaUnity;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -80,7 +81,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.14";
+        public const string Version = "1.2.15";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -128,7 +129,33 @@ namespace Auga
         public void Awake()
         {
             _instance = this;
+            if (int.TryParse(Assembly.GetExecutingAssembly().GetName().Version.ToString().Split('.')[3],out var revision))
+            {
+                if (revision > 0)
+                {
+                    Debug.LogWarning($"==============================================================================");
+                    Debug.LogWarning($"You are using a PTB version of this mod. It will not work in live.");
+                    Debug.LogWarning($"Project Auga - Version {Assembly.GetExecutingAssembly().GetName().Version}");
+                    Debug.LogWarning($"Valheim - Version {(global::Version.GetVersionString())}");
 
+                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 5 ) || global::Version.CurrentVersion.m_minor > 217)
+                    {
+                        Debug.LogWarning($"GAME VERSION CHECK - PASSED");
+                        Debug.LogWarning($"==============================================================================");
+                    }
+                    else
+                    {
+                        Debug.LogError($">>>>>>>>> GAME VERSION MISMATCH - EXITING <<<<<<<<");
+                        Debug.LogWarning($"==============================================================================");
+                        Thread.Sleep(10000);
+                        
+                        Destroy(this);
+                        return;
+                    }
+                }
+            }
+            
+            
             LoadDependencies();
             LoadTranslations();
             LoadConfig();
@@ -254,7 +281,7 @@ namespace Auga
 
         public void OnDestroy()
         {
-            _harmony.UnpatchSelf();
+            _harmony?.UnpatchSelf();
             _instance = null;
         }
 

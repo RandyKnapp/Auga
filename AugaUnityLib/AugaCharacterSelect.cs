@@ -203,7 +203,7 @@ namespace AugaUnity
             _index = index;
             CharacterName.text = profile.m_playerName;
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
-            StatsText.text = $"{profile.m_playerStats.m_deaths}\n{profile.m_playerStats.m_builds}\n{profile.m_playerStats.m_crafts}";
+            StatsText.text = $"{profile.m_playerStats.m_stats[PlayerStatType.Deaths]}\n{profile.m_playerStats.m_stats[PlayerStatType.Builds]}\n{profile.m_playerStats.m_stats[PlayerStatType.Crafts]}";
 
             var outputFilePath = AugaCharacterSelectPhotoBooth.GetOutputFilePathForProfile(profile);
             if (File.Exists(outputFilePath))
