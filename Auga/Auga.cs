@@ -109,6 +109,7 @@ namespace Auga
         public static ConfigEntry<bool> EitrBarShowTicks;
         
         public static ConfigEntry<bool> BuildMenuShow;
+        public static ConfigEntry<bool> AugaChatShow;
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -116,6 +117,8 @@ namespace Auga
         public static bool HasBetterTrader;
         public static bool HasMultiCraft;
         public static bool HasSimpleRecycling;
+        public static bool HasChatter;
+        public static bool HasSearsCatalog;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -166,6 +169,8 @@ namespace Auga
             HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
+            HasChatter = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.chatter");
+            HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -352,6 +357,7 @@ namespace Auga
             EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
             
             BuildMenuShow = Config.Bind("BuildMenu", "Use Auga Build Menu (Requires Restart)", true, "If false, disables the Auga Build Menu display");
+            AugaChatShow = Config.Bind("AugaChat", "Show Auga Chat. Disable to use other mods. (Requires Restart)", true, "If false, disables the Auga Chat window display");
         }
 
         private static void LoadAssets()
@@ -521,3 +527,4 @@ namespace Auga
         }
     }
 }
+
