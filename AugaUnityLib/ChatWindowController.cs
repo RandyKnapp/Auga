@@ -1,6 +1,6 @@
-﻿using Fishlabs;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -20,15 +20,27 @@ namespace AugaUnity
 
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1) ||
+                Input.GetKeyDown(KeyCode.Escape) || ZInput.GetButtonDown("JoyButtonB") ||
+                ZInput.GetButtonDown("JoyLStickLeft") || ZInput.GetButtonDown("JoyLStickRight") ||
+                ZInput.GetButtonDown("JoyLStickUp") || ZInput.GetButtonDown("JoyLStickDown"))
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+                _chatHandler.m_input.gameObject.SetActive(false);
+                _chatHandler.m_focused = false;
+            }
+
             if (!Console.IsVisible() && !TextInput.IsVisible() && !Minimap.InTextInput() && !Menu.IsVisible() &&
                 !InventoryGui.IsVisible() && _chatHandler.m_input.gameObject.activeSelf)
             {
                 if (!_chatHandler.m_wasFocused)
                 {
+                    _chatHandler.m_hideTimer = 0.0f;
                     _chatHandler.m_input.ActivateInputField();
                     _lastPosition = 0.0f;
                 } else if (_chatHandler.m_wasFocused)
                 {
+                    _chatHandler.m_hideTimer = 0.0f;
                     _lastPosition += ZInput.GetAxis("Mouse ScrollWheel");
                     _lastPosition = Mathf.Clamp(_lastPosition, 0.0f, ChatScrollbar.size);
                 }

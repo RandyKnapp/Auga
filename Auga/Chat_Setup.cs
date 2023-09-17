@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using HarmonyLib;
 using UnityEngine;
 
@@ -13,11 +12,17 @@ namespace Auga
         {
             public static bool Prefix(Chat __instance)
             {
+                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                    return true;
+                
                 return !SetupHelper.IndirectTwoObjectReplace(__instance.transform, Auga.Assets.AugaChat, "Chat", "Chat_box", "AugaChat");
             }
 
             public static void Postfix(Chat __instance)
             {
+                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                    return;
+                
                 if (__instance.m_input != null)
                     __instance.m_input.transform.parent.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, 0, 67);
             }
@@ -28,6 +33,9 @@ namespace Auga
         {
             public static void Postfix(Chat __instance)
             {
+                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                    return;
+                
                 var latestChatMessage = __instance.m_npcTexts.LastOrDefault();
                 if (latestChatMessage != null)
                 {
