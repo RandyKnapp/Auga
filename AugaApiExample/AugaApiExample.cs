@@ -1,6 +1,4 @@
 ﻿using System.Reflection;
-using BepInEx;
-using HarmonyLib;
 using JetBrains.Annotations;
 
 namespace AugaApiExample
