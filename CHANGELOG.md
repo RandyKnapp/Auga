@@ -1,3 +1,10 @@
+### 1.2.16
+* Fixed Password Dialogue Box
+* Fixed Console Issue
+* Fixed Chat Input positioning issue
+* Removed Blackbox from under Keybind in Hover Text's
+* Added Support for Comfy's Chatter Mod
+* Added Additional Support for Comfy's Sears Catalog
 ### 1.2.15
 * Hildir's Request 0.217.14 Update
 * Known Issue: The chat input box is in the middle of the box.  Minor issue. Not game breaking.
