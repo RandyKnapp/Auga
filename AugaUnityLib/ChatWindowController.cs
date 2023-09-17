@@ -20,16 +20,19 @@ namespace AugaUnity
 
         private void Update()
         {
-            if (!_chatHandler.m_wasFocused)
+            if (!Console.IsVisible() && !TextInput.IsVisible() && !Minimap.InTextInput() && !Menu.IsVisible() &&
+                !InventoryGui.IsVisible() && _chatHandler.m_input.gameObject.activeSelf)
             {
-                _chatHandler.m_input.ActivateInputField();
-                _lastPosition = 0.0f;
-            } else if (_chatHandler.m_wasFocused)
-            {
-                _lastPosition += ZInput.GetAxis("Mouse ScrollWheel");
-                _lastPosition = Mathf.Clamp(_lastPosition, 0.0f, ChatScrollbar.size);
+                if (!_chatHandler.m_wasFocused)
+                {
+                    _chatHandler.m_input.ActivateInputField();
+                    _lastPosition = 0.0f;
+                } else if (_chatHandler.m_wasFocused)
+                {
+                    _lastPosition += ZInput.GetAxis("Mouse ScrollWheel");
+                    _lastPosition = Mathf.Clamp(_lastPosition, 0.0f, ChatScrollbar.size);
+                }
             }
-            
             ChatScrollbar.value = _lastPosition;
         }
 
