@@ -1,3 +1,8 @@
+### 1.2.17
+* Adding appropriate Dependency Checks to that Mod Detection actually works.
+* Fixing a logic error where it wasn't respecting the priority of Chatter and Sears Catalog correctly
+  * This will provide the priority.
+
 ### 1.2.16
 * Fixed Password Dialogue Box
 * Fixed Console Issue
@@ -5,6 +10,10 @@
 * Removed Blackbox from under Keybind in Hover Text's
 * Added Support for Comfy's Chatter Mod
 * Added Additional Support for Comfy's Sears Catalog
+
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.2.15
 * Hildir's Request 0.217.14 Update
 * Known Issue: The chat input box is in the middle of the box.  Minor issue. Not game breaking.
@@ -145,3 +154,5 @@
   * Fixed overlapping names and health bars for enemies when using CLLC
 ### 1.0.1
   * Valheim+ Compatibility
+
+</details>

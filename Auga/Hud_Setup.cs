@@ -617,7 +617,10 @@ namespace Auga
     {
         public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
             
             var buildPieces = player.GetBuildPieces();
@@ -691,7 +694,10 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
 
             return Input.GetAxis("Mouse ScrollWheel") == 0;
@@ -720,7 +726,10 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
             
             return Input.GetAxis("Mouse ScrollWheel") == 0;

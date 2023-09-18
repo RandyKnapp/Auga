@@ -77,11 +77,13 @@ namespace Auga
     [BepInPlugin(PluginID, "Project Auga", Version)]
     [BepInDependency("Menthus.bepinex.plugins.BetterTrader", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.chatter", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.searscatalog", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.15";
+        public const string Version = "1.2.17";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -157,8 +159,7 @@ namespace Auga
                     }
                 }
             }
-            
-            
+
             LoadDependencies();
             LoadTranslations();
             LoadConfig();
