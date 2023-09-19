@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using AugaUnity;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -31,16 +32,16 @@ namespace Auga
                 __instance.m_playerGrid = playerInventory.Find("PlayerGrid").GetComponent<InventoryGrid>();
                 __instance.m_playerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_playerGrid.m_onRightClick += __instance.OnRightClickItem;
-                __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<Text>();
-                __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<Text>();
+                __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
+                __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<TMP_Text>();
 
                 var containerInventory = __instance.Replace("root/Container", Auga.Assets.InventoryScreen, "root/Container");
                 __instance.m_container = containerInventory.RectTransform();
-                __instance.m_containerName = containerInventory.Find("ContainerHeader/Name").GetComponent<Text>();
+                __instance.m_containerName = containerInventory.Find("ContainerHeader/Name").GetComponent<TMP_Text>();
                 __instance.m_containerGrid = containerInventory.Find("ContainerGrid").GetComponent<InventoryGrid>();
                 __instance.m_containerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_containerGrid.m_onRightClick += __instance.OnRightClickItem;
-                __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<Text>();
+                __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
                 __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
                 __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
                 
@@ -65,7 +66,7 @@ namespace Auga
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 CraftingPanel.SetMultiCraftEnabled(Auga.HasMultiCraft);
-                __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
+                __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<TMP_Text>();
                 __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/Dummy/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;
                 __instance.m_recipeListRoot = CraftingPanel.RecipeList;
@@ -112,11 +113,11 @@ namespace Auga
                 var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog");
                 __instance.m_splitPanel = splitDialog;
                 __instance.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
-                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<Text>();
+                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<TMP_Text>();
                 __instance.m_splitCancelButton = splitDialog.Find("Dialog/ButtonCancel").GetComponent<Button>();
                 __instance.m_splitOkButton = splitDialog.Find("Dialog/ButtonOk").GetComponent<Button>();
                 __instance.m_splitIcon = splitDialog.Find("Dialog/InventoryElement/icon").GetComponent<Image>();
-                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<Text>();
+                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<TMP_Text>();
 
                 __instance.m_splitSlider.onValueChanged.AddListener(__instance.OnSplitSliderChanged);
                 __instance.m_splitCancelButton.onClick.AddListener(__instance.OnSplitCancel);

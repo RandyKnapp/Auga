@@ -130,6 +130,7 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' ">
     <Compile Include="API.External.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <Compile Include="API.cs" />
@@ -200,7 +201,7 @@
 )
 
 if $(ConfigurationName) == API (
-  xcopy "$(TargetDir)$(TargetFileName)" "C:\Users\rknapp\Documents\GitHub\ValheimMods\Libs\" /q /y /i
+  xcopy "$(TargetDir)$(TargetFileName)" "M:\Code\VapokModBase\References\AugaAPI\" /q /y /i
 ) else (
   xcopy "$(TargetDir)$(TargetFileName)" "C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(ProjectName)\" /q /y /i
   xcopy "$(TargetDir)$(TargetFileName).mdb" "C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(ProjectName)\" /q /y /i
