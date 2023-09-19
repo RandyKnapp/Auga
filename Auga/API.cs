@@ -2,6 +2,7 @@
 using System.Linq;
 using AugaUnity;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -799,7 +800,7 @@ namespace Auga
         // Custom Variant Panel
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
-        public static Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow)
+        public static TMP_Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow)
         {
             if (WorkbenchPanelController.instance == null)
             {

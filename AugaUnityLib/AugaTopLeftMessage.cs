@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ namespace AugaUnity
         public const float MoveSpeed = 4.0f;
         public const float Spacing = -4;
 
-        public Text MessageText;
+        public TMP_Text MessageText;
         public Image Icon;
 
         [NonSerialized]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,9 +9,9 @@ namespace AugaUnity
 {
     public class AugaCraftingPanel : MonoBehaviour
     {
-        public Text WorkbenchName;
+        public TMP_Text WorkbenchName;
         public Image WorkbenchIcon;
-        public Text WorkbenchLevel;
+        public TMP_Text WorkbenchLevel;
         public RectTransform WorkbenchLevelRoot;
         public Button RepairButton;
         public Image RepairGlow;
@@ -35,7 +36,7 @@ namespace AugaUnity
         public VariantDialog VariantDialog;
         public Button CustomVariantButton;
         public GameObject CustomVariantDialog;
-        public Text CustomVariantText;
+        public TMP_Text CustomVariantText;
         public Transform CraftProgressPanel;
         public Image CraftProgressBar;
         public GameObject ResultsPanelPrefab;
@@ -43,13 +44,13 @@ namespace AugaUnity
         [Header("MultiCraft Objects")]
         public Button PlusButton;
         public Button MinusButton;
-        public Text CraftAmountText;
+        public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
 
         [Header("Dummy Objects")]
         public Image DummyIcon;
-        public Text DummyName;
-        public Text DummyDescription;
+        public TMP_Text DummyName;
+        public TMP_Text DummyDescription;
         public Transform DummyRepairPanelSelection;
         public Button DummyCraftTabButton;
         public Button DummyUpgradeTabButton;
@@ -270,7 +271,7 @@ namespace AugaUnity
             _onShowCustomVariantDialog?.Invoke(CustomVariantDialog.gameObject.activeSelf);
         }
 
-        public virtual Text EnableCustomVariantDialog(string buttonLabel, Action<bool> onShow)
+        public virtual TMP_Text EnableCustomVariantDialog(string buttonLabel, Action<bool> onShow)
         {
             _onShowCustomVariantDialog = onShow;
 
