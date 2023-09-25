@@ -69,10 +69,10 @@ namespace Auga
 
             var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
             __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
-            __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<TMP_Text>();
-            __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
+            __instance.m_gpName = __instance.m_gpRoot.Find("GPName").GetComponent<TMP_Text>();
+            __instance.m_gpIcon = __instance.m_gpRoot.Find("GPIcon").GetComponent<Image>();
             __instance.m_gpIcon.material = originalGuardianPowerMaterial;
-            __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<TMP_Text>();
+            __instance.m_gpCooldown = __instance.m_gpRoot.Find("GPTimeText").GetComponent<TMP_Text>();
             
             __instance.m_gpRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 60, 70);
 

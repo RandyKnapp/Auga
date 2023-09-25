@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1667918306
+CRC: 872731839
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e51b5c429f652f5713fcb8953cacbd6a
+    Hash: 0d8a1525237d9f8366b8d65b44072e59
   TypeTreeHash:
     serializedVersion: 2
-    Hash: c26d41f270d58169548bd5cb88b153ae
+    Hash: 82a6cfb362e5c37eb3213a6c265d5bff
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -62,6 +62,8 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
 - Class: 114
   Script: {fileID: 943462877, guid: d920e4723ba2566674efb2f0c3eb6edb, type: 3}
@@ -73,8 +75,6 @@ ClassTypes:
   Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
-- Class: 114
-  Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 7a98125502f715b4b83cfb77b434e436, type: 3}
 - Class: 114
@@ -323,12 +323,6 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_FontWeightPair
 - AssemblyName: Unity.TextMeshPro
-  ClassName: TMPro.TMP_GlyphAdjustmentRecord
-- AssemblyName: Unity.TextMeshPro
-  ClassName: TMPro.TMP_GlyphPairAdjustmentRecord
-- AssemblyName: Unity.TextMeshPro
-  ClassName: TMPro.TMP_GlyphValueRecord
-- AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_InputField/OnChangeEvent
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_InputField/SelectionEvent
@@ -358,6 +352,12 @@ SerializeReferenceClassIdentifiers:
   ClassName: UnityEngine.TextCore.GlyphMetrics
 - AssemblyName: UnityEngine.TextCoreModule
   ClassName: UnityEngine.TextCore.GlyphRect
+- AssemblyName: UnityEngine.TextCoreModule
+  ClassName: UnityEngine.TextCore.LowLevel.GlyphAdjustmentRecord
+- AssemblyName: UnityEngine.TextCoreModule
+  ClassName: UnityEngine.TextCore.LowLevel.GlyphPairAdjustmentRecord
+- AssemblyName: UnityEngine.TextCoreModule
+  ClassName: UnityEngine.TextCore.LowLevel.GlyphValueRecord
 - AssemblyName: UnityEngine.UI
   ClassName: UnityEngine.EventSystems.EventTrigger/Entry
 - AssemblyName: UnityEngine.UI
