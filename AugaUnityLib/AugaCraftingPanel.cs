@@ -286,7 +286,7 @@ namespace AugaUnity
 
         public void SetCustomVariantButtonLabel(string buttonLabel)
         {
-            CustomVariantButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(buttonLabel);
+            CustomVariantButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize(buttonLabel);
         }
 
         public virtual void DisableCustomVariantDialog()

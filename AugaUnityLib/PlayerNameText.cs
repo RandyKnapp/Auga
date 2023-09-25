@@ -1,16 +1,17 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
 {
-    [RequireComponent(typeof(Text))]
+    [RequireComponent(typeof(TMP_Text))]
     public class PlayerNameText : MonoBehaviour
     {
-        private Text _text;
+        private TMP_Text _text;
 
         public virtual void Start()
         {
-            _text = GetComponent<Text>();
+            _text = GetComponent<TMP_Text>();
             if (_text != null)
             {
                 _text.text = Game.instance?.GetPlayerProfile()?.GetName() ?? "";
