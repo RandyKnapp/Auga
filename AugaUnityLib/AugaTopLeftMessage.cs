@@ -55,6 +55,12 @@ namespace AugaUnity
 
         protected virtual void RefreshText()
         {
+            if (MessageText == null)
+            {
+                Debug.LogWarning($"AugaTopLeftMessage MessageText can't be found.");
+                Debug.LogWarning($"Message: {Message}{(Amount > 0 ? $" x{Amount}" : "")}");
+                return;
+            }
             MessageText.text = $"{Message}{(Amount > 0 ? $" x{Amount}" : "")}";
         }
 

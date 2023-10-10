@@ -44,6 +44,8 @@ namespace Auga
                 __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
                 __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
                 __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
+                __instance.m_stackAllButton = containerInventory.Find("StackAll").GetComponent<ColorButtonText>();
+                __instance.m_stackAllButton.onClick.AddListener(__instance.OnStackAll);
                 
                 var oldCraftingPanel = __instance.transform.Find("root/Crafting");
                 var craftingPanelSiblingIndex = oldCraftingPanel.GetSiblingIndex();

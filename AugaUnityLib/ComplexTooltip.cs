@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 // ReSharper disable InconsistentNaming
@@ -103,8 +104,8 @@ namespace AugaUnity
         [CanBeNull] public Image DiamondBackground;
         [CanBeNull] public Image SkillBackground;
         [CanBeNull] public GameObject NormalDivider;
-        public Text Topic;
-        public Text Subtitle;
+        public TMP_Text Topic;
+        public TMP_Text Subtitle;
         [CanBeNull] public Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
         [CanBeNull] public Text ItemQuality;
