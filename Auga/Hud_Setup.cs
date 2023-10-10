@@ -373,8 +373,8 @@ namespace Auga
                     GameObject requirementItem = instance.m_requirementItems[piece.m_resources.Length];
                     requirementItem.SetActive(true);
                     Image component1 = requirementItem.transform.Find("res_icon").GetComponent<Image>();
-                    Text component2 = requirementItem.transform.Find("res_name").GetComponent<Text>();
-                    Text component3 = requirementItem.transform.Find("res_amount").GetComponent<Text>();
+                    TMP_Text component2 = requirementItem.transform.Find("res_name").GetComponent<TMP_Text>();
+                    TMP_Text component3 = requirementItem.transform.Find("res_amount").GetComponent<TMP_Text>();
                     UITooltip component4 = requirementItem.GetComponent<UITooltip>();
                     component1.sprite = piece.m_craftingStation.m_icon;
                     component2.text = Localization.instance.Localize(piece.m_craftingStation.m_name);
