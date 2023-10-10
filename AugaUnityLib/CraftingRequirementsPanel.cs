@@ -12,8 +12,8 @@ namespace AugaUnity
         [CanBeNull] public Image UpgradedIcon;
         [CanBeNull] public Image WorkbenchIcon;
         public TMP_Text WorkbenchLevel;
-        [CanBeNull] public Text OriginalQualityLevel;
-        [CanBeNull] public Text NewQualityLevel;
+        [CanBeNull] public TMP_Text OriginalQualityLevel;
+        [CanBeNull] public TMP_Text NewQualityLevel;
         public TMP_Text ItemCraftType;
         [CanBeNull] public UpgradeRequirementsWireFrame WireFrame;
 
