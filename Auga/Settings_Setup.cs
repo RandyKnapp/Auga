@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using AugaUnity;
 using HarmonyLib;
+using TMPro;
 using UnityEngine.UI;
 
 namespace Auga
@@ -75,7 +76,7 @@ namespace Auga
                 var keyButton = key.m_keyTransform.GetComponentInChildren<Button>();
                 if (keyButton != null)
                 {
-                    var textComponent = keyButton.GetComponentInChildren<Text>();
+                    var textComponent = keyButton.GetComponentInChildren<TMP_Text>();
                     if (textComponent != null)
                     {
                         textComponent.text = Localization.instance.GetBoundKeyString(key.m_keyName, true);
