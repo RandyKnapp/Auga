@@ -36,11 +36,11 @@ namespace AugaUnity
 
     public class TooltipTextBox : MonoBehaviour
     {
-        public Text Text;
-        public Text RightColumnText;
-        public Text ThirdColumnText;
+        public TMP_Text Text;
+        public TMP_Text RightColumnText;
+        public TMP_Text ThirdColumnText;
 
-        public virtual void AddLine(Text t, object s, bool localize = true, bool overwrite = false)
+        public virtual void AddLine(TMP_Text t, object s, bool localize = true, bool overwrite = false)
         {
             if (t == null)
             {
