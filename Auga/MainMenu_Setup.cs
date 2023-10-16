@@ -8,6 +8,7 @@ namespace Auga
     {
         public static bool Prefix(ScrollRectEnsureVisible __instance, RectTransform target)
         {
+            Debug.LogWarning($"Test ScrollVisible Prefix");
             Auga.LogWarning($"Test ScrollVisible Prefix");
             return false;
         }
