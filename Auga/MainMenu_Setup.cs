@@ -1,7 +1,18 @@
 ﻿using HarmonyLib;
+using UnityEngine;
 
 namespace Auga
 {
+    [HarmonyPatch(typeof(ScrollRectEnsureVisible), nameof(ScrollRectEnsureVisible.CenterOnItem))]
+    public static class ScrollRectEnsureVisible_Patch
+    {
+        public static bool Prefix(ScrollRectEnsureVisible __instance, RectTransform target)
+        {
+            Auga.LogWarning($"Test ScrollVisible Prefix");
+            return false;
+        }
+    }
+
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
     public static class FejdStartup_Awake_Patch
     {
