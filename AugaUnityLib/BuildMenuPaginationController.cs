@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -133,7 +134,7 @@ namespace AugaUnity
         {
             //need to translate startIndex (which is the real category id) to the idea of the visible list.
             var visibleObject = _visibleObjects.FirstOrDefault(x => x.Value.Key.Equals(categoryId));
-            CategoryTitle.text = visibleObject.Value.Value.transform.Find("Selected/Text").GetComponent<Text>().text;
+            CategoryTitle.text = visibleObject.Value.Value.transform.Find("Selected/Text").GetComponent<TMP_Text>().text;
             var startIndex = _visibleObjects.TakeWhile(categoryObject => !categoryObject.Key.Equals(visibleObject.Key)).Count();
 
             rightPageArrow.SetActive(true);
