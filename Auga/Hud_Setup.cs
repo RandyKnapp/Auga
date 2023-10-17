@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using AugaUnity;
+using BepInEx;
 using HarmonyLib;
 using JetBrains.Annotations;
 using TMPro;
@@ -17,10 +18,10 @@ namespace Auga
     public static class Hud_Setup
     {
         [HarmonyPatch(nameof(Hud.Awake))]
+        [HarmonyPriority(Priority.First)]
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
-
             var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
             
@@ -32,7 +33,6 @@ namespace Auga
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
             __instance.m_saveIconImage = __instance.m_saveIcon.GetComponent<Image>();
             __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
-
 
 
             var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
@@ -68,14 +68,15 @@ namespace Auga
 
 
             var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
+            
             __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
-            __instance.m_gpName = __instance.m_gpRoot.Find("GPName").GetComponent<TMP_Text>();
-            __instance.m_gpIcon = __instance.m_gpRoot.Find("GPIcon").GetComponent<Image>();
+            __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<TMP_Text>();
+            __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
             __instance.m_gpIcon.material = originalGuardianPowerMaterial;
             __instance.m_gpCooldown = __instance.m_gpRoot.Find("GPTimeText").GetComponent<TMP_Text>();
             
             __instance.m_gpRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 60, 70);
-
+            
             foreach (Transform child in __instance.m_healthPanel)
             {
                 Object.Destroy(child.gameObject);
