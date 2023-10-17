@@ -1,16 +1,22 @@
-﻿using HarmonyLib;
+﻿using AugaUnity;
+using HarmonyLib;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Auga
 {
-    [HarmonyPatch(typeof(ScrollRectEnsureVisible), nameof(ScrollRectEnsureVisible.CenterOnItem))]
-    public static class ScrollRectEnsureVisible_Patch
+
+    [HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.SnapTo))]
+    public static class SnapTo_Patch
     {
-        public static bool Prefix(ScrollRectEnsureVisible __instance, RectTransform target)
+        public static void Postfix(TextsDialog __instance, RectTransform listRoot, ScrollRect scrollRect)
         {
-            Debug.LogWarning($"Test ScrollVisible Prefix");
-            Auga.LogWarning($"Test ScrollVisible Prefix");
-            return false;
+            var augaTextComponent = __instance.GetComponent<AugaTextsDialogFilter>();
+            if (augaTextComponent == null)
+                return;
+
+            var newVector = new Vector2(0, listRoot.anchoredPosition.y);
+            listRoot.anchoredPosition = newVector;
         }
     }
 
