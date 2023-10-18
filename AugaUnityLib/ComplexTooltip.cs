@@ -106,9 +106,9 @@ namespace AugaUnity
         [CanBeNull] public GameObject NormalDivider;
         public TMP_Text Topic;
         public TMP_Text Subtitle;
-        [CanBeNull] public Text DescriptionText;
+        [CanBeNull] public TMP_Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
-        [CanBeNull] public Text ItemQuality;
+        [CanBeNull] public TMP_Text ItemQuality;
         public RectTransform TextBoxContainer;
         [CanBeNull] public RectTransform LowerTextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
