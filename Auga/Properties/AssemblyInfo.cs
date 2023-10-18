@@ -39,6 +39,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.4")]
 [assembly: AssemblyFileVersion("1.4")]
 #else
-[assembly: AssemblyVersion("1.2.18")]
-[assembly: AssemblyFileVersion("1.2.18")]
+[assembly: AssemblyVersion("1.3.0")]
+[assembly: AssemblyFileVersion("1.3.0")]
 #endif

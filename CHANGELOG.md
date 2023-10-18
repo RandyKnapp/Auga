@@ -1,3 +1,33 @@
+### 1.3.0 - Refactored for Valheim 0.217.24 Update
+* NEW COMPATIBILITY
+  * Passive Powers compatibility added to Auga
+* KNOWN ISSUES
+  * Compendium Weakness Updates Wrong **(pre-existing bug)**
+  * EpicLoot +Weapon Skills aren't represented in Auga Skills Window (actual increase still applies) **(pre-exisitng bug)**
+  * Mods that add Categories to Build Hud Cause Errors **(pre-existing bug - due to a change in JVL)**
+    * Low priority, disable Auga Build Menu (in config) or Use Sears Catalog until fixed.
+* NOT FIXING
+  * No Barber Station Auga UI (uses Vanilla UI)
+  * No Current Players Auga UI (uses Vanilla UI)
+* BUGS FIXED
+  * Console Crashing
+  * Fields Updated for TMP to allow loading
+  * Rune Text Animation Display Not Working
+  * Settings Errors out Hard
+  * Compendium Left Scroll Alignment issue
+  * Crafting Label Changes to "Label" when crafting
+  * EpicLoot Error when viewing Enchanting Table in Auga
+  * On Dedicated Servers, No Players Option (untested as to whether this will error)
+  * MessageHud Causes null reference exception when unlocking known texts.
+  * Auga's Build Menu updated, refactored, and working
+  * Adjust Text values on Two Buttons and 4 Labels in Settings
+  * Crafting Stats not Showing Up
+  * Reclaim N Recycle Title overlapping
+  * Trader Menu causing errors, not showing items.
+
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.2.17
 * Adding appropriate Dependency Checks to that Mod Detection actually works.
 * Fixing a logic error where it wasn't respecting the priority of Chatter and Sears Catalog correctly
@@ -10,9 +40,6 @@
 * Removed Blackbox from under Keybind in Hover Text's
 * Added Support for Comfy's Chatter Mod
 * Added Additional Support for Comfy's Sears Catalog
-
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.2.15
 * Hildir's Request 0.217.14 Update
