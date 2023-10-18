@@ -1,3 +1,6 @@
+### 1.3.1 - Refactored for Valheim 0.217.24 Update Part 2
+* Updating Sleep Text to TMP Text
+
 ### 1.3.0 - Refactored for Valheim 0.217.24 Update
 * NEW COMPATIBILITY
   * Passive Powers compatibility added to Auga
