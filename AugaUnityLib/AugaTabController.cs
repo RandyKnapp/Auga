@@ -38,6 +38,7 @@ namespace AugaUnity
             SelectedIndex = index;
             for (var tabIndex = 0; tabIndex < TabButtons.Count; tabIndex++)
             {
+                
                 var selected = tabIndex == SelectedIndex;
 
                 var tabTitle = tabIndex < TabTitles.Count ? TabTitles[tabIndex] : null;
