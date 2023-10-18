@@ -4,6 +4,7 @@
     * This is the second half to the change in EpicLoot to allow EpicLoot to send Skill Bonus information to the Auga UI.
 * BUG FIXES
   * Compendium Weakness Updates Wrong
+  * Vegetation Settings were stopping at MEDIUM. 
 
 ### 1.3.2 - Refactored for Valheim 0.217.24 Update Part 3
 * Updating Shop Buy Text Button
