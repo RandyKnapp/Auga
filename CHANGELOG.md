@@ -1,3 +1,7 @@
+### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
+* BUG FIXES
+  * Compendium Weakness Updates Wrong
+
 ### 1.3.2 - Refactored for Valheim 0.217.24 Update Part 3
 * Updating Shop Buy Text Button
 * Updating Text Input for Signs and Portals to Function
