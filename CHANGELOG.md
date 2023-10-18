@@ -1,4 +1,7 @@
 ### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
+* NEW FEATURES
+  * Adjusted Compatibility to re-enable SkillsDialog so that other mods can hook in to adjust skills as needed. 
+    * This is the second half to the change in EpicLoot to allow EpicLoot to send Skill Bonus information to the Auga UI.
 * BUG FIXES
   * Compendium Weakness Updates Wrong
 

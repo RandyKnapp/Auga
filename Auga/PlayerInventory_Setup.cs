@@ -55,7 +55,7 @@ namespace Auga
                 var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog");
                 __instance.m_variantDialog = variantDialog.GetComponent<VariantDialog>();
 
-                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog");
+                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/RightPanel/TabContent/TabContent_Skills");
                 __instance.m_skillsDialog = skillsDialog.GetComponent<SkillsDialog>();
                 var dummyContainer = new GameObject("DummyDialogs", typeof(RectTransform));
                 dummyContainer.transform.SetParent(skillsDialog.parent);

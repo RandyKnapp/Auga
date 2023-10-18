@@ -736,9 +736,19 @@ namespace AugaUnity
 
         public virtual void SetSkill(Skills.Skill skill)
         {
+            SetSkill(skill,null);
+        }
+        public virtual void SetSkill(Skills.Skill skill, UITooltip tooltip)
+        {
             if (_skill == skill)
                 return;
 
+            var extendedLevel = string.Empty;
+            if (tooltip != null)
+            {
+                extendedLevel = tooltip.m_topic;                
+            }
+            
             ClearData();
             _skill = skill;
             
@@ -751,7 +761,7 @@ namespace AugaUnity
 
             ClearTextBoxes();
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-            textBox.AddLine("$level", skill.m_level.ToString("0"));
+            textBox.AddLine("$level", $"{skill.m_level.ToString("0")}{extendedLevel}");
             textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
             textBox.AddLine("$to_next_level", Mathf.CeilToInt(skill.GetNextLevelRequirement()));
 
