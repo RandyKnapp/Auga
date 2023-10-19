@@ -1,10 +1,12 @@
 ### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
 * NEW FEATURES
+  * Added Auga UI for Barber Station
   * Adjusted Compatibility to re-enable SkillsDialog so that other mods can hook in to adjust skills as needed. 
     * This is the second half to the change in EpicLoot to allow EpicLoot to send Skill Bonus information to the Auga UI.
 * BUG FIXES
   * Compendium Weakness Updates Wrong
-  * Vegetation Settings were stopping at MEDIUM. 
+  * Vegetation Settings were stopping at MEDIUM
+  * Build Menu adjusted to ensure JVL does not complain
 
 ### 1.3.2 - Refactored for Valheim 0.217.24 Update Part 3
 * Updating Shop Buy Text Button
