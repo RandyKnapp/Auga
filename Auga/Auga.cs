@@ -30,6 +30,7 @@ namespace Auga
         public GameObject SettingsPrefab;
         public GameObject MessageHud;
         public GameObject TextInput;
+        public GameObject AugaBarber;
         public GameObject AugaChat;
         public GameObject DamageText;
         public GameObject EnemyHud;
@@ -375,6 +376,7 @@ namespace Auga
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
             Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
+            Assets.AugaBarber = assetBundle.LoadAsset<GameObject>("AugaBarber");
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
             Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
