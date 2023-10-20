@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,8 +12,8 @@ namespace AugaUnity
         public Image Icon;
         public Image CountdownBG;
         public Image CountdownImage;
-        [CanBeNull] public Text NameText;
-        public Text InfoText;
+        [CanBeNull] public TMP_Text NameText;
+        public TMP_Text InfoText;
 
         protected readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
         protected StatusTooltip _statusTooltip;

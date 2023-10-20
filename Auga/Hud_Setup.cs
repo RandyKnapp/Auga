@@ -24,11 +24,17 @@ namespace Auga
         {
             var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
-            
-            __instance.m_statusEffectListRoot = null;
-            __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
+
             var newStatusEffects = __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
-            newStatusEffects.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperRight, -40, -330);
+            var newTemplate = newStatusEffects.Find("StatusEffectsExt/SE_Template");
+            var newExternalRoot = newStatusEffects.Find("StatusEffectsExt");
+            var newInternalRoot = newStatusEffects.Find("StatusEffectsInt");
+            
+            newInternalRoot.gameObject.AddComponent<MovableHudElement>().Init("Status Effect List",TextAnchor.UpperRight, -40, 0);
+            newExternalRoot.gameObject.AddComponent<MovableHudElement>().Init("Abilities and Other Statuses",TextAnchor.UpperRight, -160, 0);
+            __instance.m_statusEffectTemplate = newTemplate.RectTransform();
+            __instance.m_statusEffectListRoot = newExternalRoot.RectTransform();
+            
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
             __instance.m_saveIconImage = __instance.m_saveIcon.GetComponent<Image>();
