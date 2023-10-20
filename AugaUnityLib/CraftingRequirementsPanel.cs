@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,10 +11,10 @@ namespace AugaUnity
         public Image Icon;
         [CanBeNull] public Image UpgradedIcon;
         [CanBeNull] public Image WorkbenchIcon;
-        public Text WorkbenchLevel;
-        [CanBeNull] public Text OriginalQualityLevel;
-        [CanBeNull] public Text NewQualityLevel;
-        public Text ItemCraftType;
+        public TMP_Text WorkbenchLevel;
+        [CanBeNull] public TMP_Text OriginalQualityLevel;
+        [CanBeNull] public TMP_Text NewQualityLevel;
+        public TMP_Text ItemCraftType;
         [CanBeNull] public UpgradeRequirementsWireFrame WireFrame;
 
         public void Activate(InventoryGui inventoryGui, ComplexTooltip itemInfo)

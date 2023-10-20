@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 // ReSharper disable InconsistentNaming
@@ -35,11 +36,11 @@ namespace AugaUnity
 
     public class TooltipTextBox : MonoBehaviour
     {
-        public Text Text;
-        public Text RightColumnText;
-        public Text ThirdColumnText;
+        public TMP_Text Text;
+        public TMP_Text RightColumnText;
+        public TMP_Text ThirdColumnText;
 
-        public virtual void AddLine(Text t, object s, bool localize = true, bool overwrite = false)
+        public virtual void AddLine(TMP_Text t, object s, bool localize = true, bool overwrite = false)
         {
             if (t == null)
             {
@@ -103,11 +104,11 @@ namespace AugaUnity
         [CanBeNull] public Image DiamondBackground;
         [CanBeNull] public Image SkillBackground;
         [CanBeNull] public GameObject NormalDivider;
-        public Text Topic;
-        public Text Subtitle;
-        [CanBeNull] public Text DescriptionText;
+        public TMP_Text Topic;
+        public TMP_Text Subtitle;
+        [CanBeNull] public TMP_Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
-        [CanBeNull] public Text ItemQuality;
+        [CanBeNull] public TMP_Text ItemQuality;
         public RectTransform TextBoxContainer;
         [CanBeNull] public RectTransform LowerTextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
@@ -735,9 +736,19 @@ namespace AugaUnity
 
         public virtual void SetSkill(Skills.Skill skill)
         {
+            SetSkill(skill,null);
+        }
+        public virtual void SetSkill(Skills.Skill skill, UITooltip tooltip)
+        {
             if (_skill == skill)
                 return;
 
+            var extendedLevel = string.Empty;
+            if (tooltip != null)
+            {
+                extendedLevel = tooltip.m_topic;                
+            }
+            
             ClearData();
             _skill = skill;
             
@@ -750,7 +761,7 @@ namespace AugaUnity
 
             ClearTextBoxes();
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-            textBox.AddLine("$level", skill.m_level.ToString("0"));
+            textBox.AddLine("$level", $"{skill.m_level.ToString("0")}{extendedLevel}");
             textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
             textBox.AddLine("$to_next_level", Mathf.CeilToInt(skill.GetNextLevelRequirement()));
 

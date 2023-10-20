@@ -30,6 +30,7 @@ namespace Auga
         public GameObject SettingsPrefab;
         public GameObject MessageHud;
         public GameObject TextInput;
+        public GameObject AugaBarber;
         public GameObject AugaChat;
         public GameObject DamageText;
         public GameObject EnemyHud;
@@ -77,11 +78,13 @@ namespace Auga
     [BepInPlugin(PluginID, "Project Auga", Version)]
     [BepInDependency("Menthus.bepinex.plugins.BetterTrader", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.chatter", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.searscatalog", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.15";
+        public const string Version = "1.3.4";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -157,8 +160,7 @@ namespace Auga
                     }
                 }
             }
-            
-            
+
             LoadDependencies();
             LoadTranslations();
             LoadConfig();
@@ -374,6 +376,7 @@ namespace Auga
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
             Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
+            Assets.AugaBarber = assetBundle.LoadAsset<GameObject>("AugaBarber");
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
             Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");

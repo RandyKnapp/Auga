@@ -1,3 +1,67 @@
+### 1.3.4 - Refactored for Valheim 0.217.24 Update Part 5
+* NEW FEATURES
+  * Refactored Auga to allow Vanilla Status effects to be added
+    * I have re-enabled the Status Effect Template and Status Effect Root
+      * Mods can now utilize these fields from the HUD.
+    * This has allowed Valheim Legends to be compatible and fully functional with Auga
+    * There is now a moveable window in Auga for Ability Buttons and Other Status effects in addition to the normal Status Effects List.
+      * Defaults Ability Buttons position to just to the left of the Minimal Statuses under the map.
+        * Will always stack vertically.
+  * Refactored Barber UI for a better look.
+  
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
+### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
+* NEW FEATURES
+  * Added Auga UI for Barber Station
+  * Adjusted Compatibility to re-enable SkillsDialog so that other mods can hook in to adjust skills as needed.
+    * This is the second half to the change in EpicLoot to allow EpicLoot to send Skill Bonus information to the Auga UI.
+* BUG FIXES
+  * Compendium Weakness Updates Wrong
+  * Vegetation Settings were stopping at MEDIUM
+  * Build Menu adjusted to ensure JVL does not complain
+
+### 1.3.2 - Refactored for Valheim 0.217.24 Update Part 3
+* Updating Shop Buy Text Button
+* Updating Text Input for Signs and Portals to Function
+* Updating a AugaTextsDialogeLore Error when in Compendium
+
+### 1.3.1 - Refactored for Valheim 0.217.24 Update Part 2
+* Updating Sleep Text to TMP Text
+
+### 1.3.0 - Refactored for Valheim 0.217.24 Update
+* NEW COMPATIBILITY
+  * Passive Powers compatibility added to Auga
+* KNOWN ISSUES
+  * Compendium Weakness Updates Wrong **(pre-existing bug)**
+  * EpicLoot +Weapon Skills aren't represented in Auga Skills Window (actual increase still applies) **(pre-exisitng bug)**
+  * Mods that add Categories to Build Hud Cause Errors **(pre-existing bug - due to a change in JVL)**
+    * Low priority, disable Auga Build Menu (in config) or Use Sears Catalog until fixed.
+* NOT FIXING
+  * No Barber Station Auga UI (uses Vanilla UI)
+  * No Current Players Auga UI (uses Vanilla UI)
+* BUGS FIXED
+  * Console Crashing
+  * Fields Updated for TMP to allow loading
+  * Rune Text Animation Display Not Working
+  * Settings Errors out Hard
+  * Compendium Left Scroll Alignment issue
+  * Crafting Label Changes to "Label" when crafting
+  * EpicLoot Error when viewing Enchanting Table in Auga
+  * On Dedicated Servers, No Players Option (untested as to whether this will error)
+  * MessageHud Causes null reference exception when unlocking known texts.
+  * Auga's Build Menu updated, refactored, and working
+  * Adjust Text values on Two Buttons and 4 Labels in Settings
+  * Crafting Stats not Showing Up
+  * Reclaim N Recycle Title overlapping
+  * Trader Menu causing errors, not showing items.
+
+### 1.2.17
+* Adding appropriate Dependency Checks to that Mod Detection actually works.
+* Fixing a logic error where it wasn't respecting the priority of Chatter and Sears Catalog correctly
+  * This will provide the priority.
+
 ### 1.2.16
 * Fixed Password Dialogue Box
 * Fixed Console Issue
@@ -5,6 +69,7 @@
 * Removed Blackbox from under Keybind in Hover Text's
 * Added Support for Comfy's Chatter Mod
 * Added Additional Support for Comfy's Sears Catalog
+
 ### 1.2.15
 * Hildir's Request 0.217.14 Update
 * Known Issue: The chat input box is in the middle of the box.  Minor issue. Not game breaking.
@@ -145,3 +210,5 @@
   * Fixed overlapping names and health bars for enemies when using CLLC
 ### 1.0.1
   * Valheim+ Compatibility
+
+</details>

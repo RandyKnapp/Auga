@@ -21,7 +21,7 @@ namespace AugaUnity
             _skillTooltip = GetComponent<SkillTooltip>();
         }
 
-        public virtual void Update()
+        public void UpdateSkill()
         {
             var player = Player.m_localPlayer;
             if (player == null)
@@ -40,6 +40,9 @@ namespace AugaUnity
                 ProgressBarLevel.fillAmount = Mathf.Lerp(StartFill, EndFill, skillData.m_level / 100f);
                 ProgressBarAccumulator.fillAmount = Mathf.Lerp(StartFill, EndFill, skillData.GetLevelPercentage());
             }
+
+            var uiToolTip = GetComponent<UITooltip>();
+            uiToolTip.m_text = _skillTooltip.Skill.m_info.m_description;
         }
 
         public virtual void SetActive(bool active)
@@ -47,7 +50,7 @@ namespace AugaUnity
             gameObject.SetActive(active);
             if (active)
             {
-                Update();
+                UpdateSkill();
             }
         }
     }

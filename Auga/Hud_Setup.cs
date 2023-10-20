@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using AugaUnity;
+using BepInEx;
 using HarmonyLib;
 using JetBrains.Annotations;
 using TMPro;
@@ -17,22 +18,27 @@ namespace Auga
     public static class Hud_Setup
     {
         [HarmonyPatch(nameof(Hud.Awake))]
+        [HarmonyPriority(Priority.First)]
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
-
             var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
-            
-            __instance.m_statusEffectListRoot = null;
-            __instance.m_statusEffectTemplate = new GameObject("DummyStatusEffectTemplate", typeof(RectTransform)).RectTransform();
+
             var newStatusEffects = __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);
-            newStatusEffects.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperRight, -40, -330);
+            var newTemplate = newStatusEffects.Find("StatusEffectsExt/SE_Template");
+            var newExternalRoot = newStatusEffects.Find("StatusEffectsExt");
+            var newInternalRoot = newStatusEffects.Find("StatusEffectsInt");
+            
+            newInternalRoot.gameObject.AddComponent<MovableHudElement>().Init("Status Effect List",TextAnchor.UpperRight, -40, 0);
+            newExternalRoot.gameObject.AddComponent<MovableHudElement>().Init("Abilities and Other Statuses",TextAnchor.UpperRight, -160, 0);
+            __instance.m_statusEffectTemplate = newTemplate.RectTransform();
+            __instance.m_statusEffectListRoot = newExternalRoot.RectTransform();
+            
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;
             __instance.m_saveIconImage = __instance.m_saveIcon.GetComponent<Image>();
             __instance.m_badConnectionIcon = __instance.Replace("hudroot/BadConnectionIcon", Auga.Assets.Hud).gameObject;
-
 
 
             var originalDreamTexts = __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts;
@@ -42,12 +48,12 @@ namespace Auga
             __instance.m_sleepingProgress = loadingScreen.Find("Sleeping").gameObject;
             __instance.m_teleportingProgress = loadingScreen.Find("Teleporting").gameObject;
             __instance.m_loadingImage = loadingScreen.Find("Loading/Image").GetComponent<Image>();
-            __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<Text>();
+            __instance.m_loadingTip = loadingScreen.Find("Loading/Tip").GetComponent<TMP_Text>();
             __instance.m_sleepingProgress.GetComponent<SleepText>().m_dreamTexts = originalDreamTexts;
 
             
             __instance.m_eventBar = __instance.Replace("hudroot/EventBar", Auga.Assets.Hud).gameObject;
-            __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<Text>();
+            __instance.m_eventName = __instance.m_eventBar.GetComponentInChildren<TMP_Text>();
             __instance.m_eventBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperCenter, 0, -90);
 
             __instance.m_damageScreen = __instance.Replace("hudroot/Damaged", Auga.Assets.Hud).GetComponent<Image>();
@@ -68,14 +74,15 @@ namespace Auga
 
 
             var originalGuardianPowerMaterial = __instance.m_gpIcon.material;
+            
             __instance.m_gpRoot = (RectTransform)__instance.Replace("hudroot/GuardianPower", Auga.Assets.Hud);
-            __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<Text>();
+            __instance.m_gpName = __instance.m_gpRoot.Find("Name").GetComponent<TMP_Text>();
             __instance.m_gpIcon = __instance.m_gpRoot.Find("Icon").GetComponent<Image>();
             __instance.m_gpIcon.material = originalGuardianPowerMaterial;
-            __instance.m_gpCooldown = __instance.m_gpRoot.Find("TimeText").GetComponent<Text>();
+            __instance.m_gpCooldown = __instance.m_gpRoot.Find("GPTimeText").GetComponent<TMP_Text>();
             
             __instance.m_gpRoot.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerLeft, 60, 70);
-
+            
             foreach (Transform child in __instance.m_healthPanel)
             {
                 Object.Destroy(child.gameObject);
@@ -120,7 +127,7 @@ namespace Auga
             __instance.m_eitrText = null;
 
             __instance.m_actionBarRoot = __instance.Replace("hudroot/action_progress", Auga.Assets.Hud).gameObject;
-            __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<Text>();
+            __instance.m_actionName = __instance.m_actionBarRoot.GetComponentInChildren<TMP_Text>();
             __instance.m_actionProgress = __instance.m_actionBarRoot.GetComponent<GuiBar>();
             __instance.m_actionBarRoot.gameObject.AddComponent<MovableHudElement>().Init("ActionProgress", TextAnchor.LowerCenter, 0, 226);
 
@@ -165,8 +172,8 @@ namespace Auga
                 __instance.m_pieceSelectionWindow.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, 0);
 
                 var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
-                __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<Text>();
-                __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<Text>();
+                __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<TMP_Text>();
+                __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<TMP_Text>();
                 __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
                 selectedPiece.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 15);
 
@@ -373,8 +380,8 @@ namespace Auga
                     GameObject requirementItem = instance.m_requirementItems[piece.m_resources.Length];
                     requirementItem.SetActive(true);
                     Image component1 = requirementItem.transform.Find("res_icon").GetComponent<Image>();
-                    Text component2 = requirementItem.transform.Find("res_name").GetComponent<Text>();
-                    Text component3 = requirementItem.transform.Find("res_amount").GetComponent<Text>();
+                    TMP_Text component2 = requirementItem.transform.Find("res_name").GetComponent<TMP_Text>();
+                    TMP_Text component3 = requirementItem.transform.Find("res_amount").GetComponent<TMP_Text>();
                     UITooltip component4 = requirementItem.GetComponent<UITooltip>();
                     component1.sprite = piece.m_craftingStation.m_icon;
                     component2.text = Localization.instance.Localize(piece.m_craftingStation.m_name);
@@ -617,7 +624,10 @@ namespace Auga
     {
         public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
             
             var buildPieces = player.GetBuildPieces();
@@ -691,7 +701,10 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
 
             return Input.GetAxis("Mouse ScrollWheel") == 0;
@@ -720,7 +733,10 @@ namespace Auga
     {
         public static bool Prefix(ref PieceTable __instance)
         {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
+            if (Auga.HasSearsCatalog)
+                return true;
+
+            if (!Auga.BuildMenuShow.Value )
                 return true;
             
             return Input.GetAxis("Mouse ScrollWheel") == 0;

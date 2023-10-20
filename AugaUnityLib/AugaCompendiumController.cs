@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -201,7 +202,7 @@ namespace AugaUnity
                     listItem.SetActive(true);
                     var t = listItem.transform;
                     var creatureName = Localization.instance.Localize(humanoidPrefab.m_name);
-                    t.Find("name").GetComponent<Text>().text = creatureName;
+                    t.Find("name").GetComponent<TMP_Text>().text = creatureName;
                     t.Find("icon").GetComponent<Image>().sprite = trophyItem.m_itemData.GetIcon();
                     tempList.Add(new Tuple<int, string, GameObject>(position, trophyName, listItem));
                 }
