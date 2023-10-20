@@ -1,7 +1,21 @@
+### 1.3.4 - Refactored for Valheim 0.217.24 Update Part 5
+* NEW FEATURES
+  * Refactored Auga to allow Vanilla Status effects to be added
+    * I have re-enabled the Status Effect Template and Status Effect Root
+      * Mods can now utilize these fields from the HUD.
+    * This has allowed Valheim Legends to be compatible and fully functional with Auga
+    * There is now a moveable window in Auga for Ability Buttons and Other Status effects in addition to the normal Status Effects List.
+      * Defaults Ability Buttons position to just to the left of the Minimal Statuses under the map.
+        * Will always stack vertically.
+  * Refactored Barber UI for a better look.
+  
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
 * NEW FEATURES
   * Added Auga UI for Barber Station
-  * Adjusted Compatibility to re-enable SkillsDialog so that other mods can hook in to adjust skills as needed. 
+  * Adjusted Compatibility to re-enable SkillsDialog so that other mods can hook in to adjust skills as needed.
     * This is the second half to the change in EpicLoot to allow EpicLoot to send Skill Bonus information to the Auga UI.
 * BUG FIXES
   * Compendium Weakness Updates Wrong
@@ -42,9 +56,6 @@
   * Crafting Stats not Showing Up
   * Reclaim N Recycle Title overlapping
   * Trader Menu causing errors, not showing items.
-
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.2.17
 * Adding appropriate Dependency Checks to that Mod Detection actually works.
