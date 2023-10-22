@@ -10,8 +10,8 @@ namespace AugaUnity
 
     public class BuildMenuPaginationController : MonoBehaviour
     {
-        public GameObject leftPageArrow;
-        public GameObject rightPageArrow;
+        public Button leftPageArrow;
+        public Button rightPageArrow;
         public GameObject buildMenu;
         public Text CategoryTitle;
         public HorizontalLayoutGroup TabLayoutGroup;
@@ -30,10 +30,6 @@ namespace AugaUnity
         private int _visibleObjectCount = 0;
         private void Awake()
         {
-            var leftButton = leftPageArrow.GetComponent<Button>();
-            leftButton.onClick.AddListener(OnLeftPageClick);
-            var rightButton = rightPageArrow.GetComponent<Button>();
-            rightButton.onClick.AddListener(OnRightPageClick);
             _player = null;
         }
 
@@ -101,8 +97,8 @@ namespace AugaUnity
 
         private void HidePagination()
         {
-            leftPageArrow.SetActive(false);
-            rightPageArrow.SetActive(false);
+            leftPageArrow.gameObject.SetActive(false);
+            rightPageArrow.gameObject.SetActive(false);
         }
 
         private void RefreshVisibleObjects()
@@ -137,8 +133,8 @@ namespace AugaUnity
             CategoryTitle.text = visibleObject.Value.Value.transform.Find("Selected/Text").GetComponent<TMP_Text>().text;
             var startIndex = _visibleObjects.TakeWhile(categoryObject => !categoryObject.Key.Equals(visibleObject.Key)).Count();
 
-            rightPageArrow.SetActive(true);
-            leftPageArrow.SetActive(true);
+            rightPageArrow.gameObject.SetActive(true);
+            leftPageArrow.gameObject.SetActive(true);
             
             if (!(startIndex >= currentMinVisible && startIndex <= currentMaxVisible) || startIndex == 0 ||
                 startIndex == _visibleObjectCount - 1)
@@ -157,7 +153,7 @@ namespace AugaUnity
 
                 if (currentMinVisible < 0 || startIndex == 0)
                 {
-                    leftPageArrow.SetActive(false);
+                    leftPageArrow.gameObject.SetActive(false);
                     currentMinVisible = 0;
                     currentMaxVisible = ( _visibleObjectCount < maximumVisibleTabs ? _visibleObjectCount -1 : maximumVisibleTabs - 1);
                 }
@@ -165,7 +161,7 @@ namespace AugaUnity
                 if (currentMaxVisible > _visibleObjectCount - 1 ||
                     startIndex == _visibleObjectCount - 1)
                 {
-                    rightPageArrow.SetActive(false);
+                    rightPageArrow.gameObject.SetActive(false);
                     currentMaxVisible = _visibleObjectCount - 1;
                     currentMinVisible = currentMaxVisible - ( _visibleObjectCount < maximumVisibleTabs ? _visibleObjectCount -1 : maximumVisibleTabs - 1);
                 }

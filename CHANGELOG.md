@@ -1,6 +1,8 @@
 ### 1.3.5 - Refactored for Valheim 0.217.24 Update Part 6
 * BUG FIXES
   * Fixed a repeating error on Death in the BarberController.
+  * Fixed an issue where text could overlap in upgrade menu
+  * Fixing Build Menu Categories with JVL and Hammer Tooling
   
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
