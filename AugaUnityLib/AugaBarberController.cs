@@ -5,16 +5,19 @@ namespace AugaUnity
 {
     public class AugaBarberController : MonoBehaviour
     {
+        public static AugaBarberController Instance => _instance;
         public Button HairRightButton;
         public Button HairLeftButton;
         public Button BeardRightButton;
         public Button BeardLeftButton;
 
         private bool _playerFound;
+        private static AugaBarberController _instance = null;
         
         private PlayerCustomizaton _playerCustomizaton;
         private void Awake()
         {
+            _instance = this;
             _playerCustomizaton = GetComponent<PlayerCustomizaton>();
         }
 
@@ -59,6 +62,11 @@ namespace AugaUnity
                 BeardLeftButton.gameObject.SetActive(true);
                 BeardRightButton.gameObject.SetActive(true);
             }
+        }
+
+        public void ResetLocalPlayer()
+        {
+            _playerFound = false;
         }
     }
 }

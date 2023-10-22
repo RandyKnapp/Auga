@@ -1,3 +1,10 @@
+### 1.3.5 - Refactored for Valheim 0.217.24 Update Part 6
+* BUG FIXES
+  * Fixed a repeating error on Death in the BarberController.
+  
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.4 - Refactored for Valheim 0.217.24 Update Part 5
 * NEW FEATURES
   * Refactored Auga to allow Vanilla Status effects to be added
@@ -8,9 +15,6 @@
       * Defaults Ability Buttons position to just to the left of the Minimal Statuses under the map.
         * Will always stack vertically.
   * Refactored Barber UI for a better look.
-  
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.3.3 - Refactored for Valheim 0.217.24 Update Part 4
 * NEW FEATURES
