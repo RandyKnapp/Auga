@@ -1,6 +1,6 @@
 ### 1.3.5 - Refactored for Valheim 0.217.24 Update Part 6
 * NEW FEATURES
-  * Chatter UI Immersion
+  * Comfy's Chatter UI Immersion
     * Chatter Buttons Now Show as Auga Buttons
     * Status Effects Auto-Hide to prevent overlapping of Chat Box when chatting.
 * BUG FIXES
