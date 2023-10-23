@@ -1,3 +1,13 @@
+### 1.3.6 - Refactored for Valheim 0.217.24 Update Part 6
+* NEW FEATURES
+  * Adding the Darken Background back to provide the shadowing
+    * This also addresses mods that were keying off of the Darken gameobject for backwards compatibility.
+* BUG FIXES
+  * 
+  
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.5 - Refactored for Valheim 0.217.24 Update Part 6
 * NEW FEATURES
   * Comfy's Chatter UI Immersion
@@ -9,9 +19,8 @@
   * Fixed a repeating error on Death in the BarberController.
   * Fixed an issue where text could overlap in upgrade menu
   * Fixing Build Menu Categories with JVL and Hammer Tooling
-  
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
+
 
 ### 1.3.4 - Refactored for Valheim 0.217.24 Update Part 5
 * NEW FEATURES

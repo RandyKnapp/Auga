@@ -146,6 +146,13 @@ namespace Auga
             var augaBuildHud = Object.Instantiate(Auga.Assets.BuildHud, dummy.transform);
             var augaText = augaBuildHud.transform.Find("DividerLarge/TabContainer/Tabs/Misc").gameObject;
             var augaSelectedText = augaText.transform.Find("Selected/Text").gameObject;
+            
+            var darken = new GameObject("Darken", new[] { typeof(RectTransform) });
+            darken.transform.SetParent(__instance.m_pieceSelectionWindow.transform);
+            darken.transform.SetAsFirstSibling();
+
+            __instance.m_pieceSelectionWindow.transform.Replace("Darken", Auga.Assets.BuildHud);
+            
             var bkg2 = __instance.m_pieceSelectionWindow.transform.Replace("Bkg2",Auga.Assets.BuildHud, "Bkg2").gameObject;
             var tabBorder = __instance.m_pieceSelectionWindow.transform.Find("Categories/TabBorder").gameObject;
             tabBorder.gameObject.SetActive(false);
