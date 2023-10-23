@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using AugaUnity;
 using JetBrains.Annotations;
 using TMPro;
@@ -43,6 +44,11 @@ namespace Auga
         public static GameObject Panel_Create(Transform parent, Vector2 size, string name, bool withCornerDecoration)
         {
             var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
+            if (Auga.Assets.PanelBase == null)
+            {
+                Auga.LogError($"Auga.Assets.PanelBase is null");
+                Thread.Sleep(25000);
+            }
             panel.name = name;
             if (!withCornerDecoration)
             {

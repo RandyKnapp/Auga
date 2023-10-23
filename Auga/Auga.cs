@@ -85,6 +85,7 @@ namespace Auga
     [BepInDependency("redseiko.valheim.chatter", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("redseiko.valheim.searscatalog", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("org.bepinex.plugins.jewelcrafting", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
@@ -125,6 +126,7 @@ namespace Auga
         public static bool HasSimpleRecycling;
         public static bool HasChatter;
         public static bool HasSearsCatalog;
+        public static bool HasJewelcrafting;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -143,11 +145,11 @@ namespace Auga
                 if (revision > 0)
                 {
                     Debug.LogWarning($"==============================================================================");
-                    Debug.LogWarning($"You are using a PTB version of this mod. It will not work in live.");
+                    Debug.LogWarning($"You are using a PTB version of this mod. It will not work in prior versions.");
                     Debug.LogWarning($"Project Auga - Version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Debug.LogWarning($"Valheim - Version {(global::Version.GetVersionString())}");
 
-                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 5 ) || global::Version.CurrentVersion.m_minor > 217)
+                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 27 ) || global::Version.CurrentVersion.m_minor > 217)
                     {
                         Debug.LogWarning($"GAME VERSION CHECK - PASSED");
                         Debug.LogWarning($"==============================================================================");
@@ -176,6 +178,7 @@ namespace Auga
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
             HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
             HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
+            HasJewelcrafting = Chainloader.PluginInfos.TryGetValue("org.bepinex.plugins.jewelcrafting", out var jewelcraftingPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -208,6 +211,35 @@ namespace Auga
                 {
                     _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(SearsCatalog), nameof(SearsCatalog.AwakePostfix_Patch)));
                 }
+            }
+            
+            if (HasJewelcrafting)
+            {
+                Auga.LogWarning($"HasJewelcrafting");
+                
+                Jewelcrafting.ModAssembly = Assembly.LoadFile(jewelcraftingPlugin.Location);
+                Auga.LogWarning($"Jewelcrafting.ModAssembly ==  null: {Jewelcrafting.ModAssembly ==  null}");
+                
+                Jewelcrafting.Synergy = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.Synergy");
+
+                Jewelcrafting.AddSynergyIcon = Jewelcrafting.Synergy.GetNestedType("AddSynergyIcon");
+                Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
+                Auga.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                
+                var awakeMethod = AccessTools.Method(Jewelcrafting.DisplaySynergyView, "Awake");
+                var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
+                
+                Debug.LogWarning($"awakeMethod ==  null: {awakeMethod ==  null}");
+                Debug.LogError($"awakePostfixMethod ==  null: {awakePostfixMethod ==  null}");
+                
+                Thread.Sleep(15000);
+
+                if (Jewelcrafting.DisplaySynergyView != null)
+                {
+                    _harmony.Patch(awakeMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.DisplaySynergyView_Awake_Transpiler)));
+                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.IvnentoryGui_Awake_Postfix)));
+                }
+                Thread.Sleep(5000);
             }
             
             if (HasMultiCraft)
