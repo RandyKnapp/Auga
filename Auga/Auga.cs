@@ -59,6 +59,7 @@ namespace Auga
         public GameObject DividerLarge;
         public GameObject ConfirmDialog;
         public Sprite RecyclingPanelIcon;
+        public GameObject BuildHud;
 
         public GameObject LeftWristMountUI;
     }
@@ -114,7 +115,6 @@ namespace Auga
         public static ConfigEntry<StatBarTextPosition> EitrBarTextPosition;
         public static ConfigEntry<bool> EitrBarShowTicks;
         
-        public static ConfigEntry<bool> BuildMenuShow;
         public static ConfigEntry<bool> AugaChatShow;
 
         public static readonly AugaAssets Assets = new AugaAssets();
@@ -175,7 +175,7 @@ namespace Auga
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
             HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
-            HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
+            HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -194,6 +194,19 @@ namespace Auga
                     _harmony.Patch(createChildCellMethod, new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildCell_Patch)));
                     _harmony.Patch(createChildLabelMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildLabel_Transpiler)));
                     _harmony.Patch(onToggleValueChangedMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.OnToggleValueChanged_Transpiler)));
+                }
+            }
+            
+            if (HasSearsCatalog)
+            {
+                SearsCatalog.SearsCatalogType = Assembly.LoadFile(searsPlugin.Location);
+                SearsCatalog.HudPatch = SearsCatalog.SearsCatalogType.GetType("SearsCatalog.HudPatch");
+                
+                var awakePostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
+
+                if (SearsCatalog.HudPatch != null)
+                {
+                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(SearsCatalog), nameof(SearsCatalog.AwakePostfix_Patch)));
                 }
             }
             
@@ -378,7 +391,6 @@ namespace Auga
             EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
             EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
             
-            BuildMenuShow = Config.Bind("BuildMenu", "Use Auga Build Menu (Requires Restart)", true, "If false, disables the Auga Build Menu display");
             AugaChatShow = Config.Bind("AugaChat", "Show Auga Chat. Disable to use other mods. (Requires Restart)", true, "If false, disables the Auga Chat window display");
         }
 
@@ -424,6 +436,7 @@ namespace Auga
             Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
             Assets.RecyclingPanelIcon = assetBundle.LoadAsset<Sprite>("RecyclingPanel");
             Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
+            Assets.BuildHud = assetBundle.LoadAsset<GameObject>("BuildHud");
         }
 
         private static void ApplyCursor()

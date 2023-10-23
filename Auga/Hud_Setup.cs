@@ -7,6 +7,7 @@ using AugaUnity;
 using BepInEx;
 using HarmonyLib;
 using JetBrains.Annotations;
+using JoshH.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -136,57 +137,56 @@ namespace Auga
             __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
             newStaggerPanel.gameObject.AddComponent<MovableHudElement>().Init("StaggerPanel", TextAnchor.LowerCenter, 0, 151);
 
-            if (Auga.BuildMenuShow.Value && !Auga.HasSearsCatalog)
+            //Let's play here to see about changing the default Build HUD in a different way.
+            var buildHud = __instance.m_buildHud;
+            var dummy = new GameObject("dummyBuildHud", new[] { typeof(RectTransform) });
+            dummy.transform.SetParent(buildHud.transform);
+            dummy.SetActive(false);
+            
+            var augaBuildHud = Object.Instantiate(Auga.Assets.BuildHud, dummy.transform);
+            var augaText = augaBuildHud.transform.Find("DividerLarge/TabContainer/Tabs/Misc").gameObject;
+            var augaSelectedText = augaText.transform.Find("Selected/Text").gameObject;
+            var bkg2 = __instance.m_pieceSelectionWindow.transform.Replace("Bkg2",Auga.Assets.BuildHud, "Bkg2").gameObject;
+            var tabBorder = __instance.m_pieceSelectionWindow.transform.Find("Categories/TabBorder").gameObject;
+            tabBorder.gameObject.SetActive(false);
+            var categories = __instance.m_pieceSelectionWindow.transform.Find("Categories");
+
+            for (int i = 0; i < categories.childCount; i++)
             {
-                // Setup the icon material to grayscale the piece icons
-                var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
-                Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
-
-                __instance.m_buildHud = __instance.Replace("hudroot/BuildHud", Auga.Assets.Hud).gameObject;
-                var tabController = __instance.m_buildHud.GetComponent<BuildMenuPaginationController>();
-                tabController.hud = __instance;
-                tabController.buildMenu = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
+                var child = categories.GetChild(i);
+                if (!child.gameObject.TryGetComponent<Button>(out var button))
+                    continue;
+                var childName = child.name;
+                var textField = child.Find("Text").GetComponent<TMP_Text>();
+                var selectedField = child.Find("Selected").gameObject;
+                var selectedTextField = selectedField.transform.Find("Text").GetComponent<TMP_Text>();
                 
-                var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/TabContainer/Tabs");
-                __instance.m_pieceCategoryTabs = new[] {
-                    tabContainer.Find("Misc").gameObject,
-                    tabContainer.Find("Crafting").gameObject,
-                    tabContainer.Find("Building").gameObject,
-                    tabContainer.Find("Furniture").gameObject,
-                };
-                Localization.instance.Localize(tabContainer);
+                var augaTextComponent = augaText.GetComponent<TMP_Text>();
+                textField.color = augaTextComponent.color;
+                textField.font = augaTextComponent.font;
+                textField.fontStyle = augaTextComponent.fontStyle;
+                textField.fontSize = augaTextComponent.fontSize;
+                textField.material = augaTextComponent.material;
 
-                for (var index = 0; index < __instance.m_pieceCategoryTabs.Length; index++)
-                {
-                    var categoryTab = __instance.m_pieceCategoryTabs[index];
-                    var i = index;
-                    categoryTab.GetComponent<Button>().onClick.AddListener(() => SetBuildCategory(i));
-                }
+                var augaSelectedTextComponent = augaSelectedText.GetComponent<TMP_Text>();
+                selectedTextField.color = augaSelectedTextComponent.color;
+                selectedTextField.font = augaSelectedTextComponent.font;
+                selectedTextField.fontStyle = augaSelectedTextComponent.fontStyle;
+                selectedTextField.fontSize = augaSelectedTextComponent.fontSize;
+                selectedTextField.material = augaSelectedTextComponent.material;
 
-                __instance.m_pieceSelectionWindow = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
-                __instance.m_pieceCategoryRoot = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/TabContainer/Tabs").gameObject;
-                __instance.m_pieceListRoot = (RectTransform)__instance.m_buildHud.transform.Find("BuildHud/PieceList/Root");
-                __instance.m_pieceListMask = null;
-                __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
-                __instance.m_closePieceSelectionButton = __instance.m_buildHud.transform.Find("CloseButton").GetComponent<UIInputHandler>();
-                __instance.m_pieceSelectionWindow.AddComponent<MovableHudElement>().Init(TextAnchor.MiddleCenter, 0, 0);
+                var image = selectedField.GetComponent<Image>();
+                image.color = new Color(image.color.r, image.color.g, image.color.b, 0.0f);
 
-                var selectedPiece = __instance.m_buildHud.transform.Find("SelectedPiece");
-                __instance.m_buildSelection = selectedPiece.Find("Name").GetComponent<TMP_Text>();
-                __instance.m_pieceDescription = selectedPiece.Find("Info").GetComponent<TMP_Text>();
-                __instance.m_buildIcon = selectedPiece.Find("Darken/IconBG/PieceIcon").GetComponent<Image>();
-                selectedPiece.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerCenter, 0, 15);
-
-                var requirements = selectedPiece.Find("Requirements");
-                __instance.m_requirementItems = new [] {
-                    requirements.GetChild(0).gameObject,
-                    requirements.GetChild(1).gameObject,
-                    requirements.GetChild(2).gameObject,
-                    requirements.GetChild(3).gameObject,
-                    requirements.GetChild(4).gameObject,
-                    requirements.GetChild(5).gameObject,
-                };
             }
+            
+            var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
+            Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
+            __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
+
+            var pieceRoot = __instance.m_pieceSelectionWindow.transform.Find("PieceList/Root").gameObject;
+            pieceRoot.RectTransform().localPosition = new Vector3(pieceRoot.RectTransform().localPosition.x+3, pieceRoot.RectTransform().localPosition.y-3, pieceRoot.RectTransform().localPosition.z);
+            __instance.m_pieceListRoot = pieceRoot.RectTransform();
             
             var keyHints = __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
             keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
@@ -616,152 +616,5 @@ namespace Auga
                 }
             }
         }
-    }
-
-    //UpdatePieceList
-    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdatePieceList))]
-    public static class Hud_UpdatePieceList_Patch
-    {
-        public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
-        {
-            if (Auga.HasSearsCatalog)
-                return true;
-
-            if (!Auga.BuildMenuShow.Value )
-                return true;
-            
-            var buildPieces = player.GetBuildPieces();
-            var pieceIcons = __instance.m_pieceIcons;
-            var selectedIndex = selectedNr.x + selectedNr.y * 13;
-            selectedNr.x = selectedIndex % 10;
-            selectedNr.y = selectedIndex / 10;
-
-            var i = 0;
-            for (; i < buildPieces.Count; ++i)
-            {
-                if (i >= pieceIcons.Count)
-                {
-                    // Create icon
-                    var icon = Object.Instantiate(__instance.m_pieceIconPrefab, __instance.m_pieceListRoot);
-                    var pieceIconData = new Hud.PieceIconData();
-                    pieceIconData.m_go = icon;
-                    pieceIconData.m_tooltip = icon.GetComponent<UITooltip>();
-                    pieceIconData.m_icon = icon.transform.Find("icon").GetComponent<Image>();
-                    pieceIconData.m_marker = icon.transform.Find("selected").gameObject;
-                    pieceIconData.m_upgrade = icon.transform.Find("upgrade").gameObject;
-                    pieceIconData.m_icon.color = new Color(1f, 0.0f, 1f, 0.0f);
-                    var component = icon.GetComponent<UIInputHandler>();
-                    component.m_onLeftDown += __instance.OnLeftClickPiece;
-                    component.m_onRightDown += __instance.OnRightClickPiece;
-                    component.m_onPointerEnter += __instance.OnHoverPiece;
-                    component.m_onPointerExit += __instance.OnHoverPieceExit;
-                    pieceIcons.Add(pieceIconData);
-                }
-
-                // Update icon
-                var pieceIcon = pieceIcons[i];
-                pieceIcon.m_marker.SetActive(i == selectedIndex);
-
-                var piece = buildPieces[i];
-                pieceIcon.m_icon.sprite = piece.m_icon;
-                pieceIcon.m_icon.enabled = true;
-                pieceIcon.m_tooltip.m_text = piece.m_name;
-                pieceIcon.m_upgrade.SetActive(piece.m_isUpgrade);
-            }
-
-            for (; i < pieceIcons.Count; ++i)
-            {
-                Object.Destroy(pieceIcons[i].m_go);
-                pieceIcons[i] = null;
-            }
-
-            pieceIcons.RemoveAll(x => x == null);
-
-            __instance.UpdatePieceBuildStatus(buildPieces, player);
-            if (updateAllBuildStatuses)
-            {
-                __instance.UpdatePieceBuildStatusAll(buildPieces, player);
-            }
-
-            if (__instance.m_lastPieceCategory == category)
-            {
-                return false;
-            }
-
-            __instance.m_lastPieceCategory = category;
-            __instance.m_pieceBarPosX = __instance.m_pieceBarTargetPosX;
-            __instance.UpdatePieceBuildStatusAll(buildPieces, player);
-
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.PrevCategory))]
-    public static class PieceTable_PrevCategory_Patch
-    {
-        public static bool Prefix(ref PieceTable __instance)
-        {
-            if (Auga.HasSearsCatalog)
-                return true;
-
-            if (!Auga.BuildMenuShow.Value )
-                return true;
-
-            return Input.GetAxis("Mouse ScrollWheel") == 0;
-        }
-
-        /*public static void Postfix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value)
-                return;
-
-            var player = Player.m_localPlayer;
-            var selectedCategory = player.m_buildPieces.m_selectedCategory;
-            if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
-                selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
-                selectedCategory.Equals(Piece.PieceCategory.Building) ||
-                selectedCategory.Equals(Piece.PieceCategory.Furniture))
-            {
-                if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
-                    player.m_buildPieces.PrevCategory();
-            }
-        }*/
-    }
-
-    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory))]
-    public static class PieceTable_NextCategory_Patch
-    {
-        public static bool Prefix(ref PieceTable __instance)
-        {
-            if (Auga.HasSearsCatalog)
-                return true;
-
-            if (!Auga.BuildMenuShow.Value )
-                return true;
-            
-            return Input.GetAxis("Mouse ScrollWheel") == 0;
-        }
-
-        /*
-        public static void Postfix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value)
-                return;
-
-            var player = Player.m_localPlayer;
-            if (player != null)
-            {
-                var selectedCategory = player.m_buildPieces.m_selectedCategory;
-                if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Building) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Furniture))
-                {
-                    if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
-                        player.m_buildPieces.NextCategory();
-                }
-            }
-        }
-    */
     }
 }

@@ -3,6 +3,8 @@
   * Comfy's Chatter UI Immersion
     * Chatter Buttons Now Show as Auga Buttons
     * Status Effects Auto-Hide to prevent overlapping of Chat Box when chatting.
+  * Completely Rebuilt Auga Build Menu
+    * Applies Auga theme to Sears Catalog
 * BUG FIXES
   * Fixed a repeating error on Death in the BarberController.
   * Fixed an issue where text could overlap in upgrade menu
