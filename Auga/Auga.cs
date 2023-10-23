@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using Auga.Compat;
 using AugaUnity;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -14,6 +15,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Auga
 {
@@ -43,6 +45,7 @@ namespace Auga
         public GameObject ButtonSmall;
         public GameObject ButtonMedium;
         public GameObject ButtonFancy;
+        public GameObject ButtonToggle;
         public GameObject ButtonSettings;
         public GameObject DiamondButton;
         public Font SourceSansProBold;
@@ -171,12 +174,28 @@ namespace Auga
             HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
-            HasChatter = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.chatter");
+            HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
             HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
             // Patch MultiCraft_UI.CreateSpaceFromCraftButton
+
+            if (HasChatter)
+            {
+                Chatter.ChatterType = Assembly.LoadFile(chatterPlugin.Location);
+                Chatter.ToggleCell = Chatter.ChatterType.GetType("Chatter.ToggleCell");
+                var createChildCellMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildCell");
+                var createChildLabelMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildLabel");
+                var onToggleValueChangedMethod = AccessTools.Method(Chatter.ToggleCell, "OnToggleValueChanged");
+
+                if (Chatter.ToggleCell != null)
+                {
+                    _harmony.Patch(createChildCellMethod, new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildCell_Patch)));
+                    _harmony.Patch(createChildLabelMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildLabel_Transpiler)));
+                    _harmony.Patch(onToggleValueChangedMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.OnToggleValueChanged_Transpiler)));
+                }
+            }
             
             if (HasMultiCraft)
             {
@@ -213,6 +232,7 @@ namespace Auga
                     _harmony.Patch(inRecycleTabMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_InRecycleTab_Patch)));
             }
         }
+
 
         public static bool MultiCraft_UI_CreateSpaceFromCraftButton_Patch(InventoryGui instance)
         {
@@ -389,6 +409,7 @@ namespace Auga
             Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
             Assets.ButtonFancy = assetBundle.LoadAsset<GameObject>("ButtonFancy");
+            Assets.ButtonToggle = assetBundle.LoadAsset<GameObject>("ButtonToggle");
             Assets.ButtonSettings = assetBundle.LoadAsset<GameObject>("ButtonSettings");
             Assets.DiamondButton = assetBundle.LoadAsset<GameObject>("DiamondButton");
             Assets.SourceSansProBold = assetBundle.LoadAsset<Font>("SourceSansPro-Bold");
