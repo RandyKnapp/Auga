@@ -16,26 +16,49 @@ public static class Jewelcrafting
     public static Type Synergy;
     public static Type DisplaySynergyView;
     public static Type AddSynergyIcon;
+    public static Type SocketsBackground;
+
+    [HarmonyBefore(new []{"org.bepinex.plugins.jewelcrafting"})]
+    public static void Hud_Awake_Prefix(Hud __instance)
+    {
+        var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+    }
 
     [HarmonyAfter(new []{"org.bepinex.plugins.jewelcrafting"})]
     public static void IvnentoryGui_Awake_Postfix(InventoryGui __instance)
     {
         var jewelCraftingSynergy = __instance.m_player.transform.Find("Jewelcrafting Synergy")?.gameObject;
         var TrashDividerLine = __instance.m_player.transform.Find("TrashDivider/DividerLeft/Line")?.gameObject;
+        var StandardDividerCenter = __instance.m_player.transform.Find("StandardDivider/Center")?.gameObject;
+        var StandardDividerLeft = __instance.m_player.transform.Find("StandardDivider/Left")?.gameObject;
+        
         if (jewelCraftingSynergy != null)
         {
             var rect = jewelCraftingSynergy.RectTransform();
-            Debug.LogError($"jewelCraftingSynergy old position: {rect.anchoredPosition}");
             rect.anchoredPosition += new Vector2(80f, +78f);
-            Debug.LogError($"jewelCraftingSynergy new position: {rect.anchoredPosition}");
         }
-        else
+
+        if (TrashDividerLine != null)
         {
-            Debug.LogError($"jewelCraftingSynergy is null");
-            Debug.LogError($"jewelCraftingSynergy is null");
-            Debug.LogError($"jewelCraftingSynergy is null");
-            Thread.Sleep(15000);
+            var rect = TrashDividerLine.RectTransform();
+            rect.anchoredPosition = new Vector2(36f, 0f);
+            rect.sizeDelta = new Vector2(-80f, 2f);
         }
+
+        if (StandardDividerCenter != null)
+        {
+            var rect = StandardDividerCenter.RectTransform();
+            rect.anchoredPosition = new Vector2(75f, 0f);
+            rect.sizeDelta = new Vector2(-80f, 2f);
+        }
+
+        if (StandardDividerLeft != null)
+        {
+            var rect = StandardDividerLeft.RectTransform();
+            rect.anchoredPosition = new Vector2(72f, 0f);
+        }
+
+        
     }
     
     public static IEnumerable<CodeInstruction> DisplaySynergyView_Awake_Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -62,7 +85,7 @@ public static class Jewelcrafting
         }
 
 
-        for (int i = 0; i < instrs.Count; ++i)
+        for (var i = 0; i < instrs.Count; ++i)
         {
             if (i > 0 && instrs[i].opcode == OpCodes.Ldstr && instrs[i].operand.Equals("ac_text"))
             {

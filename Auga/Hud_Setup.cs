@@ -23,7 +23,12 @@ namespace Auga
         [HarmonyPostfix]
         public static void Hud_Awake_Postfix(Hud __instance)
         {
-            var hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+            Transform hotkeyBar;
+            if (!Auga.HasJewelcrafting)
+                hotkeyBar = __instance.Replace("hudroot/HotKeyBar", Auga.Assets.Hud, "hudroot/HotKeyBar");
+            else
+                hotkeyBar = __instance.transform.Find("hudroot/HotKeyBar");
+            
             hotkeyBar.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.UpperLeft, 55, -44);
 
             var newStatusEffects = __instance.Replace("hudroot/StatusEffects", Auga.Assets.Hud);

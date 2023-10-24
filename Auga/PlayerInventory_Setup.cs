@@ -18,6 +18,7 @@ namespace Auga
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class InventoryGui_Awake_Patch
         {
+            [HarmonyPriority(Priority.First)]
             public static void Postfix(InventoryGui __instance)
             {
                 AddItemIconMaterial.IconMaterial = __instance.m_dragItemPrefab.transform.Find("icon").GetComponent<Image>().material;

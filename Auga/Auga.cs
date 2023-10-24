@@ -215,31 +215,41 @@ namespace Auga
             
             if (HasJewelcrafting)
             {
-                Auga.LogWarning($"HasJewelcrafting");
+                LogError($"HasJewelcrafting");
                 
                 Jewelcrafting.ModAssembly = Assembly.LoadFile(jewelcraftingPlugin.Location);
-                Auga.LogWarning($"Jewelcrafting.ModAssembly ==  null: {Jewelcrafting.ModAssembly ==  null}");
+                LogError($"Jewelcrafting.ModAssembly ==  null: {Jewelcrafting.ModAssembly ==  null}");
                 
                 Jewelcrafting.Synergy = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.Synergy");
-
+                Jewelcrafting.SocketsBackground = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.SocketsBackground");
                 Jewelcrafting.AddSynergyIcon = Jewelcrafting.Synergy.GetNestedType("AddSynergyIcon");
                 Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
-                Auga.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                LogError($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
                 
-                var awakeMethod = AccessTools.Method(Jewelcrafting.DisplaySynergyView, "Awake");
-                var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
-                
-                Debug.LogWarning($"awakeMethod ==  null: {awakeMethod ==  null}");
-                Debug.LogError($"awakePostfixMethod ==  null: {awakePostfixMethod ==  null}");
+                Debug.LogError($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
+                Debug.LogError($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
+                Debug.LogError($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                Debug.LogError($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
                 
                 Thread.Sleep(15000);
 
                 if (Jewelcrafting.DisplaySynergyView != null)
                 {
+                    var awakeMethod = AccessTools.Method(Jewelcrafting.DisplaySynergyView, "Awake");
+                    var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
+                    Debug.LogError($"awakeMethod ==  null: {awakeMethod ==  null}");
+                    
                     _harmony.Patch(awakeMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.DisplaySynergyView_Awake_Transpiler)));
                     _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.IvnentoryGui_Awake_Postfix)));
                 }
-                Thread.Sleep(5000);
+
+                if (Jewelcrafting.SocketsBackground != null)
+                {
+                    var hudPostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
+                    _harmony.Patch(hudPostfixMethod, prefix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.Hud_Awake_Prefix)));
+                }
+                
+                Thread.Sleep(15000);
             }
             
             if (HasMultiCraft)
