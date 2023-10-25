@@ -7,8 +7,8 @@ namespace Auga.Utilities;
 
 public class TranspilerHelpers
 {
-    private static int _counter = 0;
-    private static bool _enableLogging = false;
+    private int _counter = 0;
+    private bool _enableLogging = false;
 
     public TranspilerHelpers(bool loggingEnabled = false)
     {

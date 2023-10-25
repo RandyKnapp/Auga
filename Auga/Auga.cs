@@ -228,17 +228,23 @@ namespace Auga
                 Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
                 Jewelcrafting.GemCursor = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemCursor");
                 Jewelcrafting.CacheVanillaCursor = Jewelcrafting.GemCursor.GetNestedType("CacheVanillaCursor",BindingFlags.NonPublic | BindingFlags.Static);
+                Jewelcrafting.GemStones = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemStones");
+                Jewelcrafting.OpenFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("OpenFakeSocketsContainer");
+                Jewelcrafting.CloseFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("CloseFakeSocketsContainer",BindingFlags.NonPublic | BindingFlags.Static);
                 
                 LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
                 
-                Debug.LogWarning($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
-                Debug.LogWarning($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
-                Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
-                Debug.LogWarning($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
-                Debug.LogWarning($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
-                Debug.LogError($"Jewelcrafting.AddSealButton ==  null: {Jewelcrafting.AddSealButton ==  null}");
-                Debug.LogError($"Jewelcrafting.GemCursor ==  null: {Jewelcrafting.GemCursor ==  null}");
-                Debug.LogError($"Jewelcrafting.CacheVanillaCursor ==  null: {Jewelcrafting.CacheVanillaCursor ==  null}");
+                Debug.Log($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
+                Debug.Log($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
+                Debug.Log($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                Debug.Log($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
+                Debug.Log($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
+                Debug.Log($"Jewelcrafting.AddSealButton ==  null: {Jewelcrafting.AddSealButton ==  null}");
+                Debug.Log($"Jewelcrafting.GemCursor ==  null: {Jewelcrafting.GemCursor ==  null}");
+                Debug.Log($"Jewelcrafting.CacheVanillaCursor ==  null: {Jewelcrafting.CacheVanillaCursor ==  null}");
+                Debug.Log($"Jewelcrafting.GemStones ==  null: {Jewelcrafting.GemStones ==  null}");
+                Debug.Log($"Jewelcrafting.OpenFakeSocketsContainer ==  null: {Jewelcrafting.OpenFakeSocketsContainer ==  null}");
+                Debug.Log($"Jewelcrafting.CloseFakeSocketsContainer ==  null: {Jewelcrafting.CloseFakeSocketsContainer ==  null}");
 
                 if (Jewelcrafting.DisplaySynergyView != null)
                 {
@@ -269,6 +275,21 @@ namespace Auga
                     Debug.LogError($"cursorPostfixMethod ==  null: {cursorPostfixMethod ==  null}");
                     _harmony.Patch(cursorPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemCursor_CacheVanillaCursor_Postfix_Transpiler)));
                 }
+
+                if (Jewelcrafting.OpenFakeSocketsContainer != null)
+                {
+                    var openSocketsMethod = Jewelcrafting.OpenFakeSocketsContainer.GetMethod("Open", BindingFlags.Public | BindingFlags.Static);
+                    Debug.LogError($"openSocketsMethod ==  null: {openSocketsMethod ==  null}");
+                    _harmony.Patch(openSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_OpenFakeSocketsContainer_Open_Transpiler)));
+                }
+
+                if (Jewelcrafting.CloseFakeSocketsContainer != null)
+                {
+                    var closeSocketsMethod = Jewelcrafting.CloseFakeSocketsContainer.GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
+                    Debug.LogError($"closeSocketsMethod ==  null: {closeSocketsMethod ==  null}");
+                    _harmony.Patch(closeSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_CloseFakeSocketsContainer_Prefix_Transpiler)));
+                }
+
                 
                 Thread.Sleep(15000);
             }
