@@ -1,17 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Auga.Utilities;
 
-public static class TranspilerHelpers
+public class TranspilerHelpers
 {
-    public static CodeInstruction LogMessage(CodeInstruction instruction)
+    private static int _counter = 0;
+    private static bool _enableLogging = false;
+
+    public TranspilerHelpers(bool loggingEnabled = false)
     {
-        //Debug.LogWarning($"VAPOK: IL_{counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+        _enableLogging = loggingEnabled;
+    }
+    public CodeInstruction LogMessage(CodeInstruction instruction)
+    {
+        if (!_enableLogging)
+            return instruction;
+        
+        Debug.Log($"VAPOK: IL_{_counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+        _counter++;
         return instruction;
     }
-    public static CodeInstruction FindInstructionWithLabel(List<CodeInstruction> codeInstructions, int index, Label label)
+    public CodeInstruction FindInstructionWithLabel(List<CodeInstruction> codeInstructions, int index, Label label)
     {
         if (index >= codeInstructions.Count)
             return null;

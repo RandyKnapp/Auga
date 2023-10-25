@@ -19,6 +19,8 @@ public static class Jewelcrafting
     public static Type SocketsBackground;
     public static Type FusionBoxSetup;
     public static Type AddSealButton;
+    public static Type GemCursor;
+    public static Type CacheVanillaCursor;
 
     [HarmonyBefore(new []{"org.bepinex.plugins.jewelcrafting"})]
     public static void Hud_Awake_Prefix(Hud __instance)
@@ -28,43 +30,74 @@ public static class Jewelcrafting
 
     public static IEnumerable<CodeInstruction> FusionBoxSetup_AddSealButton_Postfix_Transpiler(IEnumerable<CodeInstruction> instructions)
     {
+        var th = new TranspilerHelpers();
         var instrs = instructions.ToList();
-
-        var counter = 0;
 
         for (var i = 0; i < instrs.Count; ++i)
         {
             if (i > 0 && instrs[i].opcode == OpCodes.Ldstr && instrs[i].operand.Equals("Text"))
             {
-                yield return TranspilerHelpers.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Label"));
-                counter++;
+                yield return th.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Label"));
             }
             else
             {
-                yield return TranspilerHelpers.LogMessage(instrs[i]);
-                counter++;
+                yield return th.LogMessage(instrs[i]);
             }
         }
     }
 
+    private static Texture2D GetAugaCursor()
+    {
+        return Auga.Assets.Cursor;
+    }
+    public static IEnumerable<CodeInstruction> GemCursor_CacheVanillaCursor_Postfix_Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var instrs = instructions.ToList();
+        var th = new TranspilerHelpers(true);
+
+        var skipRows = false;
+
+        for (var i = 0; i < instrs.Count; ++i)
+        {
+            if (instrs[i].opcode == OpCodes.Ldsflda)
+            {
+                yield return th.LogMessage(instrs[i]);
+
+                skipRows = !skipRows;
+
+                if (skipRows)
+                {
+                    yield return th.LogMessage(new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Jewelcrafting), nameof(GetAugaCursor))));
+                }
+            } else if (instrs[i].opcode == OpCodes.Stfld && skipRows)
+            {
+                yield return th.LogMessage(instrs[i]);
+            } 
+            else if (skipRows)
+            {
+            }
+            else
+            {
+                yield return th.LogMessage(instrs[i]);
+            }
+        }
+    }
     
     public static IEnumerable<CodeInstruction> AddSocketAddingTab_InventoryGui_Awake_Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var instrs = instructions.ToList();
 
-        var counter = 0;
+        var th = new TranspilerHelpers();
 
         for (var i = 0; i < instrs.Count; ++i)
         {
             if (false)
             {
-                //yield return TranspilerHelpers.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Text"));
-                //counter++;
+                //yield return th.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Text"));
             }
             else
             {
-                yield return TranspilerHelpers.LogMessage(instrs[i]);
-                counter++;
+                yield return th.LogMessage(instrs[i]);
             }
         }
     }
@@ -124,19 +157,17 @@ public static class Jewelcrafting
     {
         var instrs = instructions.ToList();
 
-        var counter = 0;
+        var th = new TranspilerHelpers();
 
         for (var i = 0; i < instrs.Count; ++i)
         {
             if (i > 0 && instrs[i].opcode == OpCodes.Ldstr && instrs[i].operand.Equals("ac_text"))
             {
-                yield return TranspilerHelpers.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Text"));
-                counter++;
+                yield return th.LogMessage(new CodeInstruction(OpCodes.Ldstr,"Text"));
             }
             else
             {
-                yield return TranspilerHelpers.LogMessage(instrs[i]);
-                counter++;
+                yield return th.LogMessage(instrs[i]);
             }
         }
     }

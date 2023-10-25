@@ -226,14 +226,19 @@ namespace Auga
                 Jewelcrafting.AddSealButton = Jewelcrafting.FusionBoxSetup.GetNestedType("AddSealButton");
                 Jewelcrafting.AddSynergyIcon = Jewelcrafting.Synergy.GetNestedType("AddSynergyIcon",BindingFlags.NonPublic | BindingFlags.Static);
                 Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
-                LogError($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                Jewelcrafting.GemCursor = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemCursor");
+                Jewelcrafting.CacheVanillaCursor = Jewelcrafting.GemCursor.GetNestedType("CacheVanillaCursor",BindingFlags.NonPublic | BindingFlags.Static);
                 
-                Debug.LogError($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
-                Debug.LogError($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
-                Debug.LogError($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
-                Debug.LogError($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
-                Debug.LogError($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
+                LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                
+                Debug.LogWarning($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
+                Debug.LogWarning($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
+                Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                Debug.LogWarning($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
+                Debug.LogWarning($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
                 Debug.LogError($"Jewelcrafting.AddSealButton ==  null: {Jewelcrafting.AddSealButton ==  null}");
+                Debug.LogError($"Jewelcrafting.GemCursor ==  null: {Jewelcrafting.GemCursor ==  null}");
+                Debug.LogError($"Jewelcrafting.CacheVanillaCursor ==  null: {Jewelcrafting.CacheVanillaCursor ==  null}");
 
                 if (Jewelcrafting.DisplaySynergyView != null)
                 {
@@ -256,6 +261,13 @@ namespace Auga
                     var sealPostfixMethod = Jewelcrafting.AddSealButton.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
                     Debug.LogError($"sealPostfixMethod ==  null: {sealPostfixMethod ==  null}");
                     _harmony.Patch(sealPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.FusionBoxSetup_AddSealButton_Postfix_Transpiler)));
+                }
+                
+                if (Jewelcrafting.CacheVanillaCursor != null)
+                {
+                    var cursorPostfixMethod = Jewelcrafting.CacheVanillaCursor.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
+                    Debug.LogError($"cursorPostfixMethod ==  null: {cursorPostfixMethod ==  null}");
+                    _harmony.Patch(cursorPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemCursor_CacheVanillaCursor_Postfix_Transpiler)));
                 }
                 
                 Thread.Sleep(15000);
