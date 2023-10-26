@@ -2,8 +2,8 @@
 * NEW COMPATIBILITY
   * Auga now Supports **_Jewelcrafting_**.
     * The following features of Jewelcrafting are currently not implemented:
-      * Item Socketing on the Gemcutter's Table.
-      *  Tooltips for Socketed Items show as the vanilla tooltip, not the Auga Tooltip.
+      * Item Socketing on the Gemcutter's Table. 
+      * Tooltips for Socketed Items show as the vanilla tooltip, not the Auga Tooltip.
     * These will be implemented in the near-term future updates.
 * CHANGES
   * Updated for Valheim 0.217.27
