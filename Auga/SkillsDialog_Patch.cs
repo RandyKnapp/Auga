@@ -20,11 +20,11 @@ public static class SkillsDialog_Patch
 
     public static void SetupOverride(SkillsDialog instance, Player player)
     {
-        return;
     }
     
     [HarmonyPatch(nameof(SkillsDialog.Setup))]
     [HarmonyTranspiler]
+    [HarmonyPriority(Priority.Last)]
     public static IEnumerable<CodeInstruction> Setup_Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var instrs = instructions.ToList();

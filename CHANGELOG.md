@@ -1,9 +1,12 @@
-### 1.3.6 - Refactored for Valheim 0.217.24 Update Part 6
+### 1.3.6 - Updated for Valheim 0.217.27
 * NEW FEATURES
   * Adding the Darken Background back to provide the shadowing
     * This also addresses mods that were keying off of the Darken gameobject for backwards compatibility.
-* BUG FIXES
-  * 
+* CHANGES
+  * Updated for Valheim 0.217.27
+  * Updated Unity to 2022.3.9
+
+  
   
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>

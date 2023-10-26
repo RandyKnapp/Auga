@@ -30,7 +30,7 @@ namespace Auga
         {
             __instance.UpdateValidResolutions();
             ResolutionDropdown.ClearOptions();
-            ResolutionDropdown.AddOptions(__instance.m_resolutions.Select(x => $"{x.width}x{x.height} {x.refreshRate}hz").ToList());
+            ResolutionDropdown.AddOptions(__instance.m_resolutions.Select(x => $"{x.width}x{x.height} {x.refreshRateRatio}hz").ToList());
         }
 
         private static void OnResolutionValueChanged(int index)
