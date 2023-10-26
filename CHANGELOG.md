@@ -5,6 +5,8 @@
 * CHANGES
   * Updated for Valheim 0.217.27
   * Updated Unity to 2022.3.9
+* BUG FIXES
+  * Fixed text visibility issues in the Settings Window with respect to non-Latin languages.
 
   
   
