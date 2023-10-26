@@ -7,6 +7,7 @@
   * Updated Unity to 2022.3.9
 * BUG FIXES
   * Fixed text visibility issues in the Settings Window with respect to non-Latin languages.
+  * Fixed the Settings Drop Down for Language and Resolution to **FINALLY** work appropriately.
 
   
   

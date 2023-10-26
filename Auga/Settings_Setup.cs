@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AugaUnity;
 using HarmonyLib;
 using TMPro;
@@ -10,7 +11,9 @@ namespace Auga
     public static class Settings_Setup
     {
         public static Dropdown ResolutionDropdown;
+        public static TMP_Text ResolutionSelectionText;
         public static Dropdown LanguageDropdown;
+        public static TMP_Text LanguageSelectionText;
         
         
         [HarmonyPatch(typeof(Settings), nameof(Settings.Awake))]
@@ -18,10 +21,12 @@ namespace Auga
         public static void Awake_Postfix(Settings __instance)
         {
             ResolutionDropdown = __instance.m_resButtonText.transform.parent.GetComponent<Dropdown>();
+            ResolutionSelectionText = ResolutionDropdown.gameObject.GetComponentInChildren<TMP_Text>();
             ResolutionDropdown.onValueChanged.AddListener(OnResolutionValueChanged);
             SetupResolutionOptions(__instance);
 
             LanguageDropdown = __instance.m_language.transform.parent.GetComponent<Dropdown>();
+            LanguageSelectionText = LanguageDropdown.gameObject.GetComponentInChildren<TMP_Text>();
             LanguageDropdown.onValueChanged.AddListener(OnLanguageValueChanged);
             SetupLanguageOptions();
         }
@@ -30,23 +35,37 @@ namespace Auga
         {
             __instance.UpdateValidResolutions();
             ResolutionDropdown.ClearOptions();
-            ResolutionDropdown.AddOptions(__instance.m_resolutions.Select(x => $"{x.width}x{x.height} {x.refreshRateRatio}hz").ToList());
+            var optionList = new List<string>();
+            optionList.Add("No Change");
+            optionList.AddRange(__instance.m_resolutions.Select(x => $"{x.width}x{x.height} {x.refreshRateRatio}hz").ToList());
+            ResolutionDropdown.AddOptions(optionList);
         }
 
         private static void OnResolutionValueChanged(int index)
         {
-            Settings.instance.m_selectedRes = Settings.instance.m_resolutions[index];
+            if (index == 0)
+                return;
+            
+            Settings.instance.m_selectedRes = Settings.instance.m_resolutions[index-1];
+            ResolutionSelectionText.text = ResolutionDropdown.options[index].text;
         }
 
         private static void SetupLanguageOptions()
         {
             LanguageDropdown.ClearOptions();
-            LanguageDropdown.AddOptions(Localization.instance.GetLanguages().Select(x => Localization.instance.Localize($"$language_{x.ToLower()}")).ToList());
+            var optionList = new List<string>();
+            optionList.Add("No Change");
+            optionList.AddRange(Localization.instance.GetLanguages().Select(x => Localization.instance.Localize($"$language_{x.ToLower()}")).ToList());
+            LanguageDropdown.AddOptions(optionList);
         }
 
         private static void OnLanguageValueChanged(int index)
         {
-            Settings.instance.m_languageKey = Localization.instance.GetLanguages()[index];
+            if (index == 0)
+                return;
+            
+            Settings.instance.m_languageKey = Localization.instance.GetLanguages()[index-1];
+            LanguageSelectionText.text = LanguageDropdown.options[index].text;
         }
 
         /*[HarmonyPatch(typeof(Settings), nameof(Settings.SetQualityText))]
