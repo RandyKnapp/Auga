@@ -21,9 +21,9 @@ namespace Auga
             if (_targetAssembly != null)
             {
                 var harmony = new Harmony("mods.randyknapp.auga.API");
-                foreach (var method in typeof(API).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public).Where(m => m.Name != "IsLoaded" && m.Name != "LoadAssembly"))
+                foreach (var method in typeof(Auga.API).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public).Where(m => m.Name != "IsLoaded" && m.Name != "LoadAssembly"))
                 {
-                    harmony.Patch(method, transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(API), nameof(Transpiler))));
+                    harmony.Patch(method, transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(Auga.API), nameof(Transpiler))));
                 }
             }
         }

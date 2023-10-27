@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Auga</RootNamespace>
     <AssemblyName>Auga</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -52,6 +52,9 @@
     <Reference Include="0Harmony">
       <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="APIManager">
+      <HintPath>..\..\VapokModBase\References\APIManager\APIManager.dll</HintPath>
+    </Reference>
     <Reference Include="assembly_guiutils_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.27\assembly_guiutils_publicized.dll</HintPath>
@@ -93,6 +96,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Auga">
+      <HintPath>..\AugaUnityLib\bin\Debug\Unity.Auga.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.dll</HintPath>
     </Reference>
@@ -162,6 +168,12 @@
     <Compile Include="Text_Patch.cs" />
     <Compile Include="UITooltip_Patch.cs" />
     <Compile Include="Minimap_Setup.cs" />
+    <Compile Include="Barber_Setup.cs" />
+    <Compile Include="Compat\Chatter.cs" />
+    <Compile Include="Compat\Jewelcrafting.cs" />
+    <Compile Include="Compat\SearsCatalog.cs" />
+    <Compile Include="SkillsDialog_Patch.cs" />
+    <Compile Include="Utilities\TranspilerHelpers.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
@@ -186,36 +198,37 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />
+    <None Include="packages.config" />
     <None Include="README.md" />
     <None Include="translations.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API.Common.cs" />
-    <Compile Include="Barber_Setup.cs" />
-    <Compile Include="Compat\Chatter.cs" />
-    <Compile Include="Compat\Jewelcrafting.cs" />
-    <Compile Include="Compat\SearsCatalog.cs" />
-    <Compile Include="SkillsDialog_Patch.cs" />
-    <Compile Include="Utilities\TranspilerHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ILRepack.targets" />
+    <EmbeddedResource Include="..\..\VapokModBase\References\APIManager\APIManager.dll">
+      <Link>APIManager.dll</Link>
+    </EmbeddedResource>
     <Content Include="..\CHANGELOG.md">
       <Link>CHANGELOG.md</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="Copy" AfterTargets="ILRepack">
+    <Exec Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\&quot; /q /y /i" />
+    <Exec Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' " Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;M:\Code\VapokModBase\References\AugaAPI\&quot; /q /y /i" />
+  </Target>
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug (
-  del "$(TargetPath).mdb"
-  $(SolutionDir)pdb2mdb.exe "$(TargetPath)"
-)
-
-if $(ConfigurationName) == API (
-  xcopy "$(TargetDir)$(TargetFileName)" "M:\Code\VapokModBase\References\AugaAPI\" /q /y /i
-) else (
-  xcopy "$(TargetDir)$(TargetFileName)" "G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
-  xcopy "$(TargetDir)$(TargetFileName).mdb" "G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
-  xcopy "$(ProjectDir)translations.json" "G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
-)</PostBuildEvent>
+    <PostBuildEvent>
+        xcopy "$(ProjectDir)translations.json" "G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
+    </PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
+  </Target>
 </Project>
