@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Auga
 {
-    public static class API
+    public static class APIOld
     {
         private static readonly Assembly _targetAssembly;
 

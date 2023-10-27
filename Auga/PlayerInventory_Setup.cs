@@ -173,7 +173,7 @@ namespace Auga
                         itemTooltip.Item = null;
                     }
 
-                    if (element.m_used)
+                    if (element.m_used && itemTooltip != null)
                     {
                         itemTooltip.Item = item;
                     }

@@ -36,7 +36,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'API|AnyCPU'">
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AssemblyName>AugaAPI</AssemblyName>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -138,12 +138,12 @@
       <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\Unity.TextMeshPro.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' ">
-    <Compile Include="API.External.cs" />
+  <ItemGroup>
+    <Compile Include="API.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="API.Common.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <Compile Include="API.cs" />
     <Compile Include="Auga.cs" />
     <Compile Include="MovableHudElement.cs" />
     <Compile Include="AugaLog_Hooks.cs" />
@@ -158,7 +158,6 @@
     <Compile Include="MessageHud_Setup.cs" />
     <Compile Include="PauseMenu_Setup.cs" />
     <Compile Include="PlayerInventory_Setup.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings_Setup.cs" />
     <Compile Include="SetupHelper.cs" />
     <Compile Include="Store_Setup.cs" />
@@ -174,6 +173,12 @@
     <Compile Include="Compat\SearsCatalog.cs" />
     <Compile Include="SkillsDialog_Patch.cs" />
     <Compile Include="Utilities\TranspilerHelpers.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
+    <None Include="manifest.json" />
+    <None Include="packages.config" />
+    <None Include="README.md" />
+    <None Include="translations.json" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
@@ -197,17 +202,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="manifest.json" />
-    <None Include="packages.config" />
-    <None Include="README.md" />
-    <None Include="translations.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="API.Common.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="ILRepack.targets" />
-    <EmbeddedResource Include="..\..\VapokModBase\References\APIManager\APIManager.dll">
+    <EmbeddedResource  Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="..\..\VapokModBase\References\APIManager\APIManager.dll">
       <Link>APIManager.dll</Link>
     </EmbeddedResource>
     <Content Include="..\CHANGELOG.md">
@@ -220,7 +216,7 @@
     <Exec Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' " Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;M:\Code\VapokModBase\References\AugaAPI\&quot; /q /y /i" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>
+    <PostBuildEvent Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
         xcopy "$(ProjectDir)translations.json" "G:\Steam\steamapps\common\Valheim-Dev\BepInEx\plugins\$(ProjectName)\" /q /y /i
     </PostBuildEvent>
   </PropertyGroup>

@@ -164,8 +164,8 @@ namespace Auga
                 }
             }
 
-            APIManager.Patcher.Patch();
             LoadDependencies();
+            APIManager.Patcher.Patch();
             LoadTranslations();
             LoadConfig();
             LoadAssets();
