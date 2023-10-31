@@ -68,6 +68,9 @@ namespace Auga
         {
             public static void ShowText(TextsDialog instance, TextsDialog.TextInfo text)
             {
+                if (text == null)
+                    return;
+                
                 instance.m_textAreaTopic.text = Localization.instance.Localize(text.m_topic);
                 instance.m_textArea.text = Localization.instance.Localize(text.m_text);
                 foreach (TextsDialog.TextInfo text1 in instance.m_texts)

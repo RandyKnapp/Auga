@@ -89,7 +89,6 @@ namespace Auga
                 __instance.m_variantButton.onClick.AddListener(__instance.OnShowVariantSelection);
                 __instance.m_variantDialog = CraftingPanel.VariantDialog;
                 __instance.m_variantDialog.m_selected += __instance.OnVariantSelected;
-
                 __instance.m_repairButton = CraftingPanel.RepairButton;
                 __instance.m_repairButtonGlow = CraftingPanel.RepairGlow;
                 __instance.m_repairPanel = CraftingPanel.RepairButton.transform;
