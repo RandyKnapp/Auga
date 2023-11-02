@@ -1,4 +1,4 @@
-### 1.3.6 - Updated for Valheim 0.217.27
+### 1.3.6 - Updated for Valheim 0.217.28
 * NEW COMPATIBILITY
   * Auga now Supports **_Jewelcrafting_**.
     * The following features of Jewelcrafting are currently not implemented:
@@ -6,8 +6,8 @@
       * Tooltips for Socketed Items show as the vanilla tooltip, not the Auga Tooltip.
     * These will be implemented in the near-term future updates.
 * CHANGES
-  * Updated for Valheim 0.217.27
-  * Updated Unity to 2022.3.9
+  * Updated for Valheim 0.217.17 and 0.217.28.
+  * Updated Unity to 2022.3.12!
 * BUG FIXES
   * Fixed text visibility issues in the Settings Window with respect to non-Latin languages.
   * Fixed the Settings Drop Down for Language and Resolution to **FINALLY** work appropriately.
