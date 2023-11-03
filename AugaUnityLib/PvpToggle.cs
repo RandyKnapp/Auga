@@ -18,6 +18,8 @@ namespace AugaUnity
         public virtual void Update()
         {
             var player = Player.m_localPlayer;
+            if (player == null) return;
+            
             var canTogglePvp = player.CanSwitchPVP();
             Inactive.SetActive(!canTogglePvp);
             Enabled.SetActive(canTogglePvp && player.m_pvp);
