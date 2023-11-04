@@ -431,7 +431,6 @@ namespace Auga
 
         public void OnDestroy()
         {
-            _harmony?.UnpatchSelf();
             _instance = null;
         }
 
