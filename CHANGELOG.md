@@ -1,3 +1,6 @@
+### 1.3.7 - Disabled Auga Password
+* Hotfix to disable the Auga Password Box
+
 ### 1.3.6 - Updated for Valheim 0.217.28
 * NEW COMPATIBILITY
   * Auga now Supports **_Jewelcrafting_**.

@@ -10,6 +10,7 @@ namespace Auga
         [UsedImplicitly]
         public static void Postfix(ZNet __instance)
         {
+            /*
             var parent = __instance.m_passwordDialog.parent;
             Object.Destroy(__instance.m_passwordDialog.gameObject);
             var newPasswordDialog = Object.Instantiate(Auga.Assets.PasswordDialog, parent, false);
@@ -20,6 +21,7 @@ namespace Auga
             var newConnectingDialog = Object.Instantiate(Auga.Assets.ConnectingDialog, parent, false);
             newConnectingDialog.gameObject.SetActive(false);
             __instance.m_connectingDialog = newConnectingDialog.GetComponent<RectTransform>();
+            */
         }
     }
 }
