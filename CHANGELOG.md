@@ -2,7 +2,6 @@
 * Fixing RenderScale Setting to actually work.
 * Fixed Password Dialog and Reactivated it
 
-
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
