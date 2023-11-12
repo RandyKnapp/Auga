@@ -135,11 +135,6 @@
       <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\Unity.TextMeshPro.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup  Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <Reference Include="Unity.Auga">
-      <HintPath>..\AugaUnityLib\bin\Debug\Unity.Auga.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="API.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -205,7 +200,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ILRepack.targets" />
-    <EmbeddedResource  Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="..\..\VapokModBase\References\APIManager\APIManager.dll">
+    <EmbeddedResource Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="..\..\VapokModBase\References\APIManager\APIManager.dll">
       <Link>APIManager.dll</Link>
     </EmbeddedResource>
     <Content Include="..\CHANGELOG.md">
