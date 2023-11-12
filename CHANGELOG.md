@@ -1,3 +1,11 @@
+### 1.3.8 - Various Updates
+* Fixing RenderScale Setting to actually work.
+* 
+
+
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.7 - Disabled Auga Password
 * Hotfix to disable the Auga Password Box
 
@@ -5,7 +13,7 @@
 * NEW COMPATIBILITY
   * Auga now Supports **_Jewelcrafting_**.
     * The following features of Jewelcrafting are currently not implemented:
-      * Item Socketing on the Gemcutter's Table. 
+      * Item Socketing on the Gemcutter's Table.
       * Tooltips for Socketed Items show as the vanilla tooltip, not the Auga Tooltip.
     * These will be implemented in the near-term future updates.
 * CHANGES
@@ -16,11 +24,6 @@
   * Fixed the Settings Drop Down for Language and Resolution to **FINALLY** work appropriately.
   * Adding the Darken Background back to provide the shadowing
     * This also addresses mods that were keying off of the Darken gameobject for backwards compatibility.
-
-  
-  
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.3.5 - Refactored for Valheim 0.217.24 Update Part 6
 * NEW FEATURES
