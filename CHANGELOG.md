@@ -1,6 +1,6 @@
 ### 1.3.8 - Various Updates
 * Fixing RenderScale Setting to actually work.
-* 
+* Fixed Password Dialog and Reactivated it
 
 
 <details>
