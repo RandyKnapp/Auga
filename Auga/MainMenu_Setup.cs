@@ -23,7 +23,7 @@ namespace Auga
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
     public static class FejdStartup_Awake_Patch
     {
-        public static void Postfix(FejdStartup __instance)
+        public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
 
