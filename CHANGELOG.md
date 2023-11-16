@@ -1,6 +1,10 @@
 ### 1.3.8 - Various Updates
 * Fixing RenderScale Setting to actually work.
 * Fixed Password Dialog and Reactivated it
+* Updated Settings to allow External Modification
+* Updated Tooltips to allowing showing of external customized data.
+* Updated Repair Icon for external expansion.
+* Now Compatible with KG's Valheim Enchantment System
 
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>

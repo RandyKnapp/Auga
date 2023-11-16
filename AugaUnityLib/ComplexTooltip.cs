@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -113,6 +114,7 @@ namespace AugaUnity
         [CanBeNull] public RectTransform LowerTextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
         public TooltipTextBox CenteredTextBoxPrefab;
+        public TooltipTextBox LeftAlignedTextBoxPrefab;
         [CanBeNull] public TooltipTextBox UpgradeLabelsPrefab;
         [CanBeNull] public TooltipTextBox UpgradeTwoColumnTextBoxPrefab;
         [CanBeNull] public TooltipTextBox CheckBoxTextBoxPrefab;
@@ -132,6 +134,7 @@ namespace AugaUnity
         protected Skills.Skill _skill;
         protected int _quality;
         protected int _variant;
+        protected string _originalTooltip;
 
         public virtual void Start()
         {
@@ -202,6 +205,7 @@ namespace AugaUnity
             _food = null;
             _statusEffect = null;
             _skill = null;
+            _originalTooltip = null;
 
             if (ItemQuality != null)
             {
@@ -222,6 +226,9 @@ namespace AugaUnity
         protected virtual void SetItemBaseData(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
             ClearData();
+            _originalTooltip = item.GetTooltip();
+            Debug.LogWarning($"Tooltip:\n{_originalTooltip}");
+
             _item = item;
             _quality = quality;
             _variant = variant;
@@ -365,17 +372,20 @@ namespace AugaUnity
 
             var skillLevel = Player.m_localPlayer.GetSkillLevel(item.m_shared.m_skillType);
             var statusEffectTooltip = item.GetStatusEffectTooltip(quality, skillLevel);
+            var showExtraText = true;
             switch (item.m_shared.m_itemType)
             {
                 case ItemDrop.ItemData.ItemType.Consumable:
                     if (item.m_shared.m_food > 0)
                     {
                         AddFoodTextBox(item);
+                        showExtraText = false;
                     }
                     else if (!string.IsNullOrEmpty(statusEffectTooltip))
                     {
                         var textBox = AddTextBox(CenteredTextBoxPrefab);
                         textBox.AddLine(statusEffectTooltip);
+                        showExtraText = false;
                     }
                     break;
 
@@ -478,6 +488,51 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "$item_seteffect", "", $"{item.m_shared.m_setSize} $item_parts");
                 TextBoxAddPreprocessedLine(textBox, item, "", setStatusEffect);
             }
+
+            var extraText = GetExtraTextFromTooltip();
+            if (!string.IsNullOrEmpty(extraText) && showExtraText)
+            {
+                AddDivider();
+                var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
+                textBox.Text.text = extraText;
+            }
+        }
+
+        private string GetExtraTextFromTooltip()
+        {
+            var outputString = new StringBuilder();
+
+            using (StringReader reader = new StringReader(_originalTooltip))
+            {
+                string line;
+                bool foundWeight = false;
+                bool foundFirstColor = false;
+                
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if ((line.Contains("$item_") || line.Contains("$inventory_")) && !foundWeight)
+                    {
+                        if (line.Contains("$item_weight"))
+                            foundWeight = true;
+                    }
+                    else
+                    {
+                        if (foundWeight)
+                        {
+                            if ((line.StartsWith("<color") || (!line.StartsWith("$item_") && !line.StartsWith("$inventory_"))) && !foundFirstColor)
+                                foundFirstColor = true;
+                            
+                            if (!foundFirstColor)
+                                continue;
+                            
+                            if (!string.IsNullOrEmpty(line.Trim()))
+                                outputString.AppendLine(line);
+                        }
+                    }
+                }
+            }
+            
+            return outputString.ToString();
         }
 
         private void AddResourceUseTextbox(ItemDrop.ItemData item)
