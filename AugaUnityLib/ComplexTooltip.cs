@@ -227,7 +227,6 @@ namespace AugaUnity
         {
             ClearData();
             _originalTooltip = item.GetTooltip();
-            Debug.LogWarning($"Tooltip:\n{_originalTooltip}");
 
             _item = item;
             _quality = quality;

@@ -19,7 +19,7 @@ public class TranspilerHelpers
         if (!_enableLogging)
             return instruction;
         
-        Debug.Log($"VAPOK: IL_{_counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
+        //Debug.Log($"VAPOK: IL_{_counter}: Opcode: {instruction.opcode} Operand: {instruction.operand}");
         _counter++;
         return instruction;
     }
