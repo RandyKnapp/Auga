@@ -246,7 +246,9 @@ namespace Auga
                 }
 
                 var parent = __instance.transform.parent;
-                Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
+                var playerPrefab = __instance.CurrentPlayersPrefab;
+                var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
+                newMenu.CurrentPlayersPrefab = playerPrefab;
                 Object.Destroy(__instance.gameObject);
             }
         }

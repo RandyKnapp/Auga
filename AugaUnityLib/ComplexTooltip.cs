@@ -491,9 +491,12 @@ namespace AugaUnity
             var extraText = GetExtraTextFromTooltip();
             if (!string.IsNullOrEmpty(extraText) && showExtraText)
             {
-                AddDivider();
-                var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
-                textBox.Text.text = extraText;
+                if (LeftAlignedTextBoxPrefab != null)
+                {
+                    AddDivider();
+                    var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
+                    textBox.Text.text = extraText;
+                }
             }
         }
 
