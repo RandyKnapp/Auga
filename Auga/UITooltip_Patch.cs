@@ -41,11 +41,12 @@ namespace Auga
                         customTooltip.SetSkill(skillTooltip.Skill, __instance);
                         return false;
                     }
+
+                    customTooltip.SetDefault(__instance);
                 }
             }
 
             return true;
         }
     }
-
 }

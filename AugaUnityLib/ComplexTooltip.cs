@@ -221,6 +221,7 @@ namespace AugaUnity
         public virtual void SetSubtitle(string topic)
         {
             Subtitle.text = topic;
+            Subtitle.gameObject.SetActive(!string.IsNullOrEmpty(topic));
         }
 
         protected virtual void SetItemBaseData(ItemDrop.ItemData item, int quality = -1, int variant = -1)
@@ -791,6 +792,53 @@ namespace AugaUnity
             OnComplexTooltipGeneratedForStatusEffect?.Invoke(this, statusEffect);
         }
 
+        public virtual void SetDefault(UITooltip tooltip)
+        {
+            if (tooltip == null)
+                return;
+
+            ClearData();
+
+            var icon = tooltip.transform.Find("Icon")?.GetComponent<Image>() ?? tooltip.transform.Find("icon")?.GetComponent<Image>();
+            if (icon != null)
+            {
+                EnableObjectBackground(ObjectBackgroundType.Diamond);
+                SetIcon(icon.sprite);                
+            }
+            
+            SetTopic(Localization.instance.Localize(tooltip.m_topic));
+            SetDescription("");
+            SetSubtitle("");
+            
+            var outputString = new StringBuilder();
+            var foundSubtitle = false;
+
+            using (StringReader reader = new StringReader(tooltip.m_text))
+            {
+                string line;
+                
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                    {
+                        if (line.Contains("description"))
+                            SetDescription(Localization.instance.Localize(line));
+                        else if (line.Contains("$item_") && !line.Contains(":") && !foundSubtitle)
+                        {
+                            SetSubtitle(Localization.instance.Localize(line));
+                            foundSubtitle = true;
+                        }
+                        else
+                            outputString.AppendLine(line);
+                    }
+                }
+            }
+
+            ClearTextBoxes();
+            var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
+            textBox.Text.text = Localization.instance.Localize(outputString.ToString());
+        }
+        
         public virtual void SetSkill(Skills.Skill skill)
         {
             SetSkill(skill,null);
