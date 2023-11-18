@@ -1,11 +1,14 @@
+### 1.3.11 - Tooltip Improvements
+* Added a Default Complex Tooltip to ensure a tooltip is always available.
+
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.10 - Updates for 0.217.30
 * Fixed Tooltip issue when Augmenting or Crafting in EpicLoot
 * Fixed Connected Players Dialogue
 * Reduced Font in Crafting Bench Recipe List
 * Updated for Valheim 0.217.30
-
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.3.8/1.3.9 - Various Updates
 * Fixing RenderScale Setting to actually work.
