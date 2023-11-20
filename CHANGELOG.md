@@ -1,8 +1,6 @@
 ### 1.3.12 - Hud Improvements
 * MessageCenter Text no longer blocks Build Menu.
-* Moved Stars to Middle of Health Bar.
-  * This provides some compatibility with other mods that add a HP text to the component and prevents overlapping the Stars
-
+* 
 
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>

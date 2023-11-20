@@ -87,7 +87,7 @@ namespace Auga
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.3.12";
+        public const string Version = "1.3.11";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -329,9 +329,6 @@ namespace Auga
                 var isCraftingMethod = AccessTools.Method(multicraftLogicType, "IsCrafting");
                 if (createCraftButtonSpaceMethod != null)
                 {
-                    AugaCraftingPanel._instance.Arrows.SetActive(true);
-                    AugaCraftingPanel._instance.Counter.SetActive(true);
-                    
                     _harmony.Patch(createCraftButtonSpaceMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_UI_CreateSpaceFromCraftButton_Patch)));
                     _harmony.Patch(isCraftingMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_Logic_IsCrafting_Patch)));
                 }
@@ -363,14 +360,15 @@ namespace Auga
         public static bool MultiCraft_UI_CreateSpaceFromCraftButton_Patch(InventoryGui instance)
         {
             var multiCraftUiInstance = AccessTools.Method(_multiCraftUiType, "get_instance").Invoke(null, BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, new object[] { }, CultureInfo.InvariantCulture);
-
-            var plusButton = AugaCraftingPanel._instance.PlusButton; //instance.m_craftButton.transform.parent.Find("plus");
+            
+            var plusButton = instance.m_craftButton.transform.parent.Find("plus");
             var plusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnPlusButtonPressed");
             plusButton.GetComponent<Button>().onClick.AddListener(() => plusButtonMethod.Invoke(multiCraftUiInstance, new object[]{}));
 
-            var minusButton = AugaCraftingPanel._instance.MinusButton; //instance.m_craftButton.transform.parent.Find("minus");
+            var minusButton = instance.m_craftButton.transform.parent.Find("minus");
             var minusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnMinusButtonPressed");
             minusButton.GetComponent<Button>().onClick.AddListener(() => minusButtonMethod.Invoke(multiCraftUiInstance, new object[] { }));
+
             return false;
         }
 
