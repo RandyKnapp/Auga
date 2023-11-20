@@ -611,6 +611,11 @@ namespace Auga
     [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild))]
     public static class Hud_UpdateBuild_Patch
     {
+        private static void Postfix(Hud __instance, Player player)
+        { 
+            MessageHud.instance.m_messageCenterText.gameObject.SetActive(!player.InPlaceMode());
+        }
+        
         [UsedImplicitly]
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {

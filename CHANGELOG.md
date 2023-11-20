@@ -1,8 +1,12 @@
-### 1.3.11 - Tooltip Improvements
-* Added a Default Complex Tooltip to ensure a tooltip is always available.
+### 1.3.12 - Hud Improvements
+* MessageCenter Text no longer blocks Build Menu.
+* 
 
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
+### 1.3.11 - Tooltip Improvements
+* Added a Default Complex Tooltip to ensure a tooltip is always available.
 
 ### 1.3.10 - Updates for 0.217.30
 * Fixed Tooltip issue when Augmenting or Crafting in EpicLoot
