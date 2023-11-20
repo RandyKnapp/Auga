@@ -1080,20 +1080,20 @@ namespace Auga
         public static CraftingControls GetCraftingControls()
         {
 #if ! API
-            if (AugaCraftingPanel._instance == null)
+            if (AugaCraftingControls.Instance == null)
                 return new CraftingControls();
             
             var controls = new CraftingControls
             {
-                Multicraft = AugaCraftingPanel._instance.Multicraft,
-                PlusButton = AugaCraftingPanel._instance.PlusButton,
-                MinusButton = AugaCraftingPanel._instance.MinusButton,
-                CraftAmountText = AugaCraftingPanel._instance.CraftAmountText,
-                CraftAmountBG = AugaCraftingPanel._instance.CraftAmountBG,
-                CraftButton = AugaCraftingPanel._instance.CraftButton,
-                Amount = AugaCraftingPanel._instance.AAA,
-                InputAmount = AugaCraftingPanel._instance.InputAmount,
-                InputText = AugaCraftingPanel._instance.InputText
+                Multicraft = AugaCraftingControls.Instance.multicraft,
+                PlusButton = AugaCraftingControls.Instance.plusButton,
+                MinusButton = AugaCraftingControls.Instance.minusButton,
+                CraftAmountText = AugaCraftingControls.Instance.craftAmountText,
+                CraftAmountBG = AugaCraftingControls.Instance.craftAmountBg,
+                CraftButton = AugaCraftingControls.Instance.craftButton,
+                Amount = AugaCraftingControls.Instance.aaa,
+                InputAmount = AugaCraftingControls.Instance.inputAmount,
+                InputText = AugaCraftingControls.Instance.inputText
             };
 
             return controls;

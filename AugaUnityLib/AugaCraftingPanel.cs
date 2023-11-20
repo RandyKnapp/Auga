@@ -147,7 +147,6 @@ namespace AugaUnity
         [UsedImplicitly]
         public virtual void OnDisable()
         {
-            _instance = null;
             VariantDialog.OnClose();
         }
 
