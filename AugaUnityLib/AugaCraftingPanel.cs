@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fishlabs;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -41,11 +42,16 @@ namespace AugaUnity
         public Image CraftProgressBar;
         public GameObject ResultsPanelPrefab;
 
-        [Header("MultiCraft Objects")]
+        [Header("MultiCraft Objects")] 
+        public GameObject Arrows;
         public Button PlusButton;
         public Button MinusButton;
+        public GameObject Counter;
         public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
+        public GameObject Amount;
+        public GuiInputField InputAmount;
+        public TMP_Text InputText;
 
         [Header("Dummy Objects")]
         public Image DummyIcon;
@@ -58,10 +64,15 @@ namespace AugaUnity
         public RectTransform DummyQualityPanel;
         public Image DummyMinStationLevelIcon;
 
-        private static AugaCraftingPanel _instance;
+        public static AugaCraftingPanel _instance;
         private CraftingRequirementsPanel _currentPanel;
         private Action<bool> _onShowCustomVariantDialog;
         private bool _multiCraftEnabled;
+
+        private void Awake()
+        {
+            //_instance = this;
+        }
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
