@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fishlabs;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -41,11 +42,15 @@ namespace AugaUnity
         public Image CraftProgressBar;
         public GameObject ResultsPanelPrefab;
 
-        [Header("MultiCraft Objects")]
+        [Header("MultiCraft Objects")] 
+        public GameObject Multicraft;
         public Button PlusButton;
         public Button MinusButton;
         public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
+        public GameObject AAA;
+        public GuiInputField InputAmount;
+        public TMP_Text InputText;
 
         [Header("Dummy Objects")]
         public Image DummyIcon;
@@ -58,10 +63,20 @@ namespace AugaUnity
         public RectTransform DummyQualityPanel;
         public Image DummyMinStationLevelIcon;
 
-        private static AugaCraftingPanel _instance;
+        public static AugaCraftingPanel _instance = null;
         private CraftingRequirementsPanel _currentPanel;
         private Action<bool> _onShowCustomVariantDialog;
         private bool _multiCraftEnabled;
+
+        private void Awake()
+        {
+            if (_instance != null)
+            {
+                Debug.LogError($"Too many instances of AugaCraftingPanel exist! other={_instance} parent={_instance.transform.parent}");
+            }
+            
+            _instance = this;
+        }
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
@@ -119,12 +134,6 @@ namespace AugaUnity
         [UsedImplicitly]
         public virtual void OnEnable()
         {
-            if (_instance != null)
-            {
-                Debug.LogError($"Too many instances of AugaCraftingPanel exist! other={_instance} parent={_instance.transform.parent}");
-            }
-            _instance = this;
-
             var player = Player.m_localPlayer;
             if (player != null && player.m_currentStation == null)
             {
@@ -313,22 +322,12 @@ namespace AugaUnity
         {
             if (InventoryGui.instance?.m_craftTimer >= 0)
             {
-                PlusButton.gameObject.SetActive(false);
-                MinusButton.gameObject.SetActive(false);
-                CraftAmountText.gameObject.SetActive(false);
-                CraftAmountBG.gameObject.SetActive(false);
+                Multicraft.SetActive(false);
             }
             else
             {
-                PlusButton.gameObject.SetActive(_multiCraftEnabled);
-                MinusButton.gameObject.SetActive(_multiCraftEnabled);
-                CraftAmountText.gameObject.SetActive(_multiCraftEnabled);
-                CraftAmountBG.gameObject.SetActive(_multiCraftEnabled);
+                Multicraft.SetActive(_multiCraftEnabled);
             }
-
-            var rect = (RectTransform)CraftButton.transform;
-            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _multiCraftEnabled ? 230 : 272);
-            rect.anchoredPosition = new Vector2(_multiCraftEnabled ? -21 : 0, rect.anchoredPosition.y);
         }
     }
 }

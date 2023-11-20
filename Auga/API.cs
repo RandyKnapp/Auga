@@ -1075,5 +1075,31 @@ namespace Auga
             WorkbenchPanelController.instance?.CraftingPanel.DisableCustomVariantDialog();
 #endif
         }
+        
+        [UsedImplicitly]
+        public static CraftingControls GetCraftingControls()
+        {
+#if ! API
+            if (AugaCraftingPanel._instance == null)
+                return new CraftingControls();
+            
+            var controls = new CraftingControls
+            {
+                Multicraft = AugaCraftingPanel._instance.Multicraft,
+                PlusButton = AugaCraftingPanel._instance.PlusButton,
+                MinusButton = AugaCraftingPanel._instance.MinusButton,
+                CraftAmountText = AugaCraftingPanel._instance.CraftAmountText,
+                CraftAmountBG = AugaCraftingPanel._instance.CraftAmountBG,
+                CraftButton = AugaCraftingPanel._instance.CraftButton,
+                Amount = AugaCraftingPanel._instance.AAA,
+                InputAmount = AugaCraftingPanel._instance.InputAmount,
+                InputText = AugaCraftingPanel._instance.InputText
+            };
+
+            return controls;
+#else
+            return null;
+#endif
+        }
     }
 }

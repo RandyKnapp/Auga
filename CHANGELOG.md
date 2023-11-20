@@ -1,6 +1,9 @@
 ### 1.3.12 - Hud Improvements
 * MessageCenter Text no longer blocks Build Menu.
-* 
+* Moved Stars to be on health bar, to allow compatibility with other mods adding HP text below health bar.
+* Added native crafting controls for Input and Arrows that allow other mods, like AAA to make use of native objects.
+* Added `GetCraftingControls()` to Auga API (now version 1.6.0) to allow getting the crafting controls directly without having to look through Unity hierarchy
+
 
 <details>
 <summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
