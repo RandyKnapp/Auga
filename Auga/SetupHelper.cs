@@ -46,6 +46,14 @@ namespace Auga
                 return false;
             }
 
+            if (!prefab)
+            {
+                Auga.LogWarning($"Prefab for {originalName} converting to {newPrimaryName} for {secondaryName} not found.");
+                return false;
+            }
+                
+
+            
             var parent = primaryOriginal.parent;
             if (parent != null)
             {

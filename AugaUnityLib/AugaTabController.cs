@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AugaUnity
 {
     public class AugaTabController : MonoBehaviour
     {
-        public List<Text> TabTitles = new List<Text>();
+        public List<TMP_Text> TabTitles = new List<TMP_Text>();
         public List<TabButton> TabButtons = new List<TabButton>();
         public List<GameObject> TabContents = new List<GameObject>();
 
@@ -37,12 +37,13 @@ namespace AugaUnity
             SelectedIndex = index;
             for (var tabIndex = 0; tabIndex < TabButtons.Count; tabIndex++)
             {
+                
                 var selected = tabIndex == SelectedIndex;
 
                 var tabTitle = tabIndex < TabTitles.Count ? TabTitles[tabIndex] : null;
                 var tabButton = tabIndex < TabButtons.Count ? TabButtons[tabIndex] : null;
                 var tabContent = tabIndex < TabContents.Count ? TabContents[tabIndex] : null;
-
+                
                 if (tabTitle != null)
                 {
                     tabTitle.gameObject.SetActive(selected);

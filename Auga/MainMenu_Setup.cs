@@ -1,11 +1,29 @@
-﻿using HarmonyLib;
+﻿using AugaUnity;
+using HarmonyLib;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Auga
 {
+
+    [HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.SnapTo))]
+    public static class SnapTo_Patch
+    {
+        public static void Postfix(TextsDialog __instance, RectTransform listRoot, ScrollRect scrollRect)
+        {
+            var augaTextComponent = __instance.GetComponent<AugaTextsDialogFilter>();
+            if (augaTextComponent == null)
+                return;
+
+            var newVector = new Vector2(0, listRoot.anchoredPosition.y);
+            listRoot.anchoredPosition = newVector;
+        }
+    }
+
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
     public static class FejdStartup_Awake_Patch
     {
-        public static void Postfix(FejdStartup __instance)
+        public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
 

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using AugaUnity;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -17,8 +18,10 @@ namespace Auga
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class InventoryGui_Awake_Patch
         {
+            [HarmonyPriority(Priority.First)]
             public static void Postfix(InventoryGui __instance)
             {
+                Debug.LogWarning($"Starting Auga InventoryGui.Postfix");
                 AddItemIconMaterial.IconMaterial = __instance.m_dragItemPrefab.transform.Find("icon").GetComponent<Image>().material;
 
                 __instance.m_playerGrid.m_onSelected = null;
@@ -31,18 +34,20 @@ namespace Auga
                 __instance.m_playerGrid = playerInventory.Find("PlayerGrid").GetComponent<InventoryGrid>();
                 __instance.m_playerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_playerGrid.m_onRightClick += __instance.OnRightClickItem;
-                __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<Text>();
-                __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<Text>();
+                __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
+                __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<TMP_Text>();
 
                 var containerInventory = __instance.Replace("root/Container", Auga.Assets.InventoryScreen, "root/Container");
                 __instance.m_container = containerInventory.RectTransform();
-                __instance.m_containerName = containerInventory.Find("ContainerHeader/Name").GetComponent<Text>();
+                __instance.m_containerName = containerInventory.Find("ContainerHeader/Name").GetComponent<TMP_Text>();
                 __instance.m_containerGrid = containerInventory.Find("ContainerGrid").GetComponent<InventoryGrid>();
                 __instance.m_containerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_containerGrid.m_onRightClick += __instance.OnRightClickItem;
-                __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<Text>();
+                __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
                 __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
                 __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
+                __instance.m_stackAllButton = containerInventory.Find("StackAll").GetComponent<ColorButtonText>();
+                __instance.m_stackAllButton.onClick.AddListener(__instance.OnStackAll);
                 
                 var oldCraftingPanel = __instance.transform.Find("root/Crafting");
                 var craftingPanelSiblingIndex = oldCraftingPanel.GetSiblingIndex();
@@ -52,7 +57,7 @@ namespace Auga
                 var variantDialog = __instance.Replace("root/VariantDialog", Auga.Assets.InventoryScreen, "root/DummyObjects/DummyVariantDialog");
                 __instance.m_variantDialog = variantDialog.GetComponent<VariantDialog>();
 
-                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/DummyObjects/DummySkillsDialog");
+                var skillsDialog = __instance.Replace("root/Skills", Auga.Assets.InventoryScreen, "root/RightPanel/TabContent/TabContent_Skills");
                 __instance.m_skillsDialog = skillsDialog.GetComponent<SkillsDialog>();
                 var dummyContainer = new GameObject("DummyDialogs", typeof(RectTransform));
                 dummyContainer.transform.SetParent(skillsDialog.parent);
@@ -61,11 +66,14 @@ namespace Auga
                 dummyContainer.SetActive(false);
 
                 var rightPanel = Object.Instantiate(Auga.Assets.InventoryScreen.transform.Find("root/RightPanel"), containerInventory.parent, false);
+                Debug.LogWarning($"API AAA is null: {API.GetCraftingControls().Amount == null}");
+                Debug.LogWarning($"API InputAmount is null: {API.GetCraftingControls().InputAmount == null}");
+                Debug.LogWarning($"API InputAmount is null: {API.GetCraftingControls().CraftButton == null}");
                 rightPanel.gameObject.name = "RightPanel";
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 CraftingPanel.SetMultiCraftEnabled(Auga.HasMultiCraft);
-                __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<Text>();
+                __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<TMP_Text>();
                 __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/Dummy/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;
                 __instance.m_recipeListRoot = CraftingPanel.RecipeList;
@@ -85,10 +93,9 @@ namespace Auga
                 __instance.m_variantButton.onClick.AddListener(__instance.OnShowVariantSelection);
                 __instance.m_variantDialog = CraftingPanel.VariantDialog;
                 __instance.m_variantDialog.m_selected += __instance.OnVariantSelected;
-
-                __instance.m_repairButton = CraftingPanel.RepairButton;
-                __instance.m_repairButtonGlow = CraftingPanel.RepairGlow;
-                __instance.m_repairPanel = CraftingPanel.RepairButton.transform;
+                __instance.m_repairButton = CraftingPanel.DefaultRepairButton;
+                __instance.m_repairButtonGlow = CraftingPanel.DefaultRepairGlow;
+                __instance.m_repairPanel = CraftingPanel.DefaultRepairButton.transform;
                 __instance.m_repairButton.onClick.AddListener(__instance.OnRepairPressed);
 
                 __instance.m_recipeIcon = CraftingPanel.DummyIcon;
@@ -112,11 +119,11 @@ namespace Auga
                 var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog");
                 __instance.m_splitPanel = splitDialog;
                 __instance.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
-                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<Text>();
+                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<TMP_Text>();
                 __instance.m_splitCancelButton = splitDialog.Find("Dialog/ButtonCancel").GetComponent<Button>();
                 __instance.m_splitOkButton = splitDialog.Find("Dialog/ButtonOk").GetComponent<Button>();
                 __instance.m_splitIcon = splitDialog.Find("Dialog/InventoryElement/icon").GetComponent<Image>();
-                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<Text>();
+                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<TMP_Text>();
 
                 __instance.m_splitSlider.onValueChanged.AddListener(__instance.OnSplitSliderChanged);
                 __instance.m_splitCancelButton.onClick.AddListener(__instance.OnSplitCancel);
@@ -169,7 +176,7 @@ namespace Auga
                         itemTooltip.Item = null;
                     }
 
-                    if (element.m_used)
+                    if (element.m_used && itemTooltip != null)
                     {
                         itemTooltip.Item = item;
                     }

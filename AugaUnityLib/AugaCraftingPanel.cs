@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fishlabs;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,9 +10,9 @@ namespace AugaUnity
 {
     public class AugaCraftingPanel : MonoBehaviour
     {
-        public Text WorkbenchName;
+        public TMP_Text WorkbenchName;
         public Image WorkbenchIcon;
-        public Text WorkbenchLevel;
+        public TMP_Text WorkbenchLevel;
         public RectTransform WorkbenchLevelRoot;
         public Button RepairButton;
         public Image RepairGlow;
@@ -35,21 +37,25 @@ namespace AugaUnity
         public VariantDialog VariantDialog;
         public Button CustomVariantButton;
         public GameObject CustomVariantDialog;
-        public Text CustomVariantText;
+        public TMP_Text CustomVariantText;
         public Transform CraftProgressPanel;
         public Image CraftProgressBar;
         public GameObject ResultsPanelPrefab;
 
-        [Header("MultiCraft Objects")]
+        [Header("MultiCraft Objects")] 
+        public GameObject Multicraft;
         public Button PlusButton;
         public Button MinusButton;
-        public Text CraftAmountText;
+        public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
+        public GameObject AAA;
+        public GuiInputField InputAmount;
+        public TMP_Text InputText;
 
         [Header("Dummy Objects")]
         public Image DummyIcon;
-        public Text DummyName;
-        public Text DummyDescription;
+        public TMP_Text DummyName;
+        public TMP_Text DummyDescription;
         public Transform DummyRepairPanelSelection;
         public Button DummyCraftTabButton;
         public Button DummyUpgradeTabButton;
@@ -57,10 +63,20 @@ namespace AugaUnity
         public RectTransform DummyQualityPanel;
         public Image DummyMinStationLevelIcon;
 
-        private static AugaCraftingPanel _instance;
+        public static AugaCraftingPanel _instance = null;
         private CraftingRequirementsPanel _currentPanel;
         private Action<bool> _onShowCustomVariantDialog;
         private bool _multiCraftEnabled;
+
+        private void Awake()
+        {
+            if (_instance != null)
+            {
+                Debug.LogError($"Too many instances of AugaCraftingPanel exist! other={_instance} parent={_instance.transform.parent}");
+            }
+            
+            _instance = this;
+        }
 
         public virtual void Initialize(InventoryGui inventoryGui)
         {
@@ -118,12 +134,6 @@ namespace AugaUnity
         [UsedImplicitly]
         public virtual void OnEnable()
         {
-            if (_instance != null)
-            {
-                Debug.LogError($"Too many instances of AugaCraftingPanel exist! other={_instance} parent={_instance.transform.parent}");
-            }
-            _instance = this;
-
             var player = Player.m_localPlayer;
             if (player != null && player.m_currentStation == null)
             {
@@ -137,7 +147,6 @@ namespace AugaUnity
         [UsedImplicitly]
         public virtual void OnDisable()
         {
-            _instance = null;
             VariantDialog.OnClose();
         }
 
@@ -270,7 +279,7 @@ namespace AugaUnity
             _onShowCustomVariantDialog?.Invoke(CustomVariantDialog.gameObject.activeSelf);
         }
 
-        public virtual Text EnableCustomVariantDialog(string buttonLabel, Action<bool> onShow)
+        public virtual TMP_Text EnableCustomVariantDialog(string buttonLabel, Action<bool> onShow)
         {
             _onShowCustomVariantDialog = onShow;
 
@@ -285,7 +294,7 @@ namespace AugaUnity
 
         public void SetCustomVariantButtonLabel(string buttonLabel)
         {
-            CustomVariantButton.GetComponentInChildren<Text>().text = Localization.instance.Localize(buttonLabel);
+            CustomVariantButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize(buttonLabel);
         }
 
         public virtual void DisableCustomVariantDialog()
@@ -312,22 +321,12 @@ namespace AugaUnity
         {
             if (InventoryGui.instance?.m_craftTimer >= 0)
             {
-                PlusButton.gameObject.SetActive(false);
-                MinusButton.gameObject.SetActive(false);
-                CraftAmountText.gameObject.SetActive(false);
-                CraftAmountBG.gameObject.SetActive(false);
+                Multicraft.SetActive(false);
             }
             else
             {
-                PlusButton.gameObject.SetActive(_multiCraftEnabled);
-                MinusButton.gameObject.SetActive(_multiCraftEnabled);
-                CraftAmountText.gameObject.SetActive(_multiCraftEnabled);
-                CraftAmountBG.gameObject.SetActive(_multiCraftEnabled);
+                Multicraft.SetActive(_multiCraftEnabled);
             }
-
-            var rect = (RectTransform)CraftButton.transform;
-            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _multiCraftEnabled ? 230 : 272);
-            rect.anchoredPosition = new Vector2(_multiCraftEnabled ? -21 : 0, rect.anchoredPosition.y);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,8 +18,8 @@ namespace AugaUnity
         public RectTransform WorkbenchTabTitleContainer;
         public RectTransform WorkbenchTabButtonContainer;
         public RectTransform RequirementsContainer;
-        public Text PlayerPanelTabTitlePrefab;
-        public Text WorkbenchTabTitlePrefab;
+        public TMP_Text PlayerPanelTabTitlePrefab;
+        public TMP_Text WorkbenchTabTitlePrefab;
         public CraftingRequirementsPanel GenericWorkbenchTabRequirementsPrefab;
         public TabButton TabButtonBasePrefab;
 
@@ -114,7 +115,7 @@ namespace AugaUnity
             return WorkbenchTabController.TabButtons.Exists(x => x.name == tabID);
         }
 
-        private void AddTab(AugaTabController controller, Text titlePrefab, Transform titleContainer, Transform tabButtonContainer, string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out Text tabTitle, out TabButton tabButton, GameObject content)
+        private void AddTab(AugaTabController controller, TMP_Text titlePrefab, Transform titleContainer, Transform tabButtonContainer, string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out TMP_Text tabTitle, out TabButton tabButton, GameObject content)
         {
             tabTitle = Instantiate(titlePrefab, titleContainer, true);
             tabTitle.text = Localization.instance.Localize(tabLabel);
@@ -148,7 +149,7 @@ namespace AugaUnity
             };
         }
 
-        public virtual void AddPlayerPanelTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out Text tabTitle, out TabButton tabButton, out GameObject content)
+        public virtual void AddPlayerPanelTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, out TMP_Text tabTitle, out TabButton tabButton, out GameObject content)
         {
             tabTitle = null;
             tabButton = null;
@@ -175,7 +176,7 @@ namespace AugaUnity
             tabButton.Button.onClick.AddListener(() => DefaultTabController.SelectTab(index));
         }
 
-        public virtual void AddWorkbenchTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out Text tabTitle, out TabButton tabButton, out CraftingRequirementsPanel requirementsPanel, out ComplexTooltip itemInfo)
+        public virtual void AddWorkbenchTab(string tabID, Sprite tabIcon, string tabLabel, Action<int> onTabSelected, bool mimicVanillaDescription, out TMP_Text tabTitle, out TabButton tabButton, out CraftingRequirementsPanel requirementsPanel, out ComplexTooltip itemInfo)
         {
             tabTitle = null;
             tabButton = null;

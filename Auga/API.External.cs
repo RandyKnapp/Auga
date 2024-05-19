@@ -5,12 +5,13 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Auga
 {
-    public static class API
+    public static class APIOld
     {
         private static readonly Assembly _targetAssembly;
 
@@ -20,9 +21,9 @@ namespace Auga
             if (_targetAssembly != null)
             {
                 var harmony = new Harmony("mods.randyknapp.auga.API");
-                foreach (var method in typeof(API).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public).Where(m => m.Name != "IsLoaded" && m.Name != "LoadAssembly"))
+                foreach (var method in typeof(Auga.API).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public).Where(m => m.Name != "IsLoaded" && m.Name != "LoadAssembly"))
                 {
-                    harmony.Patch(method, transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(API), nameof(Transpiler))));
+                    harmony.Patch(method, transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(Auga.API), nameof(Transpiler))));
                 }
             }
         }
@@ -141,7 +142,7 @@ namespace Auga
         public static GameObject[] RequirementsPanel_RequirementList(GameObject requirementsPanelGO) => null;
         public static void RequirementsPanel_SetWires(GameObject requirementsPanelGO, RequirementWireState[] wireStates, bool canCraft) { }
 
-        public static Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow) => null;
+        public static TMP_Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow) => null;
         public static void CustomVariantPanel_SetButtonLabel(string buttonLabel) { }
         public static void CustomVariantPanel_Disable() { }
     }

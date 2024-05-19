@@ -1,5 +1,6 @@
 ﻿using AugaUnity;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Auga
 {
@@ -37,14 +38,15 @@ namespace Auga
                     var skillTooltip = __instance.GetComponent<SkillTooltip>();
                     if (skillTooltip != null && skillTooltip.Skill != null)
                     {
-                        customTooltip.SetSkill(skillTooltip.Skill);
+                        customTooltip.SetSkill(skillTooltip.Skill, __instance);
                         return false;
                     }
+
+                    customTooltip.SetDefault(__instance);
                 }
             }
 
             return true;
         }
     }
-
 }
