@@ -11,19 +11,26 @@ namespace AugaUnity
 
         protected readonly Dictionary<Skills.SkillType, SkillsPanelSkillController> _skills = new Dictionary<Skills.SkillType, SkillsPanelSkillController>();
         protected int _skillsCount;
+        protected SkillsDialog _skillsDialog;
 
         public virtual void Start()
         {
             SkillPrefab.gameObject.SetActive(false);
-            Update();
+            _skillsDialog = GetComponent<SkillsDialog>();
+            UpdateSkillsDialog();
+            InvokeRepeating(nameof(UpdateSkillsDialog), 0f, 1f);
         }
 
-        public virtual void Update()
+        private void UpdateSkillsDialog()
         {
+            if (!isActiveAndEnabled)
+                return;
+
             var player = Player.m_localPlayer;
             if (player != null)
             {
                 UpdateSkills(player);
+                _skillsDialog.Setup(player);
             }
         }
 

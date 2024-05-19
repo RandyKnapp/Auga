@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 // ReSharper disable InconsistentNaming
@@ -35,11 +37,11 @@ namespace AugaUnity
 
     public class TooltipTextBox : MonoBehaviour
     {
-        public Text Text;
-        public Text RightColumnText;
-        public Text ThirdColumnText;
+        public TMP_Text Text;
+        public TMP_Text RightColumnText;
+        public TMP_Text ThirdColumnText;
 
-        public virtual void AddLine(Text t, object s, bool localize = true, bool overwrite = false)
+        public virtual void AddLine(TMP_Text t, object s, bool localize = true, bool overwrite = false)
         {
             if (t == null)
             {
@@ -103,15 +105,16 @@ namespace AugaUnity
         [CanBeNull] public Image DiamondBackground;
         [CanBeNull] public Image SkillBackground;
         [CanBeNull] public GameObject NormalDivider;
-        public Text Topic;
-        public Text Subtitle;
-        [CanBeNull] public Text DescriptionText;
+        public TMP_Text Topic;
+        public TMP_Text Subtitle;
+        [CanBeNull] public TMP_Text DescriptionText;
         [CanBeNull] public GameObject BottomDivider;
-        [CanBeNull] public Text ItemQuality;
+        [CanBeNull] public TMP_Text ItemQuality;
         public RectTransform TextBoxContainer;
         [CanBeNull] public RectTransform LowerTextBoxContainer;
         public TooltipTextBox TwoColumnTextBoxPrefab;
         public TooltipTextBox CenteredTextBoxPrefab;
+        public TooltipTextBox LeftAlignedTextBoxPrefab;
         [CanBeNull] public TooltipTextBox UpgradeLabelsPrefab;
         [CanBeNull] public TooltipTextBox UpgradeTwoColumnTextBoxPrefab;
         [CanBeNull] public TooltipTextBox CheckBoxTextBoxPrefab;
@@ -131,6 +134,7 @@ namespace AugaUnity
         protected Skills.Skill _skill;
         protected int _quality;
         protected int _variant;
+        protected string _originalTooltip;
 
         public virtual void Start()
         {
@@ -201,6 +205,7 @@ namespace AugaUnity
             _food = null;
             _statusEffect = null;
             _skill = null;
+            _originalTooltip = null;
 
             if (ItemQuality != null)
             {
@@ -216,11 +221,14 @@ namespace AugaUnity
         public virtual void SetSubtitle(string topic)
         {
             Subtitle.text = topic;
+            Subtitle.gameObject.SetActive(!string.IsNullOrEmpty(topic));
         }
 
         protected virtual void SetItemBaseData(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
             ClearData();
+            _originalTooltip = item.GetTooltip();
+
             _item = item;
             _quality = quality;
             _variant = variant;
@@ -364,17 +372,20 @@ namespace AugaUnity
 
             var skillLevel = Player.m_localPlayer.GetSkillLevel(item.m_shared.m_skillType);
             var statusEffectTooltip = item.GetStatusEffectTooltip(quality, skillLevel);
+            var showExtraText = true;
             switch (item.m_shared.m_itemType)
             {
                 case ItemDrop.ItemData.ItemType.Consumable:
                     if (item.m_shared.m_food > 0)
                     {
                         AddFoodTextBox(item);
+                        showExtraText = false;
                     }
                     else if (!string.IsNullOrEmpty(statusEffectTooltip))
                     {
                         var textBox = AddTextBox(CenteredTextBoxPrefab);
                         textBox.AddLine(statusEffectTooltip);
+                        showExtraText = false;
                     }
                     break;
 
@@ -477,6 +488,54 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "$item_seteffect", "", $"{item.m_shared.m_setSize} $item_parts");
                 TextBoxAddPreprocessedLine(textBox, item, "", setStatusEffect);
             }
+
+            var extraText = GetExtraTextFromTooltip();
+            if (!string.IsNullOrEmpty(extraText) && showExtraText)
+            {
+                if (LeftAlignedTextBoxPrefab != null)
+                {
+                    AddDivider();
+                    var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
+                    textBox.Text.text = extraText;
+                }
+            }
+        }
+
+        private string GetExtraTextFromTooltip()
+        {
+            var outputString = new StringBuilder();
+
+            using (StringReader reader = new StringReader(_originalTooltip))
+            {
+                string line;
+                bool foundWeight = false;
+                bool foundFirstColor = false;
+                
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if ((line.Contains("$item_") || line.Contains("$inventory_")) && !foundWeight)
+                    {
+                        if (line.Contains("$item_weight"))
+                            foundWeight = true;
+                    }
+                    else
+                    {
+                        if (foundWeight)
+                        {
+                            if ((line.StartsWith("<color") || (!line.StartsWith("$item_") && !line.StartsWith("$inventory_"))) && !foundFirstColor)
+                                foundFirstColor = true;
+                            
+                            if (!foundFirstColor)
+                                continue;
+                            
+                            if (!string.IsNullOrEmpty(line.Trim()))
+                                outputString.AppendLine(line);
+                        }
+                    }
+                }
+            }
+            
+            return outputString.ToString();
         }
 
         private void AddResourceUseTextbox(ItemDrop.ItemData item)
@@ -733,11 +792,68 @@ namespace AugaUnity
             OnComplexTooltipGeneratedForStatusEffect?.Invoke(this, statusEffect);
         }
 
+        public virtual void SetDefault(UITooltip tooltip)
+        {
+            if (tooltip == null)
+                return;
+
+            ClearData();
+
+            var icon = tooltip.transform.Find("Icon")?.GetComponent<Image>() ?? tooltip.transform.Find("icon")?.GetComponent<Image>();
+            if (icon != null)
+            {
+                EnableObjectBackground(ObjectBackgroundType.Diamond);
+                SetIcon(icon.sprite);                
+            }
+            
+            SetTopic(Localization.instance.Localize(tooltip.m_topic));
+            SetDescription("");
+            SetSubtitle("");
+            
+            var outputString = new StringBuilder();
+            var foundSubtitle = false;
+
+            using (StringReader reader = new StringReader(tooltip.m_text))
+            {
+                string line;
+                
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                    {
+                        if (line.Contains("description"))
+                            SetDescription(Localization.instance.Localize(line));
+                        else if (line.Contains("$item_") && !line.Contains(":") && !foundSubtitle)
+                        {
+                            SetSubtitle(Localization.instance.Localize(line));
+                            foundSubtitle = true;
+                        }
+                        else
+                            outputString.AppendLine(line);
+                    }
+                }
+            }
+
+            ClearTextBoxes();
+            var textBox = AddTextBox(LeftAlignedTextBoxPrefab);
+            textBox.Text.text = Localization.instance.Localize(outputString.ToString());
+        }
+        
         public virtual void SetSkill(Skills.Skill skill)
+        {
+            SetSkill(skill,null);
+        }
+        public virtual void SetSkill(Skills.Skill skill, UITooltip tooltip)
         {
             if (_skill == skill)
                 return;
 
+            var extendedLevel = string.Empty;
+            if (tooltip != null)
+            {
+                extendedLevel = tooltip.m_topic;                
+            }
+            
             ClearData();
             _skill = skill;
             
@@ -750,7 +866,7 @@ namespace AugaUnity
 
             ClearTextBoxes();
             var textBox = AddTextBox(TwoColumnTextBoxPrefab);
-            textBox.AddLine("$level", skill.m_level.ToString("0"));
+            textBox.AddLine("$level", $"{skill.m_level.ToString("0")}{extendedLevel}");
             textBox.AddLine("$experience", Mathf.CeilToInt(skill.m_accumulator));
             textBox.AddLine("$to_next_level", Mathf.CeilToInt(skill.GetNextLevelRequirement()));
 

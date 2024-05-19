@@ -442,11 +442,11 @@ MonoBehaviour:
   m_quitDialog: {fileID: 7680793598013717538}
   m_logoutDialog: {fileID: 6828305556800494344}
   m_cloudStorageWarning: {fileID: 0}
+  m_cloudStorageWarningNextSave: {fileID: 0}
   m_settingsPrefab: {fileID: 6379034644791463747, guid: 0ac5c3283b1cf6444bd7417013918aa6,
     type: 3}
   m_feedbackPrefab: {fileID: 0}
   m_gamepadRoot: {fileID: 0}
-  m_gamepadTriggers: {fileID: 0}
   m_skipButton: {fileID: 4824936238869214461}
 --- !u!114 &1600549966284015957
 MonoBehaviour:
@@ -953,15 +953,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 0
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 1
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -1451,7 +1453,12 @@ PrefabInstance:
     - target: {fileID: 5003195230981158844, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnSettings
+      value: OnCurrentPlayers
+      objectReference: {fileID: 0}
+    - target: {fileID: 5003195230981158844, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Menu, assembly_valheim
       objectReference: {fileID: 0}
     - target: {fileID: 5003195230981158844, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -1576,7 +1583,7 @@ PrefabInstance:
     - target: {fileID: 7218928280741825972, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 85.79999
+      value: 118
       objectReference: {fileID: 0}
     - target: {fileID: 7218928280741825972, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -1592,6 +1599,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_players
       objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -2145,6 +2157,16 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 51
       objectReference: {fileID: 0}
+    - target: {fileID: 6295745940351531892, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_no
+      objectReference: {fileID: 0}
+    - target: {fileID: 7373561057101788309, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_yes
+      objectReference: {fileID: 0}
     - target: {fileID: 9100646000115738132, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
         type: 3}
       propertyPath: m_Text
@@ -2359,6 +2381,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_logout
       objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -2584,6 +2611,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $compendium
       objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -2850,6 +2882,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_manualsave
+      objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
       propertyPath: m_Color.b
@@ -2929,6 +2966,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SkipIntro
+      objectReference: {fileID: 0}
+    - target: {fileID: 3428658169837562744, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3623317734267467663, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -3144,6 +3186,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_skipcutscene
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_overflowMode
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}
@@ -3429,6 +3481,16 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 135
       objectReference: {fileID: 0}
+    - target: {fileID: 6295745940351531892, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_no
+      objectReference: {fileID: 0}
+    - target: {fileID: 7373561057101788309, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_yes
+      objectReference: {fileID: 0}
     - target: {fileID: 9100646000115738132, guid: 5baec0c77b4d6724c96d5b03f7c77adb,
         type: 3}
       propertyPath: m_Text
@@ -3643,6 +3705,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146947874599330031, guid: 4a37b21174d25234dab1375eeaedf087,
+        type: 3}
+      propertyPath: m_text
+      value: $menu_exit
       objectReference: {fileID: 0}
     - target: {fileID: 9161179939341118165, guid: 4a37b21174d25234dab1375eeaedf087,
         type: 3}

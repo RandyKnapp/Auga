@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using Auga.Compat;
 using AugaUnity;
 using BepInEx;
 using BepInEx.Bootstrap;
@@ -30,6 +31,7 @@ namespace Auga
         public GameObject SettingsPrefab;
         public GameObject MessageHud;
         public GameObject TextInput;
+        public GameObject AugaBarber;
         public GameObject AugaChat;
         public GameObject DamageText;
         public GameObject EnemyHud;
@@ -42,6 +44,7 @@ namespace Auga
         public GameObject ButtonSmall;
         public GameObject ButtonMedium;
         public GameObject ButtonFancy;
+        public GameObject ButtonToggle;
         public GameObject ButtonSettings;
         public GameObject DiamondButton;
         public Font SourceSansProBold;
@@ -55,7 +58,7 @@ namespace Auga
         public GameObject DividerLarge;
         public GameObject ConfirmDialog;
         public Sprite RecyclingPanelIcon;
-
+        public GameObject BuildHud;
         public GameObject LeftWristMountUI;
     }
 
@@ -77,11 +80,14 @@ namespace Auga
     [BepInPlugin(PluginID, "Project Auga", Version)]
     [BepInDependency("Menthus.bepinex.plugins.BetterTrader", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.chatter", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("redseiko.valheim.searscatalog", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("org.bepinex.plugins.jewelcrafting", BepInDependency.DependencyFlags.SoftDependency)]
     public class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.2.15";
+        public const string Version = "1.3.12";
 
         public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
         public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
@@ -137,11 +143,11 @@ namespace Auga
                 if (revision > 0)
                 {
                     Debug.LogWarning($"==============================================================================");
-                    Debug.LogWarning($"You are using a PTB version of this mod. It will not work in live.");
+                    Debug.LogWarning($"You are using a PTB version of this mod. It will not work in prior versions.");
                     Debug.LogWarning($"Project Auga - Version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Debug.LogWarning($"Valheim - Version {(global::Version.GetVersionString())}");
 
-                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 5 ) || global::Version.CurrentVersion.m_minor > 217)
+                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 27 ) || global::Version.CurrentVersion.m_minor > 217)
                     {
                         Debug.LogWarning($"GAME VERSION CHECK - PASSED");
                         Debug.LogWarning($"==============================================================================");
@@ -157,9 +163,9 @@ namespace Auga
                     }
                 }
             }
-            
-            
+
             LoadDependencies();
+            APIManager.Patcher.Patch();
             LoadTranslations();
             LoadConfig();
             LoadAssets();
@@ -174,7 +180,144 @@ namespace Auga
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
-            // Patch MultiCraft_UI.CreateSpaceFromCraftButton
+            if (HasChatter)
+            {
+                Chatter.ChatterType = Assembly.LoadFile(chatterPlugin.Location);
+                Chatter.ToggleCell = Chatter.ChatterType.GetType("Chatter.ToggleCell");
+                var createChildCellMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildCell");
+                var createChildLabelMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildLabel");
+                var onToggleValueChangedMethod = AccessTools.Method(Chatter.ToggleCell, "OnToggleValueChanged");
+
+                if (Chatter.ToggleCell != null)
+                {
+                    _harmony.Patch(createChildCellMethod, new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildCell_Patch)));
+                    _harmony.Patch(createChildLabelMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildLabel_Transpiler)));
+                    _harmony.Patch(onToggleValueChangedMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.OnToggleValueChanged_Transpiler)));
+                }
+            }
+            
+            if (HasSearsCatalog)
+            {
+                SearsCatalog.SearsCatalogType = Assembly.LoadFile(searsPlugin.Location);
+                SearsCatalog.HudPatch = SearsCatalog.SearsCatalogType.GetType("SearsCatalog.HudPatch");
+                
+                var awakePostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
+
+                if (SearsCatalog.HudPatch != null)
+                {
+                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(SearsCatalog), nameof(SearsCatalog.AwakePostfix_Patch)));
+                }
+            }
+            
+            if (HasJewelcrafting)
+            {
+                Jewelcrafting.ModAssembly = Assembly.LoadFile(jewelcraftingPlugin.Location);
+                Jewelcrafting.Synergy = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.Synergy");
+                Jewelcrafting.SocketsBackground = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.SocketsBackground");
+                Jewelcrafting.FusionBoxSetup = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.FusionBoxSetup");
+                Jewelcrafting.AddSealButton = Jewelcrafting.FusionBoxSetup.GetNestedType("AddSealButton");
+                Jewelcrafting.AddSynergyIcon = Jewelcrafting.Synergy.GetNestedType("AddSynergyIcon",BindingFlags.NonPublic | BindingFlags.Static);
+                Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
+                Jewelcrafting.GemCursor = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemCursor");
+                Jewelcrafting.CacheVanillaCursor = Jewelcrafting.GemCursor.GetNestedType("CacheVanillaCursor",BindingFlags.NonPublic | BindingFlags.Static);
+                Jewelcrafting.GemStones = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemStones");
+                Jewelcrafting.OpenFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("OpenFakeSocketsContainer");
+                Jewelcrafting.CloseFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("CloseFakeSocketsContainer",BindingFlags.NonPublic | BindingFlags.Static);
+
+                var compatibilityFailure = false;
+                
+                if (Jewelcrafting.DisplaySynergyView != null)
+                {
+                    var awakeMethod = AccessTools.Method(Jewelcrafting.DisplaySynergyView, "Awake");
+                    var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
+                    
+                    _harmony.Patch(awakeMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.DisplaySynergyView_Awake_Transpiler)));
+                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.IvnentoryGui_Awake_Postfix)));
+                }
+                else
+                    compatibilityFailure = true;
+
+                if (Jewelcrafting.SocketsBackground != null)
+                {
+                    var hudPostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
+                    _harmony.Patch(hudPostfixMethod, prefix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.Hud_Awake_Prefix)));
+                }
+                else
+                    compatibilityFailure = true;
+                
+                if (Jewelcrafting.AddSealButton != null)
+                {
+                    var sealPostfixMethod = Jewelcrafting.AddSealButton.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
+
+                    if (sealPostfixMethod == null)
+                    {
+                        compatibilityFailure = true;
+                        Debug.LogWarning($"sealPostfixMethod ==  null: {sealPostfixMethod == null}");
+                    }
+                    
+                    _harmony.Patch(sealPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.FusionBoxSetup_AddSealButton_Postfix_Transpiler)));
+                }
+                else
+                    compatibilityFailure = true;
+                
+                if (Jewelcrafting.CacheVanillaCursor != null)
+                {
+                    var cursorPostfixMethod = Jewelcrafting.CacheVanillaCursor.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
+
+                    if (cursorPostfixMethod == null)
+                    {
+                        compatibilityFailure = true;
+                        Debug.LogWarning($"cursorPostfixMethod ==  null: {cursorPostfixMethod ==  null}");
+                    }
+                    _harmony.Patch(cursorPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemCursor_CacheVanillaCursor_Postfix_Transpiler)));
+                }
+                else
+                    compatibilityFailure = true;
+
+                if (Jewelcrafting.OpenFakeSocketsContainer != null)
+                {
+                    var openSocketsMethod = Jewelcrafting.OpenFakeSocketsContainer.GetMethod("Open", BindingFlags.Public | BindingFlags.Static);
+                    if (openSocketsMethod == null)
+                    {
+                        compatibilityFailure = true;
+                        Debug.LogWarning($"openSocketsMethod ==  null: {openSocketsMethod ==  null}");
+                    }
+                    _harmony.Patch(openSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_OpenFakeSocketsContainer_Open_Transpiler)));
+                }
+                else
+                    compatibilityFailure = true;
+
+                if (Jewelcrafting.CloseFakeSocketsContainer != null)
+                {
+                    var closeSocketsMethod = Jewelcrafting.CloseFakeSocketsContainer.GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
+                    if (closeSocketsMethod == null)
+                    {
+                        compatibilityFailure = true;
+                        Debug.LogWarning($"closeSocketsMethod ==  null: {closeSocketsMethod ==  null}");
+                    }
+                    _harmony.Patch(closeSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_CloseFakeSocketsContainer_Prefix_Transpiler)));
+                }
+                else
+                    compatibilityFailure = true;
+
+                if (compatibilityFailure)
+                {
+                    Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.AddSealButton ==  null: {Jewelcrafting.AddSealButton ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.GemCursor ==  null: {Jewelcrafting.GemCursor ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.CacheVanillaCursor ==  null: {Jewelcrafting.CacheVanillaCursor ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.GemStones ==  null: {Jewelcrafting.GemStones ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.OpenFakeSocketsContainer ==  null: {Jewelcrafting.OpenFakeSocketsContainer ==  null}");
+                    Debug.LogWarning($"Jewelcrafting.CloseFakeSocketsContainer ==  null: {Jewelcrafting.CloseFakeSocketsContainer ==  null}");
+                    Debug.LogError("Jewelcrafting Compatibility Failed - Contact Vapok with the above information");
+                    Thread.Sleep(15000);
+                }
+            }
             
             if (HasMultiCraft)
             {
@@ -212,15 +355,17 @@ namespace Auga
             }
         }
 
+
         public static bool MultiCraft_UI_CreateSpaceFromCraftButton_Patch(InventoryGui instance)
         {
+            API.GetCraftingControls().Multicraft.SetActive(true);
             var multiCraftUiInstance = AccessTools.Method(_multiCraftUiType, "get_instance").Invoke(null, BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, new object[] { }, CultureInfo.InvariantCulture);
-            
-            var plusButton = instance.m_craftButton.transform.parent.Find("plus");
+
+            var plusButton = API.GetCraftingControls().PlusButton; 
             var plusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnPlusButtonPressed");
             plusButton.GetComponent<Button>().onClick.AddListener(() => plusButtonMethod.Invoke(multiCraftUiInstance, new object[]{}));
 
-            var minusButton = instance.m_craftButton.transform.parent.Find("minus");
+            var minusButton = API.GetCraftingControls().MinusButton;
             var minusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnMinusButtonPressed");
             minusButton.GetComponent<Button>().onClick.AddListener(() => minusButtonMethod.Invoke(multiCraftUiInstance, new object[] { }));
 
@@ -286,7 +431,6 @@ namespace Auga
 
         public void OnDestroy()
         {
-            _harmony?.UnpatchSelf();
             _instance = null;
         }
 
@@ -374,6 +518,7 @@ namespace Auga
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
             Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
+            Assets.AugaBarber = assetBundle.LoadAsset<GameObject>("AugaBarber");
             Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
             Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
             Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
@@ -386,6 +531,7 @@ namespace Auga
             Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
             Assets.ButtonFancy = assetBundle.LoadAsset<GameObject>("ButtonFancy");
+            Assets.ButtonToggle = assetBundle.LoadAsset<GameObject>("ButtonToggle");
             Assets.ButtonSettings = assetBundle.LoadAsset<GameObject>("ButtonSettings");
             Assets.DiamondButton = assetBundle.LoadAsset<GameObject>("DiamondButton");
             Assets.SourceSansProBold = assetBundle.LoadAsset<Font>("SourceSansPro-Bold");
@@ -400,6 +546,7 @@ namespace Auga
             Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
             Assets.RecyclingPanelIcon = assetBundle.LoadAsset<Sprite>("RecyclingPanel");
             Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
+            Assets.BuildHud = assetBundle.LoadAsset<GameObject>("BuildHud");
         }
 
         private static void ApplyCursor()

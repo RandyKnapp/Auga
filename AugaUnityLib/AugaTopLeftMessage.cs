@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ namespace AugaUnity
         public const float MoveSpeed = 4.0f;
         public const float Spacing = -4;
 
-        public Text MessageText;
+        public TMP_Text MessageText;
         public Image Icon;
 
         [NonSerialized]
@@ -54,6 +55,12 @@ namespace AugaUnity
 
         protected virtual void RefreshText()
         {
+            if (MessageText == null)
+            {
+                Debug.LogWarning($"AugaTopLeftMessage MessageText can't be found.");
+                Debug.LogWarning($"Message: {Message}{(Amount > 0 ? $" x{Amount}" : "")}");
+                return;
+            }
             MessageText.text = $"{Message}{(Amount > 0 ? $" x{Amount}" : "")}";
         }
 

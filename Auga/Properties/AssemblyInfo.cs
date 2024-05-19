@@ -36,9 +36,9 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 #if API
-[assembly: AssemblyVersion("1.3")]
-[assembly: AssemblyFileVersion("1.3")]
+[assembly: AssemblyVersion("1.6.0")]
+[assembly: AssemblyFileVersion("1.6.0")]
 #else
-[assembly: AssemblyVersion("1.2.15")]
-[assembly: AssemblyFileVersion("1.2.15")]
+[assembly: AssemblyVersion("1.3.12.0")]
+[assembly: AssemblyFileVersion("1.3.12.0")]
 #endif
