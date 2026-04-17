@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,13 +8,13 @@ namespace AugaUnity
     {
         public GameObject[] RequirementList = new GameObject[0];
         public Image Icon;
-        [CanBeNull] public Image UpgradedIcon;
-        [CanBeNull] public Image WorkbenchIcon;
+        public Image UpgradedIcon;
+        public Image WorkbenchIcon;
         public TMP_Text WorkbenchLevel;
-        [CanBeNull] public TMP_Text OriginalQualityLevel;
-        [CanBeNull] public TMP_Text NewQualityLevel;
+        public TMP_Text OriginalQualityLevel;
+        public TMP_Text NewQualityLevel;
         public TMP_Text ItemCraftType;
-        [CanBeNull] public UpgradeRequirementsWireFrame WireFrame;
+        public UpgradeRequirementsWireFrame WireFrame;
 
         public void Activate(InventoryGui inventoryGui, ComplexTooltip itemInfo)
         {
@@ -50,7 +49,7 @@ namespace AugaUnity
                     }
                 }
 
-                var itemData = inventoryGui.m_selectedRecipe.Value;
+                var itemData = inventoryGui.m_selectedRecipe.ItemData;
                 if (itemData != null)
                 {
                     if (OriginalQualityLevel != null)

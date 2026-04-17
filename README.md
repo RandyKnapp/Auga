@@ -1,43 +1,140 @@
-﻿# Project Auga
-##### by RandyKnapp / n4
+# Project Auga
 
-Project Auga is a completely re-imagined, modder-friendly UI-overhaul for Valheim. Every last piece of UI was considered and reworked from the ground-up to create a more helpful and immersive player experience, all while remaining familiar to Valheim veterans.
+**Оригинальный мод:** [RandyKnapp/Auga](https://github.com/RandyKnapp/Auga)
 
-## What's Changed?
+Auga — полный UI-оверхол для Valheim. Переработан каждый элемент интерфейса: инвентарь, HUD, крафтинг, экран персонажа, загрузочные экраны и многое другое.
 
-Basically everything:
-  * New Player HUD
-  * Redesigned Player & Container inventories
-  * New Consolidated Player Panels
-  * Improved Crafting Panels
-  * Expanded Character Select & New Character Screens
-  * Overhauled Loading Screens
-  * Auga-Style EVERYTHING
+> Этот форк поддерживает актуальную версию Valheim и имеет обновлённую систему сборки, которая **автоматически находит установленную игру** без настройки путей вручную.
 
-SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Auga/Screenshots
+---
 
-## How to Install
+## Структура проекта
 
-  1. Install [BepInEx for Valheim﻿](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/)
-  1. Download the zip file from here on Thunderstore
-  1. Install with your mod manager
-  1. OR - Extract the contents of the `files` folder inside the zip file to <Your Valheim Installation Directory>\BepInEx\plugins\Auga
+```
+Auga/
+├── Auga/                  — основной BepInEx-плагин (C#)
+│   ├── Auga.cs            — точка входа, BepInEx Plugin
+│   ├── API.cs             — публичный API для других модов
+│   ├── *_Setup.cs         — патчи UI по элементам
+│   ├── Compat/            — совместимость с другими модами
+│   └── manifest.json      — метаданные мода (Thunderstore)
+│
+├── AugaUnityLib/          — Unity-компоненты (C#, собирается в Unity.Auga.dll)
+│   └── *.cs               — MonoBehaviour: полоски здоровья, вкладки, тултипы...
+│
+├── AugaUnity/             — Unity-проект (UI prefabs, AssetBundle)
+│   └── Assets/            — исходники Unity-сцены и ассетов
+│
+├── AugaApiExample/        — пример использования Auga API
+│
+├── Libs/                  — локальные зависимости
+│   ├── fastJSON.dll
+│   └── APIManager.dll     — (нужно добавить вручную, см. ниже)
+│
+├── build/
+│   └── FindValheim.ps1    — скрипт автопоиска Valheim через Steam
+│
+├── Valheim.props          — центральный конфиг путей (пути к игре / BepInEx)
+├── Auga.sln               — Visual Studio solution
+└── packages/              — NuGet-пакеты (ILRepack, AssemblyPublicizer)
+```
 
-## Mod Compatibility
+---
 
-Does it work with...
+## Сборка проекта
 
-  * EpicLoot: **YES**
-  * Equipment & Quick Slots: **YES**
-  * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
+### Требования
 
-Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.
+- Visual Studio 2019+ или Rider
+- .NET Framework 4.7.2 SDK
+- Valheim + [BepInExPack_Valheim](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/) — установленные и запущенные хотя бы раз
 
-Please report bugs and mod conflicts on the [GitHub Issues Page](https://github.com/RandyKnapp/Auga/issues)﻿!
+### Быстрый старт
 
-## For Modders
+```bash
+git clone https://github.com/<your-repo>/Auga.git
+cd Auga
+```
 
-Project Auga comes with an API that allows other mods to easily access its features and create UI elements in the Auga style. It's also open-source on GitHub.
+1. Открой `Auga.sln` в Visual Studio
+2. **Restore NuGet Packages** (правая кнопка на Solution → Restore NuGet Packages)
+3. Нажми **Build Solution**
 
-Auga API: https://github.com/RandyKnapp/Auga/wiki/Auga-API
-Source: https://github.com/RandyKnapp/Auga
+**Valheim находится автоматически.** При сборке запускается [`build/FindValheim.ps1`](build/FindValheim.ps1), который:
+- читает реестр Windows → находит путь к Steam
+- парсит `steamapps/libraryfolders.vdf` → перебирает все Steam-библиотеки
+- возвращает путь к Valheim куда бы он ни был установлен
+
+После сборки `Auga.dll` автоматически копируется в `<Valheim>\BepInEx\plugins\Auga\`.
+
+### Если Valheim не найден автоматически
+
+Передай путь явно при сборке:
+```
+msbuild /p:ValheimDir="D:\Games\Valheim"
+```
+или отредактируй первую строку в [`Valheim.props`](Valheim.props).
+
+### APIManager.dll
+
+Этот файл не входит в репозиторий. Положи его в `Libs/APIManager.dll` перед сборкой.  
+Источник: [Valheim-APIManager](https://github.com/Vapok/Valheim-APIManager)
+
+---
+
+## Как работает сборка
+
+| Инструмент | Назначение |
+|---|---|
+| `BepInEx.AssemblyPublicizer.MSBuild` | Автоматически делает internal-члены Valheim DLL публичными для компиляции |
+| `ILRepack` | Упаковывает зависимости (fastJSON, APIManager) в один итоговый DLL |
+| `Valheim.props` | Единый файл с путями — все `.csproj` импортируют его |
+| `build/FindValheim.ps1` | PowerShell-скрипт автопоиска игры через реестр Steam |
+
+Valheim assemblies, помеченные `<Publicize>true</Publicize>` в `.csproj`, publicize-уются **автоматически при каждой сборке** — никаких ручных шагов.
+
+---
+
+## Конфигурации сборки
+
+| Конфигурация | Описание |
+|---|---|
+| `Debug` | Отладочная сборка, копируется в плагины Valheim |
+| `Release` | Оптимизированная сборка |
+| `API` | Собирает только `AugaAPI.dll` для других модов |
+
+---
+
+## Установка мода (для игроков)
+
+1. Установи [BepInExPack_Valheim](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/)
+2. Установи с помощью менеджера модов (r2modman / Thunderstore MM)
+3. **ИЛИ** вручную: скопируй содержимое папки `files` из архива в  
+   `<Valheim>\BepInEx\plugins\Auga\`
+
+---
+
+## Совместимость с другими модами
+
+| Мод | Совместимость |
+|---|---|
+| EpicLoot | ✓ |
+| Equipment & Quick Slots | ✓ |
+
+Auga кардинально меняет UI Valheim — скорее всего несовместим с другими UI-модами.
+
+---
+
+## API для моддеров
+
+Auga предоставляет публичный API для создания UI в стиле Auga из других модов.
+
+- [Документация API](https://github.com/RandyKnapp/Auga/wiki/Auga-API)
+- Пример использования: [`AugaApiExample/`](AugaApiExample/)
+- Собери конфигурацию `API` → получишь `AugaAPI.dll`
+
+---
+
+## Скриншоты
+
+[Смотреть скриншоты](Auga/Screenshots/)

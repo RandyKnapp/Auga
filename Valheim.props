@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Valheim.props — центральная конфигурация путей.
+
+  ValheimDir определяется АВТОМАТИЧЕСКИ через Steam-реестр и libraryfolders.vdf.
+  Переопределить вручную (если нужно):
+    - изменить ValheimDir ниже, ИЛИ
+    - передать при сборке: msbuild /p:ValheimDir="D:\Games\Valheim"
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Статический поиск ValheimDir по известным путям.
+    Вычисляется ДО запуска любых Target-ов — поэтому HintPath работает корректно.
+    Порядок: явная передача /p:ValheimDir=... > реестровый путь > известные fallback-пути.
+  -->
+  <PropertyGroup Condition="'$(ValheimDir)' == ''">
+    <ValheimDir Condition="Exists('F:\SteamLibrary\steamapps\common\Valheim')">F:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('C:\Program Files (x86)\Steam\steamapps\common\Valheim')">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('D:\SteamLibrary\steamapps\common\Valheim')">D:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('E:\SteamLibrary\steamapps\common\Valheim')">E:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('G:\SteamLibrary\steamapps\common\Valheim')">G:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+  </PropertyGroup>
+
+  <!-- Пути производные от ValheimDir — пересчитываются после автопоиска -->
+  <PropertyGroup>
+    <!-- BepInEx: BepInEx.dll, 0Harmony.dll -->
+    <BepInExCoreDir>$(ValheimDir)\BepInEx\core</BepInExCoreDir>
+    <!-- Managed: assembly_valheim.dll, UnityEngine*.dll, Unity.TextMeshPro.dll и др. -->
+    <ValheimManagedDir>$(ValheimDir)\valheim_Data\Managed</ValheimManagedDir>
+    <!-- Папка плагинов — куда копируется мод после сборки -->
+    <ValheimPluginsDir>$(ValheimDir)\BepInEx\plugins</ValheimPluginsDir>
+  </PropertyGroup>
+
+  <!--
+    Автопоиск Valheim:
+      1. Запускаем build\FindValheim.ps1
+      2. Скрипт читает реестр Steam → libraryfolders.vdf → находит папку Valheim
+      3. Результат записывается в $(ValheimDir)
+    Пропускается если ValheimDir уже задан вручную или через /p:
+  -->
+  <Target Name="FindValheim" BeforeTargets="PrepareForBuild" Condition="'$(ValheimDir)' == ''">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)build\FindValheim.ps1&quot;"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="ValheimDir" />
+    </Exec>
+
+    <!-- Обновляем производные пути после того как ValheimDir найден -->
+    <PropertyGroup>
+      <ValheimDir>$(ValheimDir.Trim())</ValheimDir>
+      <BepInExCoreDir>$(ValheimDir)\BepInEx\core</BepInExCoreDir>
+      <ValheimManagedDir>$(ValheimDir)\valheim_Data\Managed</ValheimManagedDir>
+      <ValheimPluginsDir>$(ValheimDir)\BepInEx\plugins</ValheimPluginsDir>
+    </PropertyGroup>
+
+    <Message Text="Valheim найден: $(ValheimDir)" Importance="high" Condition="'$(ValheimDir)' != ''" />
+    <Warning Text="Valheim не найден автоматически. Задай путь вручную: /p:ValheimDir=C:\path\to\Valheim" Condition="'$(ValheimDir)' == ''" />
+  </Target>
+
+  <!-- Проверяем что BepInEx установлен -->
+  <Target Name="CheckValheimInstall" AfterTargets="FindValheim">
+    <Warning Condition="'$(ValheimDir)' != '' AND !Exists('$(BepInExCoreDir)')"
+             Text="BepInEx\core не найден в '$(ValheimDir)'. Установи BepInEx и запусти Valheim хотя бы раз." />
+    <Warning Condition="'$(ValheimDir)' != '' AND !Exists('$(ValheimManagedDir)')"
+             Text="valheim_Data\Managed не найден в '$(ValheimDir)'. Возможно Valheim повреждён — проверь файлы через Steam." />
+  </Target>
+
+</Project>

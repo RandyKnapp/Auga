@@ -18,13 +18,17 @@ namespace Auga
 
         [HarmonyPatch(typeof(DamageText), nameof(DamageText.AddInworldText))]
         [HarmonyPostfix]
-        public static void AddInworldText_Postfix(DamageText __instance, DamageText.TextType type, float dmg, bool mySelf)
+        public static void AddInworldText_Postfix(DamageText __instance, DamageText.TextType type, string text, bool mySelf)
         {
             var worldTextInstance = __instance.m_worldTexts.LastOrDefault();
             if (worldTextInstance == null)
             {
                 return;
             }
+
+            // "dmg" parameter was removed in current Valheim; parse damage from the text string
+            float.TryParse(text, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var dmg);
 
             Color color;
             if (type == DamageText.TextType.Heal)

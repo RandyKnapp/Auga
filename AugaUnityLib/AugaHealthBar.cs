@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -135,8 +136,10 @@ namespace AugaUnity
 
             if (Application.isEditor)
             {
-                FastBar.SetBar(fastValue / MaxValue);
-                SlowBar.SetBar(slowValue / MaxValue);
+                // GuiBar.SetBar() стал internal в новом Valheim — вызываем через Reflection
+                // чтобы сохранить мгновенный (без анимации) превью в Unity Editor
+                SetBarViaReflection(FastBar, fastValue / MaxValue);
+                SetBarViaReflection(SlowBar, slowValue / MaxValue);
             }
 
             if (!Application.isEditor)
@@ -189,6 +192,23 @@ namespace AugaUnity
         {
             var baseEitr = player.GetMaxEitr() - player.m_foods.Sum(x => x.m_eitr);
             return baseEitr + player.m_foods.Sum(x => x.m_item.m_shared.m_foodEitr);
+        }
+
+        // GuiBar.SetBar(float) стал internal в Valheim — используем Reflection для Editor-превью
+        private static MethodInfo _setBarMethod;
+        private static void SetBarViaReflection(GuiBar bar, float value)
+        {
+            if (_setBarMethod == null)
+            {
+                _setBarMethod = typeof(GuiBar).GetMethod(
+                    "SetBar",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    null,
+                    new[] { typeof(float) },
+                    null
+                );
+            }
+            _setBarMethod?.Invoke(bar, new object[] { value });
         }
     }
 }

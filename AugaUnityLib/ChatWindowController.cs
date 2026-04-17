@@ -41,7 +41,7 @@ namespace AugaUnity
                 } else if (_chatHandler.m_wasFocused)
                 {
                     _chatHandler.m_hideTimer = 0.0f;
-                    _lastPosition += ZInput.GetAxis("Mouse ScrollWheel");
+                    _lastPosition += Input.GetAxis("Mouse ScrollWheel");
                     _lastPosition = Mathf.Clamp(_lastPosition, 0.0f, ChatScrollbar.size);
                 }
             }

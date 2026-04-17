@@ -125,6 +125,7 @@ namespace Auga
         public static bool HasSimpleRecycling;
         public static bool HasChatter;
         public static bool HasSearsCatalog;
+        public static bool HasJewelcrafting;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -134,6 +135,27 @@ namespace Auga
         private static WorkbenchTabData _recyclingTabData;
 
         public static Auga instance => _instance;
+
+        // Статический конструктор — регистрируем AssemblyResolve до того как CLR
+        // попытается разрешить APIManager/fastJSON/Unity.Auga при загрузке типа.
+        static Auga()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveEmbeddedAssembly;
+        }
+
+        private static Assembly ResolveEmbeddedAssembly(object sender, ResolveEventArgs args)
+        {
+            var shortName = new AssemblyName(args.Name).Name + ".dll";
+            var resourceName = $"Auga.{shortName}";
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (stream == null) return null;
+            using (stream)
+            {
+                var data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+                return Assembly.Load(data);
+            }
+        }
 
         public void Awake()
         {
@@ -147,20 +169,8 @@ namespace Auga
                     Debug.LogWarning($"Project Auga - Version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Debug.LogWarning($"Valheim - Version {(global::Version.GetVersionString())}");
 
-                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 27 ) || global::Version.CurrentVersion.m_minor > 217)
-                    {
-                        Debug.LogWarning($"GAME VERSION CHECK - PASSED");
-                        Debug.LogWarning($"==============================================================================");
-                    }
-                    else
-                    {
-                        Debug.LogError($">>>>>>>>> GAME VERSION MISMATCH - EXITING <<<<<<<<");
-                        Debug.LogWarning($"==============================================================================");
-                        Thread.Sleep(10000);
-                        
-                        Destroy(this);
-                        return;
-                    }
+                    // Version gate removed — PTB check is no longer needed for current Valheim.
+                    Debug.LogWarning($"==============================================================================");
                 }
             }
 
@@ -175,8 +185,9 @@ namespace Auga
             HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
-            HasChatter = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.chatter");
-            HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
+            HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
+            HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
+            HasJewelcrafting = Chainloader.PluginInfos.TryGetValue("org.bepinex.plugins.jewelcrafting", out var jewelcraftingPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -437,6 +448,7 @@ namespace Auga
         private void LoadDependencies()
         {
             var assembly = Assembly.GetCallingAssembly();
+            LoadEmbeddedAssembly(assembly, "APIManager.dll");
             LoadEmbeddedAssembly(assembly, "fastJSON.dll");
             LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
         }

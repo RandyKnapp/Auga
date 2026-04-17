@@ -10,10 +10,8 @@ namespace Auga
     {
         public static void Postfix(Game __instance)
         {
-            if (Player.m_localPlayer.m_firstSpawn)
-            {
-                AugaMessageLog.instance.AddArrivalLog(Player.m_localPlayer);
-            }
+            // m_firstSpawn was removed in current Valheim; always log arrival on spawn
+            AugaMessageLog.instance.AddArrivalLog(Player.m_localPlayer);
         }
     }
 

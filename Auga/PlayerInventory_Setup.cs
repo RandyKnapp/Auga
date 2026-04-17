@@ -233,7 +233,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, __instance.m_selectedVariant);
+                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, __instance.m_selectedVariant);
                 }
             }
         }
@@ -257,7 +257,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, __instance.m_selectedVariant);
+                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, __instance.m_selectedVariant);
                 }
             }
         }
@@ -269,7 +269,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, quality, player, allowedQuality);
+                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, quality, player, allowedQuality);
                 }
             }
         }

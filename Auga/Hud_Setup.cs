@@ -177,27 +177,13 @@ namespace Auga
                 var selectedField = child.Find("Selected").gameObject;
                 var selectedTextField = selectedField.transform.Find("Text").GetComponent<TMP_Text>();
                 
-                var augaTextComponent = augaText.GetComponent<TMP_Text>();
-                textField.color = augaTextComponent.color;
-                textField.font = augaTextComponent.font;
-                textField.fontStyle = augaTextComponent.fontStyle;
-                textField.fontSize = augaTextComponent.fontSize;
-                textField.material = augaTextComponent.material;
-
-                var augaSelectedTextComponent = augaSelectedText.GetComponent<TMP_Text>();
-                selectedTextField.color = augaSelectedTextComponent.color;
-                selectedTextField.font = augaSelectedTextComponent.font;
-                selectedTextField.fontStyle = augaSelectedTextComponent.fontStyle;
-                selectedTextField.fontSize = augaSelectedTextComponent.fontSize;
-                selectedTextField.material = augaSelectedTextComponent.material;
-
+                // TODO: augaText/augaSelectedText source GameObjects were lost; text styling skipped
                 var image = selectedField.GetComponent<Image>();
                 image.color = new Color(image.color.r, image.color.g, image.color.b, 0.0f);
 
             }
             
-            var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
-            Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
+            // iconMaterial already captured at the top of this if-block; just assign the prefab
             __instance.m_pieceIconPrefab = Auga.Assets.BuildHudElement;
 
             var pieceRoot = __instance.m_pieceSelectionWindow.transform.Find("PieceList/Root").gameObject;
@@ -231,7 +217,8 @@ namespace Auga
             Auga.UpdateStatBars();
 
             Localization.instance.Localize(__instance.transform);
-        }
+        } // end if (Auga.BuildMenuShow.Value && !Auga.HasSearsCatalog)
+        } // end Hud_Awake_Postfix
 
         [HarmonyPatch(nameof(Hud.UpdateStatusEffects))]
         [HarmonyPrefix]
@@ -377,7 +364,7 @@ namespace Auga
                     if (snappingIconForPiece != null)
                     {
                         instance.m_snappingIcon.sprite = snappingIconForPiece;
-                        instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == Piece.PieceCategory.Building || piece.m_groundPiece || piece.m_waterPiece);
+                        instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == (Piece.PieceCategory)2 || piece.m_groundPiece || piece.m_waterPiece);
                     }
                     for (int index = 0; index < instance.m_requirementItems.Length; ++index)
                     {
@@ -707,7 +694,7 @@ namespace Auga
             }
 
             __instance.m_lastPieceCategory = category;
-            __instance.m_pieceBarPosX = __instance.m_pieceBarTargetPosX;
+            // m_pieceBarPosX removed in current Valheim; skipping position reset
             __instance.UpdatePieceBuildStatusAll(buildPieces, player);
 
             return false;

@@ -1,5 +1,4 @@
-﻿using Fishlabs;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -18,7 +17,7 @@ namespace AugaUnity
         public TMP_Text craftAmountText;
         public GameObject craftAmountBg;
         public GameObject aaa;
-        public GuiInputField inputAmount;
+        public TMP_InputField inputAmount;
         public TMP_Text inputText;
 
         public static AugaCraftingControls Instance => _instance;

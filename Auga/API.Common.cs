@@ -1,5 +1,4 @@
-﻿using Fishlabs;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,7 +36,7 @@ namespace Auga
         public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
         public GameObject Amount;
-        public GuiInputField InputAmount;
+        public TMP_InputField InputAmount;
         public TMP_Text InputText;
     }
 }

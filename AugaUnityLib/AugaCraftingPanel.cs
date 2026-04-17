@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fishlabs;
-using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -49,7 +47,7 @@ namespace AugaUnity
         public TMP_Text CraftAmountText;
         public GameObject CraftAmountBG;
         public GameObject AAA;
-        public GuiInputField InputAmount;
+        public TMP_InputField InputAmount;
         public TMP_Text InputText;
 
         [Header("Dummy Objects")]
@@ -121,17 +119,17 @@ namespace AugaUnity
 
             var inventoryGui = InventoryGui.instance;
             _currentPanel = panel;
-            if (inventoryGui?.m_selectedRecipe.Value?.GetIcon() != null)
+            if (inventoryGui?.m_selectedRecipe.ItemData?.GetIcon() != null)
             {
-                _currentPanel.Icon.sprite = inventoryGui.m_selectedRecipe.Value.GetIcon();
+                _currentPanel.Icon.sprite = inventoryGui.m_selectedRecipe.ItemData.GetIcon();
             }
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            SetRecipe(inventoryGui.m_selectedRecipe.Recipe, inventoryGui.m_selectedRecipe.ItemData, inventoryGui.m_selectedVariant);
             panel.gameObject.SetActive(true);
             panel.Activate(inventoryGui, ItemInfo);
             
         }
 
-        [UsedImplicitly]
+
         public virtual void OnEnable()
         {
             var player = Player.m_localPlayer;
@@ -141,10 +139,10 @@ namespace AugaUnity
             }
 
             var inventoryGui = InventoryGui.instance;
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            SetRecipe(inventoryGui.m_selectedRecipe.Recipe, inventoryGui.m_selectedRecipe.ItemData, inventoryGui.m_selectedVariant);
         }
 
-        [UsedImplicitly]
+
         public virtual void OnDisable()
         {
             VariantDialog.OnClose();
@@ -196,7 +194,7 @@ namespace AugaUnity
 
         public virtual void UpdateRequirementsContainerVisibility()
         {
-            var hasRecipe = TabController.SelectedIndex > 1 || InventoryGui.instance.m_selectedRecipe.Key != null;
+            var hasRecipe = TabController.SelectedIndex > 1 || InventoryGui.instance.m_selectedRecipe.Recipe != null;
             var showingVariants = InventoryGui.instance.m_variantDialog.gameObject.activeInHierarchy || CustomVariantDialog.gameObject.activeInHierarchy;
 
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);
@@ -316,7 +314,7 @@ namespace AugaUnity
             _multiCraftEnabled = multiCraftEnabled;
         }
 
-        [UsedImplicitly]
+
         public void Update()
         {
             if (InventoryGui.instance?.m_craftTimer >= 0)

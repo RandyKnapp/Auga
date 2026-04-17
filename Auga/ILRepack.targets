@@ -1,12 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Target Name="ILRepacker" AfterTargets="Build">
-        <ItemGroup>
-            <InputAssemblies Include="$(TargetPath)" />
-            <InputAssemblies Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="$(OutputPath)APIManager.dll" />
-            <LibraryPath Include="$(OutputPath)" />
-            <LibraryPath Include="$(SolutionDir)\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\" />
-        </ItemGroup>
-        <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="@(LibraryPath)" />
-    </Target>
+    <!--
+      ILRepack удалён: APIManager.dll уже встроен как EmbeddedResource и загружается
+      через AppDomain.AssemblyResolve в Auga.cs — IL-мерж поверх этого избыточен.
+      ILRepack.Lib.MSBuild.Task 2.0.18.2 несовместим с .NET 10 SDK.
+    -->
 </Project>

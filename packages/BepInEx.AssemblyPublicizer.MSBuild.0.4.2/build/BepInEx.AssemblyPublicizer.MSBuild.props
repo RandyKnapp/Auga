@@ -1,0 +1,50 @@
+<Project>
+    <PropertyGroup>
+        <_BepInExAssemblyPublicizer_TaskFolder Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.1</_BepInExAssemblyPublicizer_TaskFolder>
+        <_BepInExAssemblyPublicizer_TaskFolder Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BepInExAssemblyPublicizer_TaskFolder>
+        <_BepInExAssemblyPublicizer_TaskAssembly>$(MSBuildThisFileDirectory)..\lib\$(_BepInExAssemblyPublicizer_TaskFolder)\$(MSBuildThisFileName).dll</_BepInExAssemblyPublicizer_TaskAssembly>
+    </PropertyGroup>
+
+    <UsingTask TaskName="PublicizeTask" AssemblyFile="$(_BepInExAssemblyPublicizer_TaskAssembly)" />
+
+    <Target Name="Publicize" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+        <Error Condition="'$(UsingMicrosoftNETSdk)' != 'true'" Text="BepInEx.AssemblyPublicizer.MSBuild only works in SDK-style projects" />
+        
+        <PropertyGroup>
+            <GeneratedIgnoresAccessChecksToFile Condition="'$(GeneratedIgnoresAccessChecksToFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).IgnoresAccessChecksTo.cs</GeneratedIgnoresAccessChecksToFile>
+        </PropertyGroup>
+
+        <PublicizeTask IntermediateOutputPath="$(IntermediateOutputPath)" GeneratedIgnoresAccessChecksToFile="$(GeneratedIgnoresAccessChecksToFile)" ReferencePath="@(ReferencePath)" PackageReference="@(PackageReference)" Publicize="@(Publicize)">
+            <Output TaskParameter="RemovedReferences" ItemName="_RemovedReferences" />
+            <Output TaskParameter="PublicizedReferences" ItemName="_PublicizedReferences" />
+        </PublicizeTask>
+
+        <ItemGroup>
+            <ReferencePath Remove="@(_RemovedReferences)" />
+            <ReferencePath Include="@(_PublicizedReferences)" />
+
+            <Compile Include="$(GeneratedIgnoresAccessChecksToFile)" />
+            <FileWrites Include="$(GeneratedIgnoresAccessChecksToFile)" />
+        </ItemGroup>
+
+        <PropertyGroup>
+            <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        </PropertyGroup>
+    </Target>
+
+    <ItemDefinitionGroup>
+        <Publicize Visible="false">
+            <PublicizeTarget />
+            <PublicizeCompilerGenerated />
+            <IncludeOriginalAttributesAttribute />
+            <Strip />
+        </Publicize>
+    </ItemDefinitionGroup>
+
+    <!-- Hide IgnoresAccessChecksToAttribute.cs (https://github.com/NuGet/Home/issues/4856#issuecomment-287957396) -->
+    <ItemGroup>
+        <Compile Update="@(Compile)">
+            <Visible Condition="'%(NuGetPackageId)' == 'BepInEx.AssemblyPublicizer.MSBuild' and '%(NuGetItemType)' == 'Compile'">false</Visible>
+        </Compile>
+    </ItemGroup>
+</Project>

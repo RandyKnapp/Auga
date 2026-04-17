@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using JetBrains.Annotations;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.PostProcessing;
@@ -22,7 +22,6 @@ namespace AugaUnity
 
         private int _profileIndex;
 
-        [UsedImplicitly]
         public void Awake()
         {
             _camera = CharacterPortraitsController.GetCamera(RenderTexture, Profile);
@@ -31,9 +30,18 @@ namespace AugaUnity
             _profileIndex = 0;
         }
 
-        [UsedImplicitly]
         public void Start()
         {
+            // SetupCharacterPreview создаёт Heightmap-объекты которые требуют WorldGenerator.
+            // В главном меню WorldGenerator не инициализирован → Heightmap.Generate крашится
+            // и сломанные объекты остаются в Heightmap.m_heightmaps → ClutterSystem спам.
+            // Пропускаем фотосессию если WorldGenerator недоступен.
+            if (WorldGenerator.instance == null)
+            {
+                Debug.LogWarning("[Auga] PhotoBooth: WorldGenerator not available, skipping character photos.");
+                TakingPhotos = false;
+                return;
+            }
             StartCoroutine(PhotoBoothCoroutine());
         }
 
@@ -80,7 +88,7 @@ namespace AugaUnity
             RenderTexture.active = RenderTexture;
             profilePic.ReadPixels(new Rect(0, 0, RenderTexture.width, RenderTexture.height), 0, 0);
             profilePic.Apply();
-            var bytes = profilePic.EncodeToPNG();
+            var bytes = ImageConversionReflection.EncodeToPNG(profilePic);
 
             SaveProfilePic(profile, bytes);
             
@@ -113,7 +121,6 @@ namespace AugaUnity
         private readonly List<CharacterSelectPortrait> _portraits = new List<CharacterSelectPortrait>();
         private bool _onFirstUpdate;
 
-        [UsedImplicitly]
         public void OnEnable()
         {
             _onFirstUpdate = false;
@@ -136,7 +143,7 @@ namespace AugaUnity
                 _portraits.Add(portrait);
             }
 
-            var showSourceInfoPanel = !FileHelpers.m_cloudEnabled;
+            var showSourceInfoPanel = !FileHelpers.CloudStorageEnabled;
             SourceInfoContent.text = "";
             if (FejdStartup.instance.m_profileIndex >= 0 && FejdStartup.instance.m_profileIndex < FejdStartup.instance.m_profiles.Count)
             {
@@ -147,7 +154,7 @@ namespace AugaUnity
                 }
             }
 
-            if (!FileHelpers.m_cloudEnabled)
+            if (!FileHelpers.CloudStorageEnabled)
             {
                 SourceInfoContent.text += Localization.instance.Localize("$menu_cloudsavesdisabled");
             }
@@ -211,7 +218,7 @@ namespace AugaUnity
                 var bytes = File.ReadAllBytes(outputFilePath);
 
                 _texture = new Texture2D(renderTexture.width, renderTexture.height, renderTexture.graphicsFormat, renderTexture.mipmapCount, TextureCreationFlags.None);
-                _texture.LoadImage(bytes);
+                ImageConversionReflection.LoadImage(_texture, bytes);
 
                 Image.texture = _texture;
             }
@@ -231,10 +238,81 @@ namespace AugaUnity
             StatsText.color = selected ? StatsTextColorSelected : _originalStatsTextColor;
         }
 
-        [UsedImplicitly]
         public void OnDestroy()
         {
             Destroy(_texture);
+        }
+    }
+
+    /// <summary>
+    /// Reflection-based wrapper for UnityEngine.ImageConversion methods.
+    /// Avoids a direct compile-time reference to UnityEngine.ImageConversionModule.dll,
+    /// which in Unity 6 defines ReadOnlySpan&lt;byte&gt; overloads that break .NET Framework builds (CS1705/CS7069).
+    /// At runtime Unity always loads the module, so reflection is safe.
+    /// </summary>
+    internal static class ImageConversionReflection
+    {
+        private static MethodInfo _encodeToPng;
+        private static MethodInfo _loadImage;
+        private static bool _resolved;
+
+        private static void EnsureResolved()
+        {
+            if (_resolved) return;
+            _resolved = true;
+            var imageConvType = System.Type.GetType(
+                "UnityEngine.ImageConversion, UnityEngine.ImageConversionModule");
+            if (imageConvType == null) return;
+
+            _encodeToPng = imageConvType.GetMethod(
+                "EncodeToPNG",
+                BindingFlags.Public | BindingFlags.Static,
+                null,
+                new[] { typeof(Texture2D) },
+                null);
+
+            _loadImage = imageConvType.GetMethod(
+                "LoadImage",
+                BindingFlags.Public | BindingFlags.Static,
+                null,
+                new[] { typeof(Texture2D), typeof(byte[]), typeof(bool) },
+                null);
+
+            // Fallback: 2-arg overload without the markNonReadable flag
+            if (_loadImage == null)
+            {
+                _loadImage = imageConvType.GetMethod(
+                    "LoadImage",
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new[] { typeof(Texture2D), typeof(byte[]) },
+                    null);
+            }
+        }
+
+        public static byte[] EncodeToPNG(Texture2D texture)
+        {
+            EnsureResolved();
+            if (_encodeToPng != null)
+                return (byte[])_encodeToPng.Invoke(null, new object[] { texture });
+
+            Debug.LogError("[ImageConversionReflection] EncodeToPNG not found via reflection");
+            return null;
+        }
+
+        public static void LoadImage(Texture2D texture, byte[] data)
+        {
+            EnsureResolved();
+            if (_loadImage != null)
+            {
+                var paramCount = _loadImage.GetParameters().Length;
+                if (paramCount == 3)
+                    _loadImage.Invoke(null, new object[] { texture, data, false });
+                else
+                    _loadImage.Invoke(null, new object[] { texture, data });
+                return;
+            }
+            Debug.LogError("[ImageConversionReflection] LoadImage not found via reflection");
         }
     }
 }

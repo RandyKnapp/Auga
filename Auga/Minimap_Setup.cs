@@ -2,9 +2,7 @@
 using System.Linq;
 using System.Reflection.Emit;
 using AugaUnity;
-using Fishlabs;
 using HarmonyLib;
-using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -20,7 +18,6 @@ namespace Auga
             instance.m_nameInput.GetComponentInChildren<GuiInputFieldSubmit>().m_onSubmit = instance.OnPinTextEntered;
         }
         
-        [UsedImplicitly]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
             var instrs = instructions.ToList();
@@ -127,7 +124,7 @@ namespace Auga
             minimap.m_selectedIcons[Minimap.PinType.Icon3] = minimap.m_selectedIcon3;
             minimap.m_selectedIcons[Minimap.PinType.Icon4] = minimap.m_selectedIcon4;
             minimap.SelectIcon(Minimap.PinType.Icon0);
-            minimap.m_nameInput = newMap.Find("NameField").GetComponent<GuiInputField>();
+            minimap.m_nameInput = newMap.Find("NameField").GetComponent<GUIFramework.GuiInputField>();
 
             minimap.m_sharedMapHint = newMap.Find("SharedPanel").gameObject;
             minimap.m_hints = new List<GameObject> { newMap.Find("PingPanel").gameObject };
