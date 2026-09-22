@@ -27,6 +27,14 @@ namespace Auga
         public bool ReplaceButtons = true;
         public bool ReplaceScrollbars = true;
         public bool RestyleTexts = true;
+        /// <summary>How far the Auga background reaches past the panel's left and right edges (content margin).</summary>
+        public float BackgroundOverhang = 40f;
+        /// <summary>The panel title: the settings screen's title look (Norsebold, no divider).</summary>
+        public float TitleFontSize = 45f;
+        /// <summary>Section headers inside a DividerMedium.</summary>
+        public float HeaderFontSize = 18f;
+        /// <summary>Mouse wheel sensitivity for every ScrollRect in the panel (vanilla panels scroll far too slowly).</summary>
+        public float ScrollSensitivity = 600f;
     }
 
     /// <summary>
@@ -85,6 +93,11 @@ namespace Auga
                 if (options.ReplaceBackground) RestyleBackground(panel, options);
                 if (options.RestyleTexts) RestyleTexts(panel, options);
                 ConvertHeaders(panel, options);
+                foreach (var scrollRect in panel.GetComponentsInChildren<ScrollRect>(true))
+                {
+                    if (!IsSkipped(scrollRect.transform, panel, options))
+                        scrollRect.scrollSensitivity = options.ScrollSensitivity;
+                }
                 if (options.ReplaceScrollbars)
                 {
                     foreach (var scrollbar in panel.GetComponentsInChildren<Scrollbar>(true).ToList())
@@ -102,6 +115,12 @@ namespace Auga
                     }
                 }
                 Repoint(scope, map);
+                // Auga's divider art is saved with Maskable off: anything the restyle put under a mask must clip
+                foreach (var graphic in panel.GetComponentsInChildren<MaskableGraphic>(true))
+                {
+                    if (!graphic.maskable && (graphic.GetComponentInParent<Mask>() != null || graphic.GetComponentInParent<RectMask2D>() != null))
+                        graphic.maskable = true;
+                }
             }
             catch (Exception e)
             {
@@ -139,7 +158,10 @@ namespace Auga
                 var background = Object.Instantiate(Auga.Assets.PanelBase, panel, false);
                 background.name = "AugaPanelBackground";
                 background.transform.SetAsFirstSibling();
-                Stretch((RectTransform)background.transform);
+                var backgroundRect = (RectTransform)background.transform;
+                Stretch(backgroundRect);
+                backgroundRect.offsetMin = new Vector2(-options.BackgroundOverhang, 0f);
+                backgroundRect.offsetMax = new Vector2(options.BackgroundOverhang, 0f);
             }
             // flat (sprite-less) boxes inside the panel, e.g. list backgrounds: Auga's dark tone
             var augaBackground = panel.Find("AugaPanelBackground");
@@ -233,9 +255,41 @@ namespace Auga
             }
             foreach (var text in candidates)
             {
-                var large = options.Titles.Contains(text.name) || text == title;
-                WrapInDivider(text, large);
+                if (options.Titles.Contains(text.name) || text == title)
+                    StyleTitle(text, options);
+                else
+                    StyleSectionHeader(text, options);
             }
+        }
+
+        /// <summary>The settings screen's title look: Norsebold, large, light brown, centred, no divider.</summary>
+        public static void StyleTitle(TMP_Text text, RestyleOptions options)
+        {
+            var reference = Auga.Assets.SettingsPrefab != null ? Auga.Assets.SettingsPrefab.transform.Find("panel/PlayerPanelTitle")?.GetComponent<TMP_Text>() : null;
+            var font = reference != null ? reference.font : FontOf(Auga.Assets.ButtonFancy);
+            if (font != null)
+            {
+                text.font = font;
+                if (reference != null && reference.fontSharedMaterial != null) text.fontSharedMaterial = reference.fontSharedMaterial;
+            }
+            text.fontSize = options.TitleFontSize;
+            text.fontStyle = FontStyles.Normal;
+            text.color = WithAlpha(Brown2, text.color.a);
+            text.alignment = TextAlignmentOptions.Center;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.enableAutoSizing = false;
+        }
+
+        /// <summary>A section header: Source Sans Pro Bold, all caps, light, inside a DividerMedium.</summary>
+        public static void StyleSectionHeader(TMP_Text text, RestyleOptions options)
+        {
+            WrapInDivider(text, false);
+            if (BoldFont != null) text.font = BoldFont;
+            text.fontSize = options.HeaderFontSize;
+            text.fontStyle = FontStyles.UpperCase;
+            text.color = WithAlpha(Brown1, text.color.a);
+            text.enableAutoSizing = false;
         }
 
         private static bool LooksLikeHeader(TMP_Text text, float bodySize)
@@ -318,6 +372,7 @@ namespace Auga
             var rect = (RectTransform)go.transform;
             CopyPlacement(oldRect, rect);
             rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, oldRect.sizeDelta.y) : new Vector2(oldRect.sizeDelta.x, ScrollbarWidth);
+            if (vertical) StretchVertically(rect);
             var scrollbar = go.GetComponent<Scrollbar>();
             scrollbar.direction = old.direction;
             NormalizeHandle(scrollbar);
@@ -364,6 +419,7 @@ namespace Auga
         {
             var rect = (RectTransform)scrollbar.transform;
             rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, rect.sizeDelta.y) : new Vector2(rect.sizeDelta.x, ScrollbarWidth);
+            if (vertical) StretchVertically(rect);
             var background = scrollbar.GetComponent<Image>();
             if (background != null)
             {
@@ -379,6 +435,17 @@ namespace Auga
                 handle.color = ScrollHandle;
             }
             scrollbar.transition = Selectable.Transition.None;
+        }
+
+        /// <summary>Runs a vertical scrollbar over the full height of its parent, keeping its horizontal placement.</summary>
+        public static void StretchVertically(RectTransform rect)
+        {
+            var left = rect.offsetMin.x;
+            var right = rect.offsetMax.x;
+            rect.anchorMin = new Vector2(rect.anchorMin.x, 0f);
+            rect.anchorMax = new Vector2(rect.anchorMax.x, 1f);
+            rect.offsetMin = new Vector2(left, 0f);
+            rect.offsetMax = new Vector2(right, 0f);
         }
 
         /// <summary>A vertical Auga scrollbar (the ScrollBar prefab, or one built to its look) under <paramref name="parent"/>.</summary>

@@ -27,11 +27,11 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 592323981165741135}
   - {fileID: 4766863338776274072}
   m_Father: {fileID: 7218928280741825972}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -46,7 +46,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 76318775773704672}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -78,9 +78,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7218928280741825972}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -153,6 +153,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 1
   m_lineSpacingMax: 0
@@ -215,11 +216,11 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8846504171254445917}
   - {fileID: 3621203487111556995}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -284,11 +285,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_sfxPrefab: {fileID: 1842291537845188, guid: 5e734f2a1cb860a45b910c530a04f250,
     type: 3}
+  m_sfxPrefabVibrationOnly: {fileID: 0}
   m_selectSfxPrefab: {fileID: 1027288459373073, guid: 515393240de246c44a837291defbe135,
     type: 3}
+  m_selectSfxPrefabVibrationOnly: {fileID: 0}
+  m_enterSfxPrefab: {fileID: 0}
+  m_enterSfxPrefabVibrationOnly: {fileID: 0}
 --- !u!95 &3623317734267467663
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -302,15 +307,18 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &3530807268553616594
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 3621203487111556995}
     m_Modifications:
     - target: {fileID: 4091424626466695325, guid: d16cb13c0a36f014daf114fd84b5c196,
@@ -459,6 +467,9 @@ PrefabInstance:
       value: 0.6392157
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d16cb13c0a36f014daf114fd84b5c196, type: 3}
 --- !u!224 &592323981165741135 stripped
 RectTransform:
@@ -471,6 +482,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 3621203487111556995}
     m_Modifications:
     - target: {fileID: 3729206218181487081, guid: 0595a415f0689af408860f168710257d,
@@ -619,6 +631,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0595a415f0689af408860f168710257d, type: 3}
 --- !u!224 &4766863338776274072 stripped
 RectTransform:
