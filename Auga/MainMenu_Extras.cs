@@ -13,9 +13,8 @@ using Object = UnityEngine.Object;
 namespace Auga
 {
     /// <summary>
-    /// Auga's look for the vanilla version label: Source Sans Pro Bold, brown, and the classic outline (1,-1) and
-    /// shadow (1,-1) at black 50% as TextMeshPro outline and underlay. Applied in Start, after the text initialized
-    /// its material (setting the outline earlier throws inside TextMeshPro).
+    /// Auga's look for the vanilla version label: Source Sans Pro Bold, brown, bottom right, no outline or shadow.
+    /// Applied in Start, after the text initialized (restyling it earlier throws inside TextMeshPro).
     /// </summary>
     public class AugaVersionLabelStyle : MonoBehaviour
     {
@@ -40,17 +39,6 @@ namespace Auga
                 text.alignment = TextAlignmentOptions.BottomRight;
                 text.textWrappingMode = TextWrappingModes.NoWrap;
                 text.overflowMode = TextOverflowModes.Overflow;
-                var shade = new Color(0f, 0f, 0f, 0.5f);
-                text.outlineWidth = 0.15f;
-                text.outlineColor = shade;
-                var material = text.fontMaterial;
-                material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-                material.SetColor(ShaderUtilities.ID_UnderlayColor, shade);
-                material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
-                material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
-                material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0f);
-                material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
-                text.UpdateMeshPadding();
             }
             catch (System.Exception e)
             {

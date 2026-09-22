@@ -526,4 +526,42 @@ namespace Auga
             }
         }
     }
+
+    /// <summary>
+    /// Auga's tab buttons play their own click sound, and the vanilla tab handlers they forward to switch the
+    /// inventory UI group, which plays the group-switch effect as well: every crafting tab change sounded twice.
+    /// The group switch stays silent while those handlers run; gamepad group cycling keeps its sound.
+    /// </summary>
+    [HarmonyPatch]
+    public static class InventoryGui_TabHandlers_Silent_Patch
+    {
+        internal static int SilentDepth;
+
+        public static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.OnTabCraftPressed));
+            yield return AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.OnTabUpgradePressed));
+        }
+
+        public static void Prefix()
+        {
+            SilentDepth++;
+        }
+
+        public static System.Exception Finalizer(System.Exception __exception)
+        {
+            SilentDepth = Mathf.Max(0, SilentDepth - 1);
+            return __exception;
+        }
+    }
+
+    [HarmonyPatch(typeof(InventoryGui), "SetActiveGroup", typeof(int), typeof(bool))]
+    public static class InventoryGui_SetActiveGroup_Silent_Patch
+    {
+        public static void Prefix(ref bool playSound)
+        {
+            if (InventoryGui_TabHandlers_Silent_Patch.SilentDepth > 0)
+                playSound = false;
+        }
+    }
 }

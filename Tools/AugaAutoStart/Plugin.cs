@@ -155,6 +155,18 @@ namespace AugaAutoStart
             Debug.Log($"[AugaAutoStart] frame rate on {what}: {frames / seconds:F1} fps ({frames} frames in {seconds:F2}s)");
         }
 
+        /// <summary>Clicks a button and logs the GUI sound objects alive a moment later (they destroy themselves after playing).</summary>
+        private static IEnumerator ClickAndCountSounds(string what, Button button)
+        {
+            yield return new WaitForSecondsRealtime(1.5f);   // let earlier sounds finish
+            var before = new HashSet<int>(UnityEngine.Object.FindObjectsOfType<ZSFX>().Select(s => s.GetInstanceID()));
+            Try(() => button.onClick.Invoke());
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.1f);
+            var sounds = UnityEngine.Object.FindObjectsOfType<ZSFX>().Where(s => !before.Contains(s.GetInstanceID())).Select(s => s.name).ToList();
+            Debug.Log($"[AugaAutoStart] new sounds after {what}: {sounds.Count} ({string.Join(", ", sounds)}); {before.Count} older sound objects were alive");
+        }
+
         public static void Shot(string name)
         {
             var path = Path.Combine(ShotDir, name + ".png");
@@ -533,6 +545,27 @@ namespace AugaAutoStart
             Try(() => InventoryGui.instance.Show(null));
             yield return new WaitForSecondsRealtime(2f);
             Shot("11_inventory");
+            yield return new WaitForSecondsRealtime(0.5f);
+            // tab clicks: every sound object alive right after a click is logged (one is right, two is the bug).
+            // The helper does not reference Auga's Unity library, so the tab buttons are found by hierarchy.
+            Try(() => Debug.Log("[AugaAutoStart] set-active-group effects: " + string.Join(", ", InventoryGui.instance.m_setActiveGroupEffects.m_effectPrefabs.Select(e => e.m_prefab != null ? e.m_prefab.name : "null"))));
+            var right = InventoryGui.instance.transform.Find("root/RightPanel");
+            if (right != null)
+            {
+                var playerTabs = right.Find("DefaultContent/TabButtonContainer/Tabs")?.GetComponentsInChildren<Button>(false) ?? new Button[0];
+                for (var i = 0; i < 2 && playerTabs.Length >= 2; i++)
+                {
+                    var button = playerTabs[(i + 1) % 2];
+                    yield return ClickAndCountSounds("player panel tab " + button.name, button);
+                }
+                var craftTabs = (right.Find("WorkbenchContent")?.GetComponentsInChildren<Button>(true) ?? new Button[0])
+                    .Where(b => b.name.StartsWith("TabButton")).ToArray();
+                for (var i = 0; i < 2 && craftTabs.Length >= 2; i++)
+                {
+                    var button = craftTabs[(i + 1) % 2];
+                    yield return ClickAndCountSounds("crafting tab " + button.name, button);
+                }
+            }
             Try(() => LogKeyHintState("inventory"));
             Try(() => LogKeyHintRects());
             yield return new WaitForSecondsRealtime(1f);
