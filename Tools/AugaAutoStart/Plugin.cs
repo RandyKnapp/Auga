@@ -21,6 +21,7 @@ namespace AugaAutoStart
     //   AUGA_TEST_ROWS       also screenshot the inventory with this many player rows and the container panel shown
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
     //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the new character screen, the manage saves dialog and the remove dialog, then quit
+    //   AUGA_TEST_STARTGAME  "1": screenshot the world list, the new world dialog, the server list and the add server dialog, then quit
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
     {
@@ -169,6 +170,63 @@ namespace AugaAutoStart
             if (string.IsNullOrEmpty(character)) character = "auga test";
             var worldName = Environment.GetEnvironmentVariable("AUGA_TEST_WORLD");
             if (string.IsNullOrEmpty(worldName)) worldName = "AugaTest";
+
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_STARTGAME") == "1")
+            {
+                // AUGA_TEST_STARTGAME=1: the start game screen only (world list, new world, server list, add server), then quit
+                Debug.Log("[AugaAutoStart] OnStartGame (start game only)");
+                Try(() => fejd.OnStartGame());
+                yield return new WaitForSecondsRealtime(5f);
+                Try(() => fejd.SetSelectedProfile(character));
+                Try(() => fejd.OnCharacterStart());
+                yield return new WaitForSecondsRealtime(2f);
+                Shot("02_worldselect");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => LogRects(fejd.m_startGamePanel.transform, "WorldPanel"));
+                Try(() => fejd.OnWorldNew());
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("02b_newworld");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.OnNewWorldBack());
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.OnServerOptions());
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => { if (UnifiedPopup.IsVisible()) UnifiedPopup.Pop(); }); // the first-use disclaimer
+                yield return new WaitForSecondsRealtime(0.5f);
+                Shot("02e_worldmodifiers");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => LogRects(fejd.m_serverOptions.transform, "panel"));
+                Try(() => fejd.OnServerOptionsCancel());
+                yield return new WaitForSecondsRealtime(0.5f);
+                Debug.Log("[AugaAutoStart] join tab");
+                Try(() => fejd.m_startGamePanel.transform.GetChild(0).GetComponent<TabHandler>().m_tabs[1].m_button.onClick.Invoke());
+                yield return new WaitForSecondsRealtime(4f); // the server lists refresh
+                Shot("02c_serverlist");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => LogRects(fejd.m_startGamePanel.transform, "JoinPanel"));
+                Try(() =>
+                {
+                    var gui = fejd.m_serverListPanel.GetComponentInChildren<ServerListGui>(true);
+                    gui.SetSelectedServer(0, true);
+                    gui.OnRemoveServerButton();
+                });
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("02c2_removeserver");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.m_startGamePanel.transform.Find("RemoveServerDialog/ButtonNo").GetComponent<Button>().onClick.Invoke());
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.m_serverListPanel.transform.Find("AddServer").GetComponent<Button>().onClick.Invoke());
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("02d_addserver");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.m_startGamePanel.transform.Find("JoinIP/Cancel").GetComponent<Button>().onClick.Invoke());
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.OnStartGameBack());
+                yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] quitting (start game only)");
+                Application.Quit();
+                yield break;
+            }
 
             if (Environment.GetEnvironmentVariable("AUGA_TEST_CHARSELECT") == "1")
             {

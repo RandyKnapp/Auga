@@ -60,6 +60,7 @@ $env:AUGA_TEST_DUMP      = "1"           # also dump every vanilla UI hierarchy 
 $env:AUGA_TEST_ROWS      = "6"           # also screenshot the inventory with this many player rows
 $env:AUGA_TEST_SETTINGS  = "1"           # only screenshot every settings tab from the main menu, then quit
 $env:AUGA_TEST_CHARSELECT = "1"          # only screenshot the character selection, new character, manage saves and the remove dialog, then quit
+$env:AUGA_TEST_STARTGAME = "1"           # only screenshot the world list, new world, server list and add server dialogs, then quit
 & "C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim.exe" --doorstop-enabled true --doorstop-target-assembly "$env:APPDATA\com.kesomannen.gale\valheim\profiles\AugaAuto\BepInEx\core\BepInEx.Preloader.dll"
 ```
 

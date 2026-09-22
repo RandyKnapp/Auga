@@ -177,6 +177,7 @@ namespace Auga
             Guard("character select", () => SetupCharacterSelect(startup));
             Guard("new character", () => SetupNewCharacter(startup));
             Guard("loading screen", () => SetupLoading(startup));
+            Guard("start game", () => MainMenuStartGame.Setup(startup));
             Guard("manage saves", () => SetupManageSaves(startup));
         }
 
@@ -513,7 +514,7 @@ namespace Auga
         /// The Auga button at <paramref name="augaPath"/> takes over a vanilla button: its click handlers, interactable
         /// state and label token (FejdStartup localizes the screen after Awake).
         /// </summary>
-        private static Button WireButton(Transform auga, string augaPath, Button source, string what, List<string> missing)
+        internal static Button WireButton(Transform auga, string augaPath, Button source, string what, List<string> missing)
         {
             var button = auga.Find(augaPath)?.GetComponent<Button>();
             if (button == null) { missing.Add(what + ": the Auga prefab has no " + augaPath); return null; }
@@ -524,7 +525,7 @@ namespace Auga
             return button;
         }
 
-        private static void CopyLabel(TMP_Text source, TMP_Text target)
+        internal static void CopyLabel(TMP_Text source, TMP_Text target)
         {
             if (source == null || target == null) return;
             target.text = AugaPanelRestyler.RawText(source);   // the token; FejdStartup localizes the screen after Awake

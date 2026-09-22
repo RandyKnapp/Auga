@@ -29,6 +29,11 @@ namespace Auga
         public GameObject MainMenuPrefab;
         public GameObject SelectCharacterPrefab;
         public GameObject NewCharacterPanelPrefab;
+        public GameObject StartGamePrefab;
+        public Sprite ServerStatusOnline;
+        public Sprite ServerStatusOffline;
+        public Sprite ServerStatusRefresh;
+        public Sprite ServerStatusUnknown;
         public GameObject BuildHudElement;
         public GameObject SettingsPrefab;
         public GameObject MessageHud;
@@ -529,6 +534,11 @@ namespace Auga
             Assets.MainMenuPrefab = assetBundle.LoadAsset<GameObject>("MainMenu");
             Assets.SelectCharacterPrefab = assetBundle.LoadAsset<GameObject>("SelectCharacter");
             Assets.NewCharacterPanelPrefab = assetBundle.LoadAsset<GameObject>("NewCharacterPanel");
+            Assets.StartGamePrefab = assetBundle.LoadAsset<GameObject>("StartGame");
+            Assets.ServerStatusOnline = assetBundle.LoadAsset<Sprite>("status");
+            Assets.ServerStatusOffline = assetBundle.LoadAsset<Sprite>("status_no");
+            Assets.ServerStatusRefresh = assetBundle.LoadAsset<Sprite>("status_refresh");
+            Assets.ServerStatusUnknown = assetBundle.LoadAsset<Sprite>("status_unknown");
             Assets.BuildHudElement = assetBundle.LoadAsset<GameObject>("BuildHudElement");
             Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
             Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");

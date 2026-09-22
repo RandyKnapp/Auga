@@ -26,6 +26,10 @@ namespace Auga
         public bool ReplaceBackground = true;
         public bool ReplaceButtons = true;
         public bool ReplaceScrollbars = true;
+        /// <summary>Vanilla sliders take the look of Auga's slider widget in place (they keep their scripts).</summary>
+        public bool RestyleSliders = true;
+        /// <summary>Vanilla toggles take the look of Auga's checkbox in place.</summary>
+        public bool RestyleToggles = true;
         public bool RestyleTexts = true;
         /// <summary>How far the Auga background reaches past the panel's left and right edges (content margin).</summary>
         public float BackgroundOverhang = 40f;
@@ -107,6 +111,16 @@ namespace Auga
                         if (IsSkipped(scrollbar.transform, panel, options)) continue;
                         ReplaceScrollbar(scrollbar, map, doomed);
                     }
+                }
+                if (options.RestyleSliders)
+                {
+                    foreach (var slider in panel.GetComponentsInChildren<Slider>(true))
+                        if (!IsSkipped(slider.transform, panel, options)) RestyleSliderInPlace(slider);
+                }
+                if (options.RestyleToggles)
+                {
+                    foreach (var toggle in panel.GetComponentsInChildren<Toggle>(true))
+                        if (!IsSkipped(toggle.transform, panel, options)) RestyleToggleInPlace(toggle);
                 }
                 if (options.ReplaceButtons)
                 {
@@ -513,6 +527,71 @@ namespace Auga
             scrollbar.transition = Selectable.Transition.None;
             ((RectTransform)go.transform).sizeDelta = new Vector2(ScrollbarWidth, 100f);
             return scrollbar;
+        }
+
+        // ------------------------------------------------------------------ sliders and toggles, in place
+
+        /// <summary>
+        /// A vanilla slider takes the look of Auga's slider widget (dark track, light fill, diamond handle) without
+        /// being replaced: scripts such as KeySlider sit on the slider object and reach it through GetComponentInParent.
+        /// </summary>
+        public static void RestyleSliderInPlace(Slider slider)
+        {
+            var template = Auga.Assets.LabeledSliderWithValue != null ? Auga.Assets.LabeledSliderWithValue.GetComponentInChildren<Slider>(true) : null;
+            if (slider == null || template == null)
+                return;
+            var handle = ImageOf(slider.handleRect);
+            var templateHandle = ImageOf(template.handleRect);
+            if (handle == null || templateHandle == null || handle.sprite == templateHandle.sprite)
+                return;   // Auga's own
+            CopyLook(TrackOf(slider), TrackOf(template));
+            CopyLook(ImageOf(slider.fillRect), ImageOf(template.fillRect));
+            CopyLook(handle, templateHandle);
+            var handleRect = slider.handleRect;
+            var stretched = !Mathf.Approximately(handleRect.anchorMin.y, handleRect.anchorMax.y);
+            handleRect.sizeDelta = new Vector2(12f, stretched ? -8f : 14f);
+        }
+
+        /// <summary>A vanilla toggle takes the look of Auga's checkbox (diamond box and mark) in place.</summary>
+        public static void RestyleToggleInPlace(Toggle toggle)
+        {
+            var template = Auga.Assets.LabeledCheckbox != null ? Auga.Assets.LabeledCheckbox.GetComponent<Toggle>() : null;
+            if (toggle == null || template == null)
+                return;
+            var mark = toggle.graphic as Image;
+            var templateMark = template.graphic as Image;
+            if (mark == null || templateMark == null || mark.sprite == templateMark.sprite)
+                return;   // Auga's own
+            var box = mark.transform.parent != null ? mark.transform.parent.GetComponent<Image>() : null;
+            var templateBox = templateMark.transform.parent != null ? templateMark.transform.parent.GetComponent<Image>() : null;
+            CopyLook(box, templateBox);
+            CopyLook(mark, templateMark);
+            if (box != null && templateBox != null)
+                ((RectTransform)box.transform).sizeDelta = ((RectTransform)templateBox.transform).sizeDelta;
+            var markRect = (RectTransform)mark.transform;
+            markRect.anchorMin = markRect.anchorMax = new Vector2(0.5f, 0.5f);
+            markRect.anchoredPosition = Vector2.zero;
+            markRect.sizeDelta = ((RectTransform)templateMark.transform).sizeDelta;
+        }
+
+        private static Image TrackOf(Slider slider)
+        {
+            var background = slider.transform.Find("Background");
+            return background != null ? background.GetComponent<Image>() : slider.GetComponent<Image>();
+        }
+
+        private static Image ImageOf(RectTransform rect)
+        {
+            return rect != null ? rect.GetComponent<Image>() : null;
+        }
+
+        private static void CopyLook(Image to, Image from)
+        {
+            if (to == null || from == null) return;
+            to.sprite = from.sprite;
+            to.color = from.color;
+            to.type = from.type;
+            to.material = from.material;
         }
 
         // ------------------------------------------------------------------ buttons
