@@ -98,6 +98,7 @@ namespace Auga
             Guard("bottom-left buttons", () => SetupBottomLeftButtons(startup, menu));
             Guard("changelog", () => SetupChangeLog(startup));
             Guard("user agreement", () => SetupEula(startup));
+            Guard("credits", () => SetupCredits(startup));
         }
 
         private static void Guard(string what, System.Action step)
@@ -216,6 +217,31 @@ namespace Auga
             startup.m_changeLog = log;
             vanilla.SetActive(false);
             Object.Destroy(vanilla);
+        }
+
+        /// <summary>The credits: Auga fonts and colours, a medium Auga button for Back; layout and background stay vanilla.</summary>
+        private static void SetupCredits(FejdStartup startup)
+        {
+            if (startup.m_creditsPanel == null)
+                return;
+            var panel = startup.m_creditsPanel.transform;
+            AugaPanelRestyler.Restyle(panel, new RestyleOptions
+            {
+                ReplaceBackground = false,
+                DetectHeaders = false,
+                ButtonPrefab = Auga.Assets.ButtonMedium,
+            });
+            // vanilla colours every credit line the same warm yellow; Auga's palette: gold section titles (the
+            // top-level texts), light names (their child texts)
+            foreach (var text in panel.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (text.GetComponentInParent<Selectable>() != null) continue;
+                var isTitle = text.transform.parent == null || text.transform.parent.GetComponent<TMP_Text>() == null;
+                var font = isTitle ? AugaPanelRestyler.BoldFont : AugaPanelRestyler.RegularFont;
+                if (font != null) text.font = font;
+                text.fontStyle &= ~FontStyles.Bold;
+                text.color = AugaPanelRestyler.WithAlpha(isTitle ? AugaPanelRestyler.BrightGold : AugaPanelRestyler.Brown1, text.color.a);
+            }
         }
 
         /// <summary>The user agreement window, restyled with the generic panel restyler.</summary>
