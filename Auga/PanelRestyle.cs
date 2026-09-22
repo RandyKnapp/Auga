@@ -35,6 +35,8 @@ namespace Auga
         public float HeaderFontSize = 18f;
         /// <summary>Mouse wheel sensitivity for every ScrollRect in the panel (vanilla panels scroll far too slowly).</summary>
         public float ScrollSensitivity = 600f;
+        /// <summary>Use this Auga button prefab for every replaced button instead of picking one by size.</summary>
+        public GameObject ButtonPrefab;
     }
 
     /// <summary>
@@ -111,7 +113,7 @@ namespace Auga
                     foreach (var button in panel.GetComponentsInChildren<Button>(true).ToList())
                     {
                         if (IsSkipped(button.transform, panel, options)) continue;
-                        ReplaceButton(button, map, doomed);
+                        ReplaceButton(button, options, map, doomed);
                     }
                 }
                 Repoint(scope, map);
@@ -482,7 +484,7 @@ namespace Auga
 
         // ------------------------------------------------------------------ buttons
 
-        private static void ReplaceButton(Button old, Dictionary<Object, Object> map, List<GameObject> doomed)
+        private static void ReplaceButton(Button old, RestyleOptions options, Dictionary<Object, Object> map, List<GameObject> doomed)
         {
             // text links (a Button on a bare text), Auga's own buttons and the parts of other controls stay
             if (old is ColorButtonText || old.GetComponent<Image>() == null) return;
@@ -490,7 +492,7 @@ namespace Auga
 
             var oldRect = (RectTransform)old.transform;
             var width = oldRect.rect.width > 0f ? oldRect.rect.width : oldRect.sizeDelta.x;
-            var prefab = width <= 95f ? Auga.Assets.ButtonSmall : width <= 200f ? Auga.Assets.ButtonMedium : Auga.Assets.ButtonFancy;
+            var prefab = options.ButtonPrefab != null ? options.ButtonPrefab : width <= 95f ? Auga.Assets.ButtonSmall : width <= 200f ? Auga.Assets.ButtonMedium : Auga.Assets.ButtonFancy;
             if (prefab == null) return;
 
             var go = Object.Instantiate(prefab, oldRect.parent, false);

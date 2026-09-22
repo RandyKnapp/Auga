@@ -154,6 +154,14 @@ namespace AugaAutoStart
             Try(() => fejd.m_eulaWindow.AcceptButton());
             yield return new WaitForSecondsRealtime(1f);
 
+            Debug.Log("[AugaAutoStart] open credits");
+            Try(() => fejd.OnCredits());
+            yield return new WaitForSecondsRealtime(12f); // the list scrolls in from below
+            Shot("00f_credits");
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() => fejd.OnCreditsBack());
+            yield return new WaitForSecondsRealtime(1f);
+
             Debug.Log("[AugaAutoStart] open settings (main menu)");
             Try(() => fejd.OnButtonSettings());
             yield return new WaitForSecondsRealtime(2f);
