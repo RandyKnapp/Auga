@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection.Emit;
 using AugaUnity;
-using Fishlabs;
+using GUIFramework;
 using HarmonyLib;
 using JetBrains.Annotations;
 using TMPro;
@@ -170,7 +170,7 @@ namespace Auga
             SetRightClickListener(newMap.transform, "IconDeath", minimap.OnAltPressedIconDeath);
 
             var mapInputHandler = minimap.m_mapImageLarge.GetComponent<UIInputHandler>();
-            mapInputHandler.m_onRightClick += minimap.OnMapRightClick;
+            mapInputHandler.m_onRightClick += _ => minimap.RemovePinUnderPointer();
             mapInputHandler.m_onMiddleClick += minimap.OnMapMiddleClick;
             mapInputHandler.m_onLeftDown += minimap.OnMapLeftDown;
             mapInputHandler.m_onLeftUp += minimap.OnMapLeftUp;

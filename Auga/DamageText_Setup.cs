@@ -10,15 +10,16 @@ namespace Auga
         [HarmonyPatch(typeof(DamageText), nameof(DamageText.Awake))]
         public static class DamageText_Awake_Patch
         {
-            public static bool Prefix(TextInput __instance)
+            public static bool Prefix(DamageText __instance)
             {
                 return !SetupHelper.DirectObjectReplace(__instance.transform, Auga.Assets.DamageText, "DamageText");
             }
         }
 
+        // The game now passes the already formatted damage string ("0", "12.5", "$msg_..."), not a float.
         [HarmonyPatch(typeof(DamageText), nameof(DamageText.AddInworldText))]
         [HarmonyPostfix]
-        public static void AddInworldText_Postfix(DamageText __instance, DamageText.TextType type, float dmg, bool mySelf)
+        public static void AddInworldText_Postfix(DamageText __instance, DamageText.TextType type, string text, bool mySelf)
         {
             var worldTextInstance = __instance.m_worldTexts.LastOrDefault();
             if (worldTextInstance == null)
@@ -31,9 +32,9 @@ namespace Auga
             {
                 color = Auga.Colors.Healing;
             }
-            else if (mySelf)
+            else if (mySelf && type <= DamageText.TextType.Immune)
             {
-                color = dmg != 0.0f ? Auga.Colors.PlayerDamage : Auga.Colors.PlayerNoDamage;
+                color = text != "0" ? Auga.Colors.PlayerDamage : Auga.Colors.PlayerNoDamage;
             }
             else
             {

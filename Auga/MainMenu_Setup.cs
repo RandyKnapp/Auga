@@ -29,7 +29,10 @@ namespace Auga
 
             //var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
-            __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
+            // Valheim 1.x rebuilt the settings screen as tabs (Valheim.SettingsGui.*: TabHandler + one ISettingsTab
+            // component per tab). The Auga settings prefab is the old single-panel layout and cannot drive the new
+            // Settings class, so the vanilla settings prefab is kept until the Auga prefab is rebuilt for the tabs.
+            // __instance.m_settingsPrefab = Auga.Assets.SettingsPrefab;
 
             /*var originalLogo = __instance.transform.Find("Menu/Logo");
             originalLogo.SetParent(__instance.transform, true);

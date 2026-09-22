@@ -15,6 +15,185 @@ namespace Auga
         public static Transform TopRowInventory;
         public static Transform MainRowsInventory;
 
+        /// <summary>Vertical gap between the bottom of the player panel and the top of the container panel, as authored in the prefab.</summary>
+        private static float ContainerGap;
+
+        /// <summary>
+        /// The player grid grows with the number of inventory rows instead of scrolling. Vanilla already resizes
+        /// InventoryGui.m_player in SetInventorySize (base height + (rows - 4) * row height), but it measured both
+        /// numbers on the vanilla panel in Awake, before Auga replaced it; the Auga panel is authored so that
+        /// "Main" holds exactly (rows - 1) grid rows when the panel is base height + (rows - 4) * row pitch.
+        /// </summary>
+        private static void SetupExpandingPlayerGrid(InventoryGui gui, Transform playerPanel)
+        {
+            var grid = gui.m_playerGrid;
+            var main = grid.transform.Find("Main");
+            var rowPitch = grid.m_elementSpace;
+            var layout = main != null ? main.GetComponentInChildren<GridLayoutGroup>(true) : null;
+            if (layout != null)
+            {
+                rowPitch = layout.cellSize.y + layout.spacing.y;
+            }
+
+            var scrollRect = main != null ? main.GetComponent<ScrollRect>() : null;
+            if (scrollRect != null)
+            {
+                scrollRect.vertical = false;
+                scrollRect.horizontal = false;
+                scrollRect.enabled = false;
+            }
+            var scrollbar = playerPanel.Find("PlayerScroll");
+            if (scrollbar != null)
+            {
+                scrollbar.gameObject.SetActive(false);
+            }
+            grid.m_scrollbar = null;
+            grid.m_ensureVisible = null;
+
+            gui.m_playerHeight = gui.m_player.sizeDelta.y;
+            gui.m_invGridHeight = rowPitch;
+            ContainerGap = BottomEdge(gui.m_player) - TopEdge(gui.m_container);
+            UpdateContainerPosition(gui);
+        }
+
+        /// <summary>Keeps the container panel directly below the (possibly resized) player panel.</summary>
+        public static void UpdateContainerPosition(InventoryGui gui)
+        {
+            var player = gui.m_player;
+            var container = gui.m_container;
+            if (player == null || container == null || player.parent != container.parent)
+            {
+                return;
+            }
+
+            var position = container.anchoredPosition;
+            position.y += BottomEdge(player) - ContainerGap - TopEdge(container);
+            container.anchoredPosition = position;
+        }
+
+        // Both panels are anchored to the same parent edge (top-left) with a fixed height, so their top and bottom
+        // edges can be expressed in the parent's anchored space.
+        private static float TopEdge(RectTransform rect) => rect.anchoredPosition.y + (1f - rect.pivot.y) * rect.sizeDelta.y;
+        private static float BottomEdge(RectTransform rect) => TopEdge(rect) - rect.sizeDelta.y;
+
+        /// <summary>
+        /// InventoryGrid now expects every slot prefab to carry an InventoryElement component that references
+        /// its icon/amount/quality/... children (the grid used to look them up by name). The Auga slot prefab
+        /// predates that component, so build it on the (in-memory) prefab once; every slot instantiated from it
+        /// then has it. Child names follow the vanilla slot the Auga prefab was modelled on.
+        /// </summary>
+        public static void EnsureInventoryElement(GameObject elementPrefab)
+        {
+            if (elementPrefab == null || elementPrefab.GetComponent<InventoryElement>() != null)
+            {
+                return;
+            }
+
+            var t = elementPrefab.transform;
+            var element = elementPrefab.AddComponent<InventoryElement>();
+
+            // The grid subscribes to click and drag handlers on every slot without null checks; drag-and-drop
+            // (UIDragHandler) is newer than the Auga slot prefab.
+            if (elementPrefab.GetComponentInChildren<UIInputHandler>(true) == null)
+            {
+                elementPrefab.AddComponent<UIInputHandler>();
+            }
+            if (elementPrefab.GetComponentInChildren<UIDragHandler>(true) == null)
+            {
+                elementPrefab.AddComponent<UIDragHandler>();
+            }
+            element.m_button = elementPrefab.GetComponent<Button>() ?? elementPrefab.GetComponentInChildren<Button>(true);
+            element.m_touchRect = t as RectTransform;
+            element.m_icon = t.Find("icon")?.GetComponent<Image>();
+            element.m_amount = t.Find("amount")?.GetComponent<TMP_Text>();
+            element.m_quality = t.Find("quality")?.GetComponent<TMP_Text>();
+            element.m_equiped = t.Find("equiped")?.GetComponent<Image>();
+            element.m_queued = t.Find("queued")?.GetComponent<Image>();
+            element.m_selected = t.Find("selected")?.gameObject;
+            element.m_noteleport = t.Find("noteleport")?.GetComponent<Image>();
+            element.m_food = t.Find("foodicon")?.GetComponent<Image>();
+            var durability = t.Find("durability");
+            element.m_durability = durability?.GetComponent<GuiBar>();
+            if (durability != null && element.m_durability == null)
+            {
+                // Auga drives the bar with its own BetterDurabilityBar; the grid still expects a GuiBar to toggle/scale.
+                var bar = durability.gameObject.AddComponent<GuiBar>();
+                bar.m_bar = (durability.Find("bar") ?? durability.Find("realbar") ?? durability) as RectTransform;
+                element.m_durability = bar;
+            }
+            element.m_tooltip = elementPrefab.GetComponent<UITooltip>() ?? elementPrefab.AddComponent<UITooltip>();
+            element.m_touchHighlightColor = Color.white;
+            element.m_dropFocus = t.Find("dropFocus")?.GetComponent<Image>() ?? CreateStretchedImage(t, "dropFocus", new Color(1f, 1f, 1f, 0.25f));
+
+            // Hotkey number shown on the top row; the grid looks it up by name.
+            if (t.Find("binding") == null)
+            {
+                var binding = new GameObject("binding", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+                binding.transform.SetParent(t, false);
+                var rect = (RectTransform)binding.transform;
+                rect.anchorMin = new Vector2(0, 1);
+                rect.anchorMax = new Vector2(0, 1);
+                rect.pivot = new Vector2(0, 1);
+                rect.anchoredPosition = new Vector2(4, -2);
+                rect.sizeDelta = new Vector2(20, 20);
+                var text = binding.GetComponent<TextMeshProUGUI>();
+                text.fontSize = 14;
+                text.raycastTarget = false;
+                text.enabled = false;
+            }
+
+            if (element.m_button == null)
+            {
+                // InventoryElement.Initialize reads the button's colour block; give it an inert one.
+                var button = elementPrefab.AddComponent<Button>();
+                button.transition = Selectable.Transition.None;
+                button.navigation = new Navigation { mode = Navigation.Mode.None };
+                element.m_button = button;
+            }
+        }
+
+        /// <summary>
+        /// Fields the grid dereferences without null checks that the Auga grid prefab may leave unset.
+        /// </summary>
+        private static void EnsureGridReferences(InventoryGrid grid, Transform panel)
+        {
+            if (grid == null)
+            {
+                return;
+            }
+
+            if (grid.m_uiGroup == null)
+            {
+                grid.m_uiGroup = panel != null ? panel.GetComponent<UIGroupHandler>() : null;
+            }
+            if (grid.m_tooltipAnchor == null)
+            {
+                grid.m_tooltipAnchor = grid.transform as RectTransform;
+            }
+            if (grid.m_gridRoot == null)
+            {
+                grid.m_gridRoot = (grid.transform.Find("Root") ?? grid.transform) as RectTransform;
+            }
+
+            Auga.Log($"InventoryGrid '{grid.name}': uiGroup={(grid.m_uiGroup != null)} gridRoot={(grid.m_gridRoot != null)} elementPrefab={(grid.m_elementPrefab != null)} ensureVisible={(grid.m_ensureVisible != null)} scrollbar={(grid.m_scrollbar != null)}");
+        }
+
+        private static Image CreateStretchedImage(Transform parent, string name, Color color)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(parent, false);
+            go.transform.SetAsFirstSibling();
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var image = go.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            return image;
+        }
+
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class InventoryGui_Awake_Patch
         {
@@ -29,8 +208,18 @@ namespace Auga
                 __instance.m_containerGrid.m_onSelected = null;
                 __instance.m_containerGrid.m_onRightClick = null;
 
+                // The vanilla container panel now lives inside root/Player; Auga replaces Player and Container as
+                // siblings under root, so move the vanilla container out first (it is replaced below anyway).
+                var vanillaContainer = __instance.transform.Find("root/Player/Container");
+                if (vanillaContainer != null)
+                {
+                    vanillaContainer.SetParent(__instance.transform.Find("root"), false);
+                }
+
                 var playerInventory = __instance.Replace("root/Player", Auga.Assets.InventoryScreen, "root/Player");
                 __instance.m_player = playerInventory.RectTransform();
+                // Touch-only anchor for the split dialog; the vanilla one was inside the replaced Player panel.
+                __instance.m_touchSplitAnchor = playerInventory;
                 __instance.m_playerGrid = playerInventory.Find("PlayerGrid").GetComponent<InventoryGrid>();
                 __instance.m_playerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_playerGrid.m_onRightClick += __instance.OnRightClickItem;
@@ -43,6 +232,25 @@ namespace Auga
                 __instance.m_containerGrid = containerInventory.Find("ContainerGrid").GetComponent<InventoryGrid>();
                 __instance.m_containerGrid.m_onSelected += __instance.OnSelectedItem;
                 __instance.m_containerGrid.m_onRightClick += __instance.OnRightClickItem;
+
+                // InventoryGui.Awake wired these on the vanilla grids before they were replaced; the game invokes
+                // CanDropDragOntoItem without a null check on every item, so all of them must be restored.
+                __instance.m_playerGrid.m_onReleased += __instance.OnReleasedItem;
+                __instance.m_playerGrid.m_onEnter += __instance.OnEnterElement;
+                __instance.m_playerGrid.OnMoveToLowerInventoryGrid += __instance.MoveToLowerInventoryGrid;
+                __instance.m_playerGrid.OnSetTouchSelection += __instance.SetTouchSelection;
+                __instance.m_playerGrid.CanDropDragOntoItem = __instance.CanDropDragOntoItem;
+                __instance.m_containerGrid.m_onReleased += __instance.OnReleasedItem;
+                __instance.m_containerGrid.m_onEnter += __instance.OnEnterElement;
+                __instance.m_containerGrid.OnMoveToUpperInventoryGrid += __instance.MoveToUpperInventoryGrid;
+                __instance.m_containerGrid.OnSetTouchSelection += __instance.SetTouchSelection;
+                __instance.m_containerGrid.CanDropDragOntoItem = __instance.CanDropDragOntoItem;
+
+                EnsureInventoryElement(__instance.m_playerGrid.m_elementPrefab);
+                EnsureInventoryElement(__instance.m_containerGrid.m_elementPrefab);
+                EnsureGridReferences(__instance.m_playerGrid, playerInventory);
+                EnsureGridReferences(__instance.m_containerGrid, containerInventory);
+                SetupExpandingPlayerGrid(__instance, playerInventory);
                 __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
                 __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
                 __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
@@ -116,23 +324,28 @@ namespace Auga
                 info.Find("Texts").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTexts);
                 info.Find("Trophies").GetComponent<Button>().onClick.AddListener(__instance.OnOpenTrophies);*/
 
+                // The split dialog is now its own SplitDialog component (it wires the slider/button listeners
+                // itself in OnEnable and raises SplitAccepted/SplitCanceled events for InventoryGui).
                 var splitDialog = __instance.Replace("root/SplitDialog", Auga.Assets.InventoryScreen, "root/SplitDialog");
-                __instance.m_splitPanel = splitDialog;
-                __instance.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
-                __instance.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<TMP_Text>();
-                __instance.m_splitCancelButton = splitDialog.Find("Dialog/ButtonCancel").GetComponent<Button>();
-                __instance.m_splitOkButton = splitDialog.Find("Dialog/ButtonOk").GetComponent<Button>();
-                __instance.m_splitIcon = splitDialog.Find("Dialog/InventoryElement/icon").GetComponent<Image>();
-                __instance.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<TMP_Text>();
+                splitDialog.gameObject.SetActive(false);
+                var splitDialogComponent = splitDialog.GetComponent<SplitDialog>() ?? splitDialog.gameObject.AddComponent<SplitDialog>();
+                var splitPanel = splitDialog.Find("Dialog").RectTransform();
+                splitDialogComponent.m_panel = splitPanel;
+                splitDialogComponent.m_panelNormalPosition = splitPanel;
+                splitDialogComponent.m_panelTouchPosition = splitPanel;
+                splitDialogComponent.m_splitSlider = splitDialog.Find("Dialog/Slider").GetComponent<Slider>();
+                splitDialogComponent.m_splitAmount = splitDialog.Find("Dialog/InventoryElement/amount").GetComponent<TMP_Text>();
+                splitDialogComponent.m_splitCancelButton = splitDialog.Find("Dialog/ButtonCancel").GetComponent<Button>();
+                splitDialogComponent.m_splitOkButton = splitDialog.Find("Dialog/ButtonOk").GetComponent<Button>();
+                splitDialogComponent.m_splitIcon = splitDialog.Find("Dialog/InventoryElement/icon").GetComponent<Image>();
+                splitDialogComponent.m_splitIconName = splitDialog.Find("Dialog/InventoryElement/DummyText").GetComponent<TMP_Text>();
+                __instance.m_splitDialog = splitDialogComponent;
 
-                __instance.m_splitSlider.onValueChanged.AddListener(__instance.OnSplitSliderChanged);
-                __instance.m_splitCancelButton.onClick.AddListener(__instance.OnSplitCancel);
-                __instance.m_splitOkButton.onClick.AddListener(__instance.OnSplitOk);
-
+                // The game addresses these by index: [2] when opening texts/trophies/skills, [3] for crafting.
                 __instance.m_uiGroups = new [] {
                     containerInventory.GetComponent<UIGroupHandler>(),
                     playerInventory.GetComponent<UIGroupHandler>(),
-                    //info.GetComponent<UIGroupHandler>(),
+                    rightPanel.GetComponent<UIGroupHandler>(),
                     rightPanel.GetComponent<UIGroupHandler>()
                 };
 
@@ -167,9 +380,9 @@ namespace Auga
                 //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
                 foreach (var element in __instance.m_elements)
                 {
-                    var itemTooltip = element.m_go.GetComponent<ItemTooltip>();
+                    var itemTooltip = element.gameObject.GetComponent<ItemTooltip>();
                     
-                    var item = __instance.m_inventory.GetItemAt(element.m_pos.x, element.m_pos.y);
+                    var item = __instance.m_inventory.GetItemAt(element.Position.x, element.Position.y);
                     
                     if (itemTooltip != null && !element.m_used)
                     {
@@ -183,18 +396,27 @@ namespace Auga
 
                     if (__instance.name == "PlayerGrid")
                     {
-                        if (element.m_pos.y == 0)
+                        if (element.Position.y == 0)
                         {
-                            element.m_go.transform.SetParent(TopRowInventory);
+                            element.gameObject.transform.SetParent(TopRowInventory);
                         }
                         else
                         {
-                            element.m_go.transform.SetParent(MainRowsInventory);
-                            //Vector2 currentPosition = new Vector3(element.m_pos.x * (__instance.m_elementSpace), (element.m_pos.y * -__instance.m_elementSpace) - 26);
-                            //element.m_go.RectTransform().anchoredPosition = startPos + currentPosition;
+                            element.gameObject.transform.SetParent(MainRowsInventory);
+                            //Vector2 currentPosition = new Vector3(element.Position.x * (__instance.m_elementSpace), (element.Position.y * -__instance.m_elementSpace) - 26);
+                            //element.gameObject.RectTransform().anchoredPosition = startPos + currentPosition;
                         }
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.SetInventorySize))]
+        public static class InventoryGui_SetInventorySize_Patch
+        {
+            public static void Postfix(InventoryGui __instance)
+            {
+                UpdateContainerPosition(__instance);
             }
         }
 
@@ -233,7 +455,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, __instance.m_selectedVariant);
+                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, __instance.m_selectedVariant);
                 }
             }
         }
@@ -257,7 +479,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, __instance.m_selectedVariant);
+                    CraftingPanel.SetRecipe(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, __instance.m_selectedVariant);
                 }
             }
         }
@@ -269,7 +491,7 @@ namespace Auga
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Key, __instance.m_selectedRecipe.Value, quality, player, allowedQuality);
+                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, quality, player, allowedQuality);
                 }
             }
         }

@@ -50,7 +50,7 @@ namespace AugaUnity
                     }
                 }
 
-                var itemData = inventoryGui.m_selectedRecipe.Value;
+                var itemData = inventoryGui.m_selectedRecipe.ItemData;
                 if (itemData != null)
                 {
                     if (OriginalQualityLevel != null)

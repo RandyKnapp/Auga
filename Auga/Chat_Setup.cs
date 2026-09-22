@@ -12,7 +12,10 @@ namespace Auga
         {
             public static bool Prefix(Chat __instance)
             {
-                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                if (Auga.HasChatter)
+                    return true;
+
+                if (!Auga.AugaChatShow.Value )
                     return true;
                 
                 return !SetupHelper.IndirectTwoObjectReplace(__instance.transform, Auga.Assets.AugaChat, "Chat", "Chat_box", "AugaChat");
@@ -20,7 +23,10 @@ namespace Auga
 
             public static void Postfix(Chat __instance)
             {
-                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                if (Auga.HasChatter)
+                    return;
+
+                if (!Auga.AugaChatShow.Value )
                     return;
                 
                 if (__instance.m_input != null)
@@ -33,7 +39,10 @@ namespace Auga
         {
             public static void Postfix(Chat __instance)
             {
-                if (!Auga.AugaChatShow.Value || Auga.HasChatter)
+                if (Auga.HasChatter)
+                    return;
+
+                if (!Auga.AugaChatShow.Value)
                     return;
                 
                 var latestChatMessage = __instance.m_npcTexts.LastOrDefault();

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using Auga.Utilities;
 using AugaUnity;
 using HarmonyLib;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -148,8 +150,8 @@ namespace Auga
                         buttonList.Add(component5);
 
                         //Save
-                        if (instance.saveButton.interactable)
-                            buttonList.Add(instance.saveButton);
+                        if (instance.m_saveButton.interactable)
+                            buttonList.Add(instance.m_saveButton);
 
                         //Logout
                         buttonList.Add(component1);
@@ -172,11 +174,11 @@ namespace Auga
                         
                         buttonList.Add(component3);
                         
-                        if (instance.saveButton.interactable)
-                            buttonList.Add(instance.saveButton);
+                        if (instance.m_saveButton.interactable)
+                            buttonList.Add(instance.m_saveButton);
 
-                        if (instance.menuCurrentPlayersListButton.gameObject.activeSelf)
-                            buttonList.Add(instance.menuCurrentPlayersListButton);
+                        if (instance.m_playerListButton.gameObject.activeSelf)
+                            buttonList.Add(instance.m_playerListButton);
                         
                         buttonList.Add(component4);
 
@@ -249,7 +251,80 @@ namespace Auga
                 var playerPrefab = __instance.CurrentPlayersPrefab;
                 var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
                 newMenu.CurrentPlayersPrefab = playerPrefab;
+                WireNewMenuFields(newMenu, __instance);
                 Object.Destroy(__instance.gameObject);
+            }
+
+            /// <summary>
+            /// The Auga menu prefab predates several Menu fields (m_continueButton, m_skipButton, m_settingsButton,
+            /// m_logoutButton, m_quitButton, lastSaveText, menuEntriesParent, gamepad map, cloud warnings, ...).
+            /// Point the ones Auga has its own buttons for at those, and adopt everything else from the vanilla menu.
+            /// </summary>
+            private static void WireNewMenuFields(Menu newMenu, Menu vanilla)
+            {
+                var dialog = newMenu.m_menuDialog;
+                Button FindButton(string path) => dialog != null ? dialog.Find(path)?.GetComponent<Button>() : null;
+
+                // The prefab's serialized references for these entries point at file ids that no longer exist in it;
+                // in the built bundle they resolve to null or, worse, to arbitrary objects (touching those crashes
+                // natively). Re-resolve every entry by path in the Auga prefab; anything it lacks is adopted from the
+                // vanilla menu below. The settings prefab must stay vanilla as well (see MainMenu_Setup: the Auga
+                // settings panel predates the tabbed settings screen).
+                newMenu.m_settingsPrefab = vanilla.m_settingsPrefab;
+                newMenu.m_continueButton = FindButton("MenuEntries/DividerMedium/CloseButton");
+                newMenu.m_settingsButton = FindButton("MenuEntries/Settings");
+                newMenu.m_logoutButton = FindButton("MenuEntries/Logout");
+                newMenu.m_quitButton = FindButton("MenuEntries/Exit");
+                newMenu.m_saveButton = FindButton("MenuEntries/Save");
+                newMenu.m_playerListButton = FindButton("MenuEntries/CurrentPlayerList");
+                newMenu.m_skipButton = FindButton("MenuEntries/SkipIntro");
+                newMenu.m_inviteButton = null;
+                newMenu.lastSaveText = dialog != null ? dialog.Find("MenuEntries/LastTimeSaved")?.GetComponent<TMP_Text>() : null;
+                newMenu.menuEntriesParent = dialog != null ? dialog.Find("MenuEntries") as RectTransform : null;
+                if (newMenu.m_skipButton != null)
+                {
+                    // the prefab's SkipIntro entry has no click handler serialized
+                    newMenu.m_skipButton.onClick.RemoveAllListeners();
+                    newMenu.m_skipButton.onClick.AddListener(newMenu.OnSkip);
+                }
+
+                // Vanilla keeps the gamepad map (with two full-screen darken images), the cloud-storage warnings and
+                // the dialogs under Menu.m_root, which Hide() deactivates. Adopted objects must land under the Auga
+                // menu's own root for the same reason; parking them next to the root leaves them visible while the
+                // menu is closed (the gamepad map darkened the screen until the menu was first opened).
+                var vanillaRoot = vanilla.m_root;
+                var augaRoot = newMenu.m_root != null ? newMenu.m_root : newMenu.transform;
+                SerializedFieldHelper.CopyMissingFields(newMenu, vanilla,
+                    t => vanillaRoot != null && t.IsChildOf(vanillaRoot) ? augaRoot : newMenu.transform,
+                    nameof(Menu.CurrentPlayersPrefab));
+
+                // The vanilla menu is a root Canvas of its own now; the Auga prefab has none and would not render.
+                SetupHelper.EnsureRootCanvas(newMenu.gameObject, vanilla.gameObject);
+
+                // Entries adopted from the vanilla menu (save, player list, skip intro, invite, last-save label) are
+                // stacked below Auga's own entries; the game toggles their visibility itself.
+                var entries = dialog != null ? (dialog.Find("MenuEntries") as RectTransform ?? (RectTransform)dialog) : null;
+                if (entries != null)
+                {
+                    var bottom = float.MaxValue;
+                    foreach (RectTransform child in entries)
+                    {
+                        bottom = Mathf.Min(bottom, child.anchoredPosition.y - child.rect.height * (1f - child.pivot.y));
+                    }
+                    if (bottom == float.MaxValue) bottom = 0f;
+
+                    foreach (var adopted in new Component[] { newMenu.m_saveButton, newMenu.lastSaveText, newMenu.m_playerListButton, newMenu.m_inviteButton, newMenu.m_skipButton })
+                    {
+                        if (adopted == null || adopted.transform.IsChildOf(entries))
+                            continue;
+                        var rect = (RectTransform)adopted.transform;
+                        rect.SetParent(entries, false);
+                        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+                        rect.pivot = new Vector2(0.5f, 1f);
+                        rect.anchoredPosition = new Vector2(0f, bottom - 6f);
+                        bottom -= rect.rect.height + 6f;
+                    }
+                }
             }
         }
 

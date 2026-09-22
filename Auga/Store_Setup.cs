@@ -20,7 +20,7 @@ namespace Auga
                 var originalTransform = instance.transform;
                 var parent = originalTransform.parent;
                 var siblingIndex = parent.GetSiblingIndex();
-                var newStoreGui = GetAugaStoreGui(parent);
+                var newStoreGui = GetAugaStoreGui(parent, instance.gameObject);
                 newStoreGui.transform.SetAsLastSibling();
 
                 if (instance.transform.name.Equals("Store_Screen") && instance.m_rootPanel.name.Equals("Store"))
@@ -38,9 +38,11 @@ namespace Auga
             return instance;
         }
 
-        private StoreGui GetAugaStoreGui(Transform parent)
+        private StoreGui GetAugaStoreGui(Transform parent, GameObject vanillaStore)
         {
             var newStore = Object.Instantiate(Auga.Assets.StoreGui, parent, false);
+            // the vanilla store is a root Canvas of its own; the Auga prefab has none and would not render
+            SetupHelper.EnsureRootCanvas(newStore, vanillaStore);
             var newStoreGui = newStore.GetComponent<StoreGui>();
             
             newStoreGui.m_coinPrefab = ObjectDB.instance.GetItemPrefab("Coins").GetComponent<ItemDrop>();

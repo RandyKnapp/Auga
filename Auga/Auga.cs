@@ -114,7 +114,6 @@ namespace Auga
         public static ConfigEntry<StatBarTextPosition> EitrBarTextPosition;
         public static ConfigEntry<bool> EitrBarShowTicks;
         
-        public static ConfigEntry<bool> BuildMenuShow;
         public static ConfigEntry<bool> AugaChatShow;
 
         public static readonly AugaAssets Assets = new AugaAssets();
@@ -125,6 +124,7 @@ namespace Auga
         public static bool HasSimpleRecycling;
         public static bool HasChatter;
         public static bool HasSearsCatalog;
+        public static bool HasJewelcrafting;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -175,8 +175,9 @@ namespace Auga
             HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
-            HasChatter = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.chatter");
-            HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
+            HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
+            HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
+            HasJewelcrafting = Chainloader.PluginInfos.TryGetValue("org.bepinex.plugins.jewelcrafting", out var jewelcraftingPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -437,6 +438,7 @@ namespace Auga
         private void LoadDependencies()
         {
             var assembly = Assembly.GetCallingAssembly();
+            LoadEmbeddedAssembly(assembly, "ui_lib.dll"); // Fishlabs.GuiInputField shim for the prefabs (see UiLibShim)
             LoadEmbeddedAssembly(assembly, "fastJSON.dll");
             LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
         }
@@ -500,7 +502,6 @@ namespace Auga
             EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
             EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
             
-            BuildMenuShow = Config.Bind("BuildMenu", "Use Auga Build Menu (Requires Restart)", true, "If false, disables the Auga Build Menu display");
             AugaChatShow = Config.Bind("AugaChat", "Show Auga Chat. Disable to use other mods. (Requires Restart)", true, "If false, disables the Auga Chat window display");
         }
 
@@ -547,6 +548,26 @@ namespace Auga
             Assets.RecyclingPanelIcon = assetBundle.LoadAsset<Sprite>("RecyclingPanel");
             Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
             Assets.BuildHud = assetBundle.LoadAsset<GameObject>("BuildHud");
+
+            // The Auga buttons carry a click sfx and a "select" sfx. ButtonSfx now plays the select sfx from
+            // OnSelect, which a mouse triggers on pointer down, so every click sounded twice (down and up).
+            // Strip the select sfx from every prefab asset in the bundle (the tab buttons are stand-alone
+            // prefabs instantiated by the tab controllers); every instance made from them inherits that.
+            RemoveSelectSfx(assetBundle.LoadAllAssets<GameObject>());
+        }
+
+        private static void RemoveSelectSfx(params GameObject[] prefabs)
+        {
+            foreach (var prefab in prefabs)
+            {
+                if (prefab == null)
+                    continue;
+                foreach (var sfx in prefab.GetComponentsInChildren<ButtonSfx>(true))
+                {
+                    sfx.m_selectSfxPrefab = null;
+                    sfx.m_selectSfxPrefabVibrationOnly = null;
+                }
+            }
         }
 
         private static void ApplyCursor()
@@ -674,4 +695,5 @@ namespace Auga
         }
     }
 }
+
 
