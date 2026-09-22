@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using BepInEx;
@@ -18,6 +19,7 @@ namespace AugaAutoStart
     //   AUGA_TEST_QUIT       seconds after the UI exercise to quit the game (default 0 = never)
     //   AUGA_TEST_DUMP       "1" to dump the vanilla UI hierarchies (before any Awake patch runs)
     //   AUGA_TEST_ROWS       also screenshot the inventory with this many player rows and the container panel shown
+    //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
     {
@@ -138,6 +140,33 @@ namespace AugaAutoStart
             Try(() => fejd.OnButtonSettings());
             yield return new WaitForSecondsRealtime(2f);
             Shot("00b_settings");
+            Try(() => DumpSettingsTexts("mainmenu"));
+            DumpLive("Settings", Settings.instance);
+            var settingsOnly = Environment.GetEnvironmentVariable("AUGA_TEST_SETTINGS") == "1";
+            if (settingsOnly && Settings.instance != null)
+            {
+                // AUGA_TEST_SETTINGS=1: screenshot every settings tab, then quit without starting a level
+                var handler = Settings.instance.m_tabHandler;
+                var count = handler != null ? handler.m_tabs.Count : 0;
+                for (var i = 0; i < count; i++)
+                {
+                    var tab = handler.m_tabs[i];
+                    if (tab.m_button == null || !tab.m_button.gameObject.activeSelf) continue;
+                    var name = tab.m_page != null ? tab.m_page.name : i.ToString();
+                    Debug.Log("[AugaAutoStart] settings tab " + name);
+                    Try(() => handler.SetActiveTab(i));
+                    yield return new WaitForSecondsRealtime(1f);
+                    Shot("00b_settings_" + i + "_" + name);
+                    Try(() => LogRects(Settings.instance.transform, "Bottom"));
+                    yield return new WaitForSecondsRealtime(1f);
+                }
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
+                yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] quitting (settings only)");
+                Application.Quit();
+                yield break;
+            }
             Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
             yield return new WaitForSecondsRealtime(1f);
 
@@ -197,6 +226,53 @@ namespace AugaAutoStart
             var quit = Environment.GetEnvironmentVariable("AUGA_TEST_QUIT");
             Debug.LogError($"[AugaAutoStart] giving up: {why}");
             if (int.TryParse(quit, out var seconds) && seconds > 0) Application.Quit();
+        }
+
+        private static void LogSettingsRenderState(string tag)
+        {
+            var s = Settings.instance;
+            if (s == null) { Debug.Log($"[AugaAutoStart] render[{tag}] no settings instance"); return; }
+            Debug.Log($"[AugaAutoStart] render[{tag}] screen={Screen.width}x{Screen.height} settingsRootWorld={s.transform.position} lossy={s.transform.lossyScale} parentWorld={s.transform.parent.position}");
+            var menu = Menu.instance;
+            if (menu != null && menu.m_root != null)
+                Debug.Log($"[AugaAutoStart] render[{tag}] menuRootWorld={menu.m_root.position} lossy={menu.m_root.lossyScale}");
+            foreach (var t in s.transform.GetComponentsInParent<Transform>(true))
+                Debug.Log($"[AugaAutoStart] render[{tag}] ancestor {t.name} local={t.localPosition} scale={t.localScale} active={t.gameObject.activeSelf}");
+            var graphics = s.GetComponentsInChildren<Graphic>(false);
+            var shown = 0;
+            foreach (var g in graphics)
+            {
+                var cr = g.canvasRenderer;
+                if (shown < 6 && (g.name == "Background" || g.name == "Darken" || g.transform == s.transform || g is TMP_Text))
+                {
+                    shown++;
+                    Debug.Log($"[AugaAutoStart] render[{tag}] {PathOf(g.transform)} type={g.GetType().Name} enabled={g.isActiveAndEnabled} world={g.transform.position} color={g.color} inheritedAlpha={cr.GetInheritedAlpha()} cull={cr.cull} mats={cr.materialCount} mat={(cr.materialCount > 0 && cr.GetMaterial(0) != null ? cr.GetMaterial(0).shader.name : "none")} depth={cr.absoluteDepth} clip={cr.hasRectClipping} popMats={cr.popMaterialCount} rect={((RectTransform)g.transform).rect}");
+                }
+            }
+            Debug.Log($"[AugaAutoStart] render[{tag}] active graphics under settings: {graphics.Length}");
+        }
+
+        /// <summary>Logs the placement of every object with the given name under root, plus two levels of children.</summary>
+        private static void LogRects(Transform root, string name)
+        {
+            foreach (var t in root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (t.name != name || !t.gameObject.activeInHierarchy) continue;
+                LogRect(t, 0);
+                foreach (RectTransform child in t)
+                {
+                    LogRect(child, 1);
+                    foreach (RectTransform grandChild in child) LogRect(grandChild, 2);
+                }
+            }
+        }
+
+        private static void LogRect(RectTransform t, int depth)
+        {
+            var corners = new Vector3[4];
+            t.GetWorldCorners(corners);
+            var element = t.GetComponent<LayoutElement>();
+            Debug.Log($"[AugaAutoStart] rect {new string(' ', depth * 2)}{t.name} active={t.gameObject.activeSelf} rect={t.rect.size} anchored={t.anchoredPosition} anchors={t.anchorMin}-{t.anchorMax} pivot={t.pivot} scale={t.localScale} world=({corners[0].x:F0},{corners[0].y:F0})-({corners[2].x:F0},{corners[2].y:F0}) layoutElement={(element != null ? element.preferredWidth + "x" + element.preferredHeight : "-")}");
         }
 
         private static void DumpLive(string name, Component c)
@@ -319,6 +395,20 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(2f);
             Try(() =>
             {
+                var s0 = Settings.instance;
+                if (s0 != null)
+                {
+                    var bg = s0.GetComponentsInChildren<Graphic>(true).FirstOrDefault(g => g.name == "Background" && g.isActiveAndEnabled);
+                    var canvas = bg != null ? bg.canvas : null;
+                    Debug.Log($"[AugaAutoStart] settings graphic={(bg != null ? PathOf(bg.transform) : "none")} cull={(bg != null && bg.canvasRenderer.cull)} canvas={(canvas != null ? canvas.name : "null")} root={(canvas != null ? canvas.rootCanvas.name : "?")} mode={(canvas != null ? canvas.renderMode.ToString() : "?")} enabled={(canvas != null && canvas.enabled)} cam={(canvas != null && canvas.worldCamera != null ? canvas.worldCamera.name : "none")} sort={(canvas != null ? canvas.sortingOrder : 0)} override={(canvas != null && canvas.overrideSorting)} pixelRect={(canvas != null ? canvas.pixelRect.ToString() : "?")}");
+                    foreach (var c in s0.GetComponentsInParent<Canvas>(true))
+                        Debug.Log($"[AugaAutoStart] parent canvas {PathOf(c.transform)} enabled={c.enabled} mode={c.renderMode} sort={c.sortingOrder} override={c.overrideSorting} cam={(c.worldCamera != null ? c.worldCamera.name : "none")} scale={c.scaleFactor}");
+                    foreach (var cg in s0.GetComponentsInParent<CanvasGroup>(true))
+                        Debug.Log($"[AugaAutoStart] parent canvasgroup {PathOf(cg.transform)} alpha={cg.alpha}");
+                }
+            });
+            Try(() =>
+            {
                 var s = Settings.instance;
                 Debug.Log($"[AugaAutoStart] settings instance={(s != null)} active={(s != null && s.gameObject.activeInHierarchy)} parent={(s != null ? s.transform.parent?.name : "-")} menuInstance={(Menu.instance != null ? Menu.instance.name : "null")} menuRootActive={(Menu.instance != null && Menu.instance.m_root.gameObject.activeInHierarchy)}");
                 if (s != null)
@@ -331,6 +421,8 @@ namespace AugaAutoStart
                 DumpLive("MenuWithSettings", Menu.instance);
             });
             Shot("13b_settings");
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() => LogSettingsRenderState("in game"));
             Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
             yield return new WaitForSecondsRealtime(1f);
             Try(() => Menu.instance.Hide());
@@ -468,6 +560,27 @@ namespace AugaAutoStart
             foreach (var lg in kh.GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>(true))
                 sb.AppendLine($"{PathOf(lg.transform)} {lg.GetType().Name} spacing={lg.spacing} pad=({lg.padding.left},{lg.padding.right},{lg.padding.top},{lg.padding.bottom}) align={lg.childAlignment} ctrl=({lg.childControlWidth},{lg.childControlHeight}) expand=({lg.childForceExpandWidth},{lg.childForceExpandHeight}) rect={((RectTransform)lg.transform).rect.size} anchors={((RectTransform)lg.transform).anchorMin}-{((RectTransform)lg.transform).anchorMax}");
             File.WriteAllText(Path.Combine(ShotDir, "auga_keyhints_details.txt"), sb.ToString());
+        }
+
+        /// <summary>Every text under the open settings screen with its raw localization token (row labels, tab names, tooltips).</summary>
+        private static void DumpSettingsTexts(string tag)
+        {
+            var settings = Settings.instance;
+            if (settings == null) { Debug.Log("[AugaAutoStart] settings texts: no Settings.instance"); return; }
+            var loc = Localization.instance;
+            var sb = new StringBuilder();
+            var root = settings.transform;
+            foreach (var t in settings.GetComponentsInChildren<TMP_Text>(true))
+            {
+                loc.textMeshStrings.TryGetValue(t, out var raw);
+                var path = PathOf(t.transform);
+                var idx = path.IndexOf(root.name, StringComparison.Ordinal);
+                if (idx >= 0) path = path.Substring(idx);
+                var shown = (t.text ?? string.Empty).Replace("\r", " ").Replace("\n", " ");
+                sb.Append(path).Append('\t').Append(t.gameObject.activeInHierarchy ? "active" : "inactive")
+                  .Append("\traw='").Append(raw).Append("'\ttext='").Append(shown).AppendLine("'");
+            }
+            File.WriteAllText(Path.Combine(ShotDir, "auga_settings_texts_" + tag + ".txt"), sb.ToString());
         }
 
         private static void LogKeyHintRects()

@@ -40,6 +40,11 @@ namespace Auga
         public GameObject ServerListElement;
         public GameObject PasswordDialog;
         public GameObject ConnectingDialog;
+        public GameObject LabeledDropdown;
+        public GameObject LabeledCheckbox;
+        public GameObject LabeledSliderWithValue;
+        public GameObject LabeledKeybind;
+        public GameObject LanguageTooltip;
         public GameObject PanelBase;
         public GameObject ButtonSmall;
         public GameObject ButtonMedium;
@@ -51,6 +56,7 @@ namespace Auga
         public Font SourceSansProSemiBold;
         public Font SourceSansProRegular;
         public Sprite ItemBackgroundSprite;
+        public Sprite ContainerDiamond;
         public GameObject InventoryTooltip;
         public GameObject SimpleTooltip;
         public GameObject DividerSmall;
@@ -528,6 +534,11 @@ namespace Auga
             Assets.ServerListElement = assetBundle.LoadAsset<GameObject>("ServerListElement");
             Assets.PasswordDialog = assetBundle.LoadAsset<GameObject>("AugaPassword");
             Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
+            Assets.LabeledDropdown = assetBundle.LoadAsset<GameObject>("LabeledDropdown");
+            Assets.LabeledCheckbox = assetBundle.LoadAsset<GameObject>("LabeledCheckbox");
+            Assets.LabeledSliderWithValue = assetBundle.LoadAsset<GameObject>("LabeledSliderWithValue");
+            Assets.LabeledKeybind = assetBundle.LoadAsset<GameObject>("LabeledKeybind");
+            Assets.LanguageTooltip = assetBundle.LoadAsset<GameObject>("LanguageTooltip");
             Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
             Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
@@ -539,6 +550,7 @@ namespace Auga
             Assets.SourceSansProSemiBold = assetBundle.LoadAsset<Font>("SourceSansPro-SemiBold");
             Assets.SourceSansProRegular = assetBundle.LoadAsset<Font>("SourceSansPro-Regular");
             Assets.ItemBackgroundSprite = assetBundle.LoadAsset<Sprite>("Container_Square_A");
+            Assets.ContainerDiamond = assetBundle.LoadAsset<Sprite>("Container_Diamond");
             Assets.InventoryTooltip = assetBundle.LoadAsset<GameObject>("InventoryTooltip");
             Assets.SimpleTooltip = assetBundle.LoadAsset<GameObject>("SimpleTooltip");
             Assets.DividerSmall = assetBundle.LoadAsset<GameObject>("DividerSmall");

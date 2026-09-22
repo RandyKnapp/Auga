@@ -270,7 +270,7 @@ namespace Auga
                 // natively). Re-resolve every entry by path in the Auga prefab; anything it lacks is adopted from the
                 // vanilla menu below. The settings prefab must stay vanilla as well (see MainMenu_Setup: the Auga
                 // settings panel predates the tabbed settings screen).
-                newMenu.m_settingsPrefab = vanilla.m_settingsPrefab;
+                newMenu.m_settingsPrefab = AugaSettingsBuilder.GetPrefab(vanilla.m_settingsPrefab);
                 newMenu.m_continueButton = FindButton("MenuEntries/DividerMedium/CloseButton");
                 newMenu.m_settingsButton = FindButton("MenuEntries/Settings");
                 newMenu.m_logoutButton = FindButton("MenuEntries/Logout");
