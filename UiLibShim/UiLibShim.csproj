@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Compatibility shim for the "augaassets" bundle.
+
+    The Auga prefabs were built when Valheim shipped its UI widgets in ui_lib.dll under the Fishlabs namespace.
+    Valheim 1.x moved them to gui_framework.dll (namespace GUIFramework), so every prefab input field resolves to
+    "missing script (Fishlabs.GuiInputField)". Until the bundle is rebuilt against gui_framework.dll, this
+    assembly (named ui_lib, like the original) provides Fishlabs.GuiInputField as a subclass of the real widget.
+    Auga embeds it and loads it before the bundle (see Auga.LoadDependencies), which is enough for Unity to
+    resolve the MonoScript references.
+  -->
+  <PropertyGroup>
+    <AssemblyName>ui_lib</AssemblyName>
+    <RootNamespace>Fishlabs</RootNamespace>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="gui_framework">
+      <HintPath>$(ValheimManaged)\gui_framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ValheimManaged)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

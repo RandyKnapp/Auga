@@ -5,7 +5,9 @@
             <InputAssemblies Include="$(TargetPath)" />
             <InputAssemblies Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="$(OutputPath)APIManager.dll" />
             <LibraryPath Include="$(OutputPath)" />
-            <LibraryPath Include="$(SolutionDir)\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\" />
+            <LibraryPath Include="$(ValheimManaged)\" />
+            <LibraryPath Include="$(BepInExCore)\" />
+            <LibraryPath Include="$(ValheimRefs)\" />
         </ItemGroup>
         <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="@(LibraryPath)" />
     </Target>

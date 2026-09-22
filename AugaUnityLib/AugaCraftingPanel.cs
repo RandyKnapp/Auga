@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fishlabs;
+using GUIFramework;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -121,11 +121,11 @@ namespace AugaUnity
 
             var inventoryGui = InventoryGui.instance;
             _currentPanel = panel;
-            if (inventoryGui?.m_selectedRecipe.Value?.GetIcon() != null)
+            if (inventoryGui?.m_selectedRecipe.ItemData?.GetIcon() != null)
             {
-                _currentPanel.Icon.sprite = inventoryGui.m_selectedRecipe.Value.GetIcon();
+                _currentPanel.Icon.sprite = inventoryGui.m_selectedRecipe.ItemData.GetIcon();
             }
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            SetRecipe(inventoryGui.m_selectedRecipe.Recipe, inventoryGui.m_selectedRecipe.ItemData, inventoryGui.m_selectedVariant);
             panel.gameObject.SetActive(true);
             panel.Activate(inventoryGui, ItemInfo);
             
@@ -141,7 +141,7 @@ namespace AugaUnity
             }
 
             var inventoryGui = InventoryGui.instance;
-            SetRecipe(inventoryGui.m_selectedRecipe.Key, inventoryGui.m_selectedRecipe.Value, inventoryGui.m_selectedVariant);
+            SetRecipe(inventoryGui.m_selectedRecipe.Recipe, inventoryGui.m_selectedRecipe.ItemData, inventoryGui.m_selectedVariant);
         }
 
         [UsedImplicitly]
@@ -196,7 +196,7 @@ namespace AugaUnity
 
         public virtual void UpdateRequirementsContainerVisibility()
         {
-            var hasRecipe = TabController.SelectedIndex > 1 || InventoryGui.instance.m_selectedRecipe.Key != null;
+            var hasRecipe = TabController.SelectedIndex > 1 || InventoryGui.instance.m_selectedRecipe.Recipe != null;
             var showingVariants = InventoryGui.instance.m_variantDialog.gameObject.activeInHierarchy || CustomVariantDialog.gameObject.activeInHierarchy;
 
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);

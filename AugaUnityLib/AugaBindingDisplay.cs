@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -33,19 +33,32 @@ namespace AugaUnity
                 return;
             }
 
-            var keycode = ZInput.instance.m_buttons[keyName].m_key;
+            // Valheim now uses Unity's InputSystem: bindings are control paths such as
+            // "<Keyboard>/e", "<Keyboard>/numpadDivide" or "<Mouse>/leftButton" instead of KeyCodes.
+            var button = ZInput.instance.m_buttons[keyName];
+            var path = button.GetActionPath() ?? string.Empty;
+            var device = string.Empty;
+            var control = path;
+            var slash = path.IndexOf('/');
+            if (slash >= 0)
+            {
+                device = path.Substring(0, slash);
+                control = path.Substring(slash + 1);
+            }
+
             var localizedKeyString = Localization.instance.GetBoundKeyString(keyName);
 
             var showMouse = -1;
-            switch (keycode)
+            if (device == "<Mouse>")
             {
-                case KeyCode.Mouse0: showMouse = 0; break;
-                case KeyCode.Mouse1: showMouse = 1; break;
-                case KeyCode.Mouse2: showMouse = 2; break;
-                case KeyCode.Mouse3: showMouse = 3; break;
-                case KeyCode.Mouse4: showMouse = 4; break;
-                case KeyCode.Mouse5: showMouse = 5; break;
-                case KeyCode.Mouse6: showMouse = 6; break;
+                switch (control)
+                {
+                    case "leftButton": showMouse = 0; break;
+                    case "rightButton": showMouse = 1; break;
+                    case "middleButton": showMouse = 2; break;
+                    case "backButton": showMouse = 3; break;
+                    case "forwardButton": showMouse = 4; break;
+                }
             }
 
             switch (localizedKeyString)
@@ -63,24 +76,19 @@ namespace AugaUnity
                 localizedKeyString = localizedKeyString.Replace("Alpha", "");
             }
 
-            switch (keycode)
+            switch (control)
             {
-                case KeyCode.KeypadDivide: localizedKeyString = localizedKeyString.Replace("Divide", "/"); break;
-                case KeyCode.KeypadMinus: localizedKeyString = localizedKeyString.Replace("Minus", "-"); break;
-                case KeyCode.KeypadMultiply: localizedKeyString = localizedKeyString.Replace("Multiply", "*"); break;
-                case KeyCode.KeypadEquals: localizedKeyString = localizedKeyString.Replace("Equals", "="); break;
-                case KeyCode.KeypadPeriod: localizedKeyString = localizedKeyString.Replace("Period", "."); break;
-                case KeyCode.KeypadPlus: localizedKeyString = localizedKeyString.Replace("Plus", "+"); break;
+                case "numpadDivide": localizedKeyString = "Num /"; break;
+                case "numpadMinus": localizedKeyString = "Num -"; break;
+                case "numpadMultiply": localizedKeyString = "Num *"; break;
+                case "numpadEquals": localizedKeyString = "Num ="; break;
+                case "numpadPeriod": localizedKeyString = "Num ."; break;
+                case "numpadPlus": localizedKeyString = "Num +"; break;
 
-                case KeyCode.LeftArrow: localizedKeyString = "←"; break;
-                case KeyCode.RightArrow: localizedKeyString = "→"; break;
-                case KeyCode.UpArrow: localizedKeyString = "↑"; break;
-                case KeyCode.DownArrow: localizedKeyString = "↓"; break;
-            }
-
-            if (char.IsPunctuation((char)keycode))
-            {
-                localizedKeyString = ((char)keycode).ToString();
+                case "leftArrow": localizedKeyString = "←"; break;
+                case "rightArrow": localizedKeyString = "→"; break;
+                case "upArrow": localizedKeyString = "↑"; break;
+                case "downArrow": localizedKeyString = "↓"; break;
             }
 
             SetText(localizedKeyString, showMouse);

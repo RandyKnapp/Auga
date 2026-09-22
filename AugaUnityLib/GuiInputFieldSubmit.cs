@@ -1,5 +1,5 @@
 ﻿using System;
-using Fishlabs;
+using GUIFramework;
 using UnityEngine;
 
 namespace AugaUnity

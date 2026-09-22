@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Development-only BepInEx plugin that drives an automated in-game smoke test of Auga:
+    main menu -> settings -> character select -> world -> HUD -> inventory -> map -> pause menu -> in-game settings
+    -> chat -> damage text, taking a screenshot of every step, then quits. See BUILDING.md ("Testing in game").
+    Not part of Auga.sln and never shipped; it deploys next to Auga when DeployToValheim is on.
+    Paths (ValheimManaged, BepInExCore, ValheimRefs, BepInExPlugins) come from ..\..\Directory.Build.props.
+  -->
+  <PropertyGroup>
+    <AssemblyName>AugaAutoStart</AssemblyName>
+    <RootNamespace>AugaAutoStart</RootNamespace>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCore)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCore)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_valheim_publicized">
+      <HintPath>$(ValheimRefs)\assembly_valheim_publicized.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_guiutils_publicized">
+      <HintPath>$(ValheimRefs)\assembly_guiutils_publicized.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils_publicized">
+      <HintPath>$(ValheimRefs)\assembly_utils_publicized.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="gui_framework_publicized">
+      <HintPath>$(ValheimRefs)\gui_framework_publicized.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ValheimManaged)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>$(ValheimManaged)\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ValheimManaged)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ValheimManaged)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="DeployToValheim" AfterTargets="Build" Condition="'$(DeployToValheim)' == 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExPlugins)\AugaAutoStart\" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExPlugins)\AugaAutoStart\" />
+  </Target>
+
+</Project>

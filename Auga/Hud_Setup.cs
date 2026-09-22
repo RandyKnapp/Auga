@@ -140,25 +140,19 @@ namespace Auga
             __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
             newStaggerPanel.gameObject.AddComponent<MovableHudElement>().Init("StaggerPanel", TextAnchor.LowerCenter, 0, 151);
 
-            if (Auga.BuildMenuShow.Value && !Auga.HasSearsCatalog)
-            {
-                // Setup the icon material to grayscale the piece icons
-                var iconMaterial = __instance.m_pieceIconPrefab.transform.Find("icon").GetComponent<Image>().material;
-                Auga.Assets.BuildHudElement.transform.Find("icon").GetComponent<Image>().material = iconMaterial;
-
-                __instance.m_buildHud = __instance.Replace("hudroot/BuildHud", Auga.Assets.Hud).gameObject;
-                var tabController = __instance.m_buildHud.GetComponent<BuildMenuPaginationController>();
-                tabController.hud = __instance;
-                tabController.buildMenu = __instance.m_buildHud.transform.Find("BuildHud").gameObject;
-                
-                var tabContainer = __instance.m_buildHud.transform.Find("BuildHud/DividerLarge/TabContainer/Tabs");
-                __instance.m_pieceCategoryTabs = new[] {
-                    tabContainer.Find("Misc").gameObject,
-                    tabContainer.Find("Crafting").gameObject,
-                    tabContainer.Find("Building").gameObject,
-                    tabContainer.Find("Furniture").gameObject,
-                };
-                Localization.instance.Localize(tabContainer);
+            //Let's play here to see about changing the default Build HUD in a different way.
+            var buildHud = __instance.m_buildHud;
+            var dummy = new GameObject("dummyBuildHud", new[] { typeof(RectTransform) });
+            dummy.transform.SetParent(buildHud.transform);
+            dummy.SetActive(false);
+            
+            var augaBuildHud = Object.Instantiate(Auga.Assets.BuildHud, dummy.transform);
+            var augaText = augaBuildHud.transform.Find("DividerLarge/TabContainer/Tabs/Misc").gameObject;
+            var augaSelectedText = augaText.transform.Find("Selected/Text").gameObject;
+            
+            var darken = new GameObject("Darken", new[] { typeof(RectTransform) });
+            darken.transform.SetParent(__instance.m_pieceSelectionWindow.transform);
+            darken.transform.SetAsFirstSibling();
 
             __instance.m_pieceSelectionWindow.transform.Replace("Darken", Auga.Assets.BuildHud);
             
@@ -204,8 +198,27 @@ namespace Auga
             pieceRoot.RectTransform().localPosition = new Vector3(pieceRoot.RectTransform().localPosition.x+3, pieceRoot.RectTransform().localPosition.y-3, pieceRoot.RectTransform().localPosition.z);
             __instance.m_pieceListRoot = pieceRoot.RectTransform();
             
-            var keyHints = __instance.transform.Replace("hudroot/KeyHints", Auga.Assets.Hud);
-            keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
+            // The Auga key-hint prefab predates the current bindings (its texts reference button definitions that no
+            // longer exist and it lacks the radial/bow/build hint groups), so the vanilla KeyHints object is kept
+            // and only made movable like the rest of the Auga HUD.
+            var keyHints = __instance.transform.Find("hudroot/KeyHints");
+            if (keyHints != null)
+            {
+                // Vanilla stretches the hint strip across the bottom of the screen (anchors 0..1 with a negative
+                // sizeDelta.x as margins) and right-aligns the hints inside it. MovableHudElement pins the anchors
+                // to one corner, which would turn those margins into a negative width and render nothing, so give
+                // the strip a fixed width first: the reference resolution minus the same margins.
+                var keyHintsRect = (RectTransform)keyHints;
+                if (keyHintsRect.anchorMin.x != keyHintsRect.anchorMax.x)
+                {
+                    // The HUD canvas is scaled by GuiScaler to roughly 1080p units; its rect may not be laid out yet
+                    // in Awake, so never go below the 1920 the strip was designed for.
+                    var hudWidth = Mathf.Max(1920f, ((RectTransform)__instance.transform).rect.width);
+                    keyHintsRect.sizeDelta = new Vector2(hudWidth + keyHintsRect.sizeDelta.x, keyHintsRect.sizeDelta.y);
+                }
+                keyHints.gameObject.AddComponent<MovableHudElement>().Init(TextAnchor.LowerRight, -34, 62);
+                AugaKeyHints.Convert(keyHints);
+            }
 
             var shipHud = __instance.transform.Replace("hudroot/ShipHud", Auga.Assets.Hud);
             __instance.m_shipHudRoot = shipHud.gameObject;
@@ -377,7 +390,7 @@ namespace Auga
                     if (snappingIconForPiece != null)
                     {
                         instance.m_snappingIcon.sprite = snappingIconForPiece;
-                        instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == Piece.PieceCategory.Building || piece.m_groundPiece || piece.m_waterPiece);
+                        instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == Piece.PieceCategory.BuildingWorkbench || piece.m_groundPiece || piece.m_waterPiece);
                     }
                     for (int index = 0; index < instance.m_requirementItems.Length; ++index)
                     {
@@ -637,143 +650,5 @@ namespace Auga
                 }
             }
         }
-    }
-
-    //UpdatePieceList
-    [HarmonyPatch(typeof(Hud), nameof(Hud.UpdatePieceList))]
-    public static class Hud_UpdatePieceList_Patch
-    {
-        public static bool Prefix(Hud __instance, Player player, Vector2Int selectedNr, Piece.PieceCategory category, bool updateAllBuildStatuses)
-        {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
-                return true;
-            
-            var buildPieces = player.GetBuildPieces();
-            var pieceIcons = __instance.m_pieceIcons;
-            var selectedIndex = selectedNr.x + selectedNr.y * 13;
-            selectedNr.x = selectedIndex % 10;
-            selectedNr.y = selectedIndex / 10;
-
-            var i = 0;
-            for (; i < buildPieces.Count; ++i)
-            {
-                if (i >= pieceIcons.Count)
-                {
-                    // Create icon
-                    var icon = Object.Instantiate(__instance.m_pieceIconPrefab, __instance.m_pieceListRoot);
-                    var pieceIconData = new Hud.PieceIconData();
-                    pieceIconData.m_go = icon;
-                    pieceIconData.m_tooltip = icon.GetComponent<UITooltip>();
-                    pieceIconData.m_icon = icon.transform.Find("icon").GetComponent<Image>();
-                    pieceIconData.m_marker = icon.transform.Find("selected").gameObject;
-                    pieceIconData.m_upgrade = icon.transform.Find("upgrade").gameObject;
-                    pieceIconData.m_icon.color = new Color(1f, 0.0f, 1f, 0.0f);
-                    var component = icon.GetComponent<UIInputHandler>();
-                    component.m_onLeftDown += __instance.OnLeftClickPiece;
-                    component.m_onRightDown += __instance.OnRightClickPiece;
-                    component.m_onPointerEnter += __instance.OnHoverPiece;
-                    component.m_onPointerExit += __instance.OnHoverPieceExit;
-                    pieceIcons.Add(pieceIconData);
-                }
-
-                // Update icon
-                var pieceIcon = pieceIcons[i];
-                pieceIcon.m_marker.SetActive(i == selectedIndex);
-
-                var piece = buildPieces[i];
-                pieceIcon.m_icon.sprite = piece.m_icon;
-                pieceIcon.m_icon.enabled = true;
-                pieceIcon.m_tooltip.m_text = piece.m_name;
-                pieceIcon.m_upgrade.SetActive(piece.m_isUpgrade);
-            }
-
-            for (; i < pieceIcons.Count; ++i)
-            {
-                Object.Destroy(pieceIcons[i].m_go);
-                pieceIcons[i] = null;
-            }
-
-            pieceIcons.RemoveAll(x => x == null);
-
-            __instance.UpdatePieceBuildStatus(buildPieces, player);
-            if (updateAllBuildStatuses)
-            {
-                __instance.UpdatePieceBuildStatusAll(buildPieces, player);
-            }
-
-            if (__instance.m_lastPieceCategory == category)
-            {
-                return false;
-            }
-
-            __instance.m_lastPieceCategory = category;
-            __instance.m_pieceBarPosX = __instance.m_pieceBarTargetPosX;
-            __instance.UpdatePieceBuildStatusAll(buildPieces, player);
-
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.PrevCategory))]
-    public static class PieceTable_PrevCategory_Patch
-    {
-        public static bool Prefix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
-                return true;
-
-            return Input.GetAxis("Mouse ScrollWheel") == 0;
-        }
-
-        /*public static void Postfix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value)
-                return;
-
-            var player = Player.m_localPlayer;
-            var selectedCategory = player.m_buildPieces.m_selectedCategory;
-            if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
-                selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
-                selectedCategory.Equals(Piece.PieceCategory.Building) ||
-                selectedCategory.Equals(Piece.PieceCategory.Furniture))
-            {
-                if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
-                    player.m_buildPieces.PrevCategory();
-            }
-        }*/
-    }
-
-    [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory))]
-    public static class PieceTable_NextCategory_Patch
-    {
-        public static bool Prefix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value || Auga.HasSearsCatalog)
-                return true;
-            
-            return Input.GetAxis("Mouse ScrollWheel") == 0;
-        }
-
-        /*
-        public static void Postfix(ref PieceTable __instance)
-        {
-            if (!Auga.BuildMenuShow.Value)
-                return;
-
-            var player = Player.m_localPlayer;
-            if (player != null)
-            {
-                var selectedCategory = player.m_buildPieces.m_selectedCategory;
-                if (selectedCategory.Equals(Piece.PieceCategory.Misc) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Crafting) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Building) ||
-                    selectedCategory.Equals(Piece.PieceCategory.Furniture))
-                {
-                    if (!(player.m_buildPieces.GetPiecesInSelectedCategory().Count > 0))
-                        player.m_buildPieces.NextCategory();
-                }
-            }
-        }
-    */
     }
 }

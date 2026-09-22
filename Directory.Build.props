@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    Shared build settings for every project in this repo.
+
+    Target framework
+      Valheim 1.x runs on Unity 6 (6000.0.x) with the Mono backend. The Unity engine modules reference
+      netstandard 2.1 and the runtime mscorlib is .NET Standard 2.1 compatible (Span<T> etc.), so per the
+      BepInEx plugin guide (netstandard.dll present + Unity 2021.2 or newer) plugins target netstandard2.1.
+      Targeting net472/net48 fails to compile against Unity 6 APIs that expose ReadOnlySpan<T> overloads.
+
+    Paths
+      ValheimDir        Valheim install. Override with -p:ValheimDir=... or the VALHEIM_DIR env var.
+                        Falls back to the Steam registry entry, then the default Steam library path.
+      ValheimManaged    <ValheimDir>\valheim_Data\Managed  (Unity + game assemblies, used as compile refs)
+      BepInExDir        Folder that contains BepInEx\ (a Gale/r2modman profile or the game folder).
+                        Override with -p:BepInExDir=... or the BEPINEX_DIR env var.
+      BepInExCore       <BepInExDir>\BepInEx\core          (BepInEx.dll, 0Harmony.dll)
+      BepInExPlugins    <BepInExDir>\BepInEx\plugins       (deploy target)
+      AugaRefs          <repo>\References                  (local, git-ignored; see References\README.md)
+      ValheimRefs       <repo>\References\Valheim          (publicized game assemblies, generated)
+      DeployToValheim   copy build output into <BepInExPlugins> after building (default: true when BepInEx was found).
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <!-- Required with publicized game assemblies: makes the compiler emit the SkipVerification security request
+         (see Build\IgnoresAccessChecksTo.cs and https://github.com/Valheim-Modding/Wiki/wiki/Best-Practices). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ValheimDir Condition="'$(ValheimDir)' == ''">$(VALHEIM_DIR)</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' Or !Exists('$(ValheimDir)')">$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 892970', 'InstallLocation', null, RegistryView.Registry64, RegistryView.Registry32))</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' Or !Exists('$(ValheimDir)')">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+
+    <ValheimManaged>$(ValheimDir)\valheim_Data\Managed</ValheimManaged>
+
+    <!-- BepInEx install: a mod manager profile (Gale/r2modman) or the game folder. Override with -p:BepInExDir=... or BEPINEX_DIR. -->
+    <BepInExDir Condition="'$(BepInExDir)' == ''">$(BEPINEX_DIR)</BepInExDir>
+    <BepInExDir Condition="'$(BepInExDir)' == '' Or !Exists('$(BepInExDir)\BepInEx\core\BepInEx.dll')">$(APPDATA)\com.kesomannen.gale\valheim\profiles\Auga</BepInExDir>
+    <BepInExDir Condition="!Exists('$(BepInExDir)\BepInEx\core\BepInEx.dll')">$(ValheimDir)</BepInExDir>
+    <BepInExCore>$(BepInExDir)\BepInEx\core</BepInExCore>
+    <BepInExPlugins>$(BepInExDir)\BepInEx\plugins</BepInExPlugins>
+
+    <AugaRefs>$(MSBuildThisFileDirectory)References</AugaRefs>
+    <ValheimRefs>$(AugaRefs)\Valheim</ValheimRefs>
+
+    <!-- Deploy the built plugin into $(BepInExPlugins) after each build (on by default when BepInEx was found). -->
+    <DeployToValheim Condition="'$(DeployToValheim)' == '' And Exists('$(BepInExCore)\BepInEx.dll')">true</DeployToValheim>
+    <DeployToValheim Condition="'$(DeployToValheim)' == ''">false</DeployToValheim>
+  </PropertyGroup>
+
+  <!--
+    Compile against the game's own class libraries (Unity Mono, .NET Standard 2.1 API surface) instead of the
+    NETStandard.Library reference pack. The game assemblies reference mscorlib 4.0 and the Unity engine modules
+    reference netstandard 2.1; the game's netstandard.dll is a facade over its mscorlib, so every type resolves
+    exactly as it does at runtime (Span<T>, System.Reflection.Emit.Label used by Harmony transpilers, ...).
+  -->
+  <PropertyGroup>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Lets Mono skip accessibility checks for the publicized game assemblies (see the file for details). -->
+    <Compile Include="$(MSBuildThisFileDirectory)Build\IgnoresAccessChecksTo.cs" Link="Properties\IgnoresAccessChecksTo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="netstandard">
+      <HintPath>$(ValheimManaged)\netstandard.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="mscorlib">
+      <HintPath>$(ValheimManaged)\mscorlib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>$(ValheimManaged)\System.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>$(ValheimManaged)\System.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>$(ValheimManaged)\System.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <HintPath>$(ValheimManaged)\System.Xml.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <HintPath>$(ValheimManaged)\System.Xml.Linq.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
