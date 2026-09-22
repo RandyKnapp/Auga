@@ -176,6 +176,7 @@ namespace Auga
             Guard("credits", () => SetupCredits(startup));
             Guard("character select", () => SetupCharacterSelect(startup));
             Guard("new character", () => SetupNewCharacter(startup));
+            Guard("loading screen", () => SetupLoading(startup));
             Guard("manage saves", () => SetupManageSaves(startup));
         }
 
@@ -633,6 +634,28 @@ namespace Auga
             startup.m_newCharacterPanel = panel;
             if (missing.Count > 0)
                 Debug.LogWarning("[Auga] New character: " + string.Join("; ", missing));
+        }
+
+        /// <summary>
+        /// The loading screen FejdStartup shows while the world scene loads. The menu Animator fades the vanilla
+        /// Loading object's CanvasGroup in and out, so that object stays; only its content is swapped for the
+        /// MainMenu prefab's Loading child (a black screen with a divider and Auga's own "Loading" token), and the
+        /// animator rebinds in case its clips also reach the children.
+        /// </summary>
+        private static void SetupLoading(FejdStartup startup)
+        {
+            var loading = startup.m_loading;
+            var template = Auga.Assets.MainMenuPrefab != null ? Auga.Assets.MainMenuPrefab.transform.Find("Loading") : null;
+            if (loading == null || template == null)
+                return;
+            foreach (var child in loading.transform.Cast<Transform>().ToList())
+                Object.DestroyImmediate(child.gameObject);   // gone before the rebind: bindings resolve by name
+            var content = Object.Instantiate(template.gameObject, loading.transform, false);
+            foreach (var child in content.transform.Cast<Transform>().ToList())
+                child.SetParent(loading.transform, false);
+            Object.DestroyImmediate(content);
+            if (startup.m_menuAnimator != null)
+                startup.m_menuAnimator.Rebind();
         }
 
         /// <summary>The credits: Auga fonts and colours, a medium Auga button for Back; layout and background stay vanilla.</summary>
