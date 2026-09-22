@@ -328,6 +328,59 @@ namespace Auga
             }
         }
 
+        /// <summary>
+        /// The Auga menu entries sit at fixed positions. The top slot (player list in multiplayer, skip intro during
+        /// the intro) only shows in some sessions and then touches the top divider while a large gap stays below the
+        /// last entry. After Show() has toggled the entries, slide the whole block so the room above the first
+        /// visible entry equals the room below the last one.
+        /// </summary>
+        [HarmonyPatch(typeof(Menu), nameof(Menu.Show))]
+        public static class Menu_Show_Patch
+        {
+            [UsedImplicitly]
+            public static void Postfix(Menu __instance)
+            {
+                if (!__instance.name.StartsWith("Auga"))
+                    return;
+
+                var entries = __instance.menuEntriesParent;
+                if (entries == null && __instance.m_menuDialog != null)
+                    entries = __instance.m_menuDialog.Find("MenuEntries") as RectTransform;
+                if (entries == null)
+                    return;
+                var topDivider = entries.Find("DividerSmall") as RectTransform;
+                var bottomDivider = entries.Find("DividerMedium") as RectTransform;
+                if (topDivider == null || bottomDivider == null)
+                    return;
+
+                var block = new List<RectTransform>();
+                float? first = null, last = null;
+                foreach (RectTransform child in entries)
+                {
+                    if (child == topDivider || child == bottomDivider)
+                        continue;
+                    block.Add(child);
+                    if (!child.gameObject.activeSelf || child.GetComponent<Button>() == null)
+                        continue;
+                    var y = child.localPosition.y;
+                    first = first.HasValue ? Mathf.Max(first.Value, y) : y;
+                    last = last.HasValue ? Mathf.Min(last.Value, y) : y;
+                }
+                if (!first.HasValue)
+                    return;
+
+                var roomAbove = topDivider.localPosition.y - first.Value;
+                var roomBelow = last.Value - bottomDivider.localPosition.y;
+                var shiftDown = (roomBelow - roomAbove) / 2f;
+                if (Mathf.Abs(shiftDown) < 0.5f)
+                    return;
+                foreach (var child in block)
+                {
+                    child.anchoredPosition -= new Vector2(0f, shiftDown);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Menu), nameof(Menu.OnClose))]
         public static class Menu_OnClose_Patch
         {

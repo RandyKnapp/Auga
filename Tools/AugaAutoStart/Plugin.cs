@@ -141,6 +141,14 @@ namespace AugaAutoStart
             Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
             yield return new WaitForSecondsRealtime(1f);
 
+            Debug.Log("[AugaAutoStart] open cinematics menu");
+            Try(() => fejd.OnCinematics());
+            yield return new WaitForSecondsRealtime(1f);
+            Shot("00c_cinematics");
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() => fejd.OnCinematicsBack());
+            yield return new WaitForSecondsRealtime(1f);
+
             Debug.Log("[AugaAutoStart] OnStartGame");
             Try(() => fejd.OnStartGame());
             yield return new WaitForSecondsRealtime(2f);

@@ -1,5 +1,6 @@
 ﻿using AugaUnity;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,12 +21,153 @@ namespace Auga
         }
     }
 
+    /// <summary>
+    /// Locked cinematics are non-interactable buttons. The Auga MenuButton animator shows the hover knots in its
+    /// disabled state, so freeze those entries as plain dimmed text.
+    /// </summary>
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnCinematics))]
+    public static class FejdStartup_OnCinematics_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+        {
+            if (__instance.m_cinematicsMenuList == null)
+                return;
+
+            foreach (var button in __instance.m_cinematicsMenuList.GetComponentsInChildren<Button>(true))
+            {
+                if (button.interactable)
+                    continue;
+                var animator = button.GetComponent<Animator>();
+                if (animator != null) animator.enabled = false;
+                var knots = button.transform.Find("Knots");
+                if (knots != null) knots.gameObject.SetActive(false);
+                var label = button.GetComponentInChildren<TMP_Text>(true);
+                if (label != null)
+                {
+                    var color = label.color;
+                    color.a = 0.5f;
+                    label.color = color;
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
     public static class FejdStartup_Awake_Patch
     {
+        /// <summary>
+        /// The vanilla main menu (Menu/MenuList) and its cinematics sub-menu are kept, but their entries are swapped
+        /// for Auga's MenuButton (the pause menu entry: 200x46, text with knots that animate on hover) and the orange
+        /// ornament above them for a 430 wide DividerSmall. Runs before FejdStartup.Awake, which collects the menu
+        /// buttons and localizes the screen afterwards, so the new buttons take part in both. Click handlers move
+        /// over, and the cinematics entry templates FejdStartup instantiates later are re-pointed at the new buttons.
+        /// </summary>
+        private static void ReplaceMainMenuButtons(FejdStartup startup)
+        {
+            if (Auga.Assets.MenuPrefab == null)
+                return;
+
+            var template = Auga.Assets.MenuPrefab.transform.Find("MenuRoot/Menu/MenuEntries/Settings");
+            if (template == null || template.GetComponent<Button>() == null)
+            {
+                Auga.LogWarning("Auga menu prefab has no MenuEntries/Settings button to use as the main menu button template.");
+                return;
+            }
+
+            ConvertMenuList(startup, startup.transform.Find("Menu/MenuList"), template);
+            ConvertMenuList(startup, startup.m_cinematicsMenuList != null ? startup.m_cinematicsMenuList.transform : startup.transform.Find("Menu/CinematicsMenuEntries"), template);
+        }
+
+        private static void ConvertMenuList(FejdStartup startup, Transform menuList, Transform template)
+        {
+            if (menuList == null)
+                return;
+
+            var entries = menuList.Find("MenuEntries") ?? menuList;
+            var hasLayoutGroup = entries.GetComponent<LayoutGroup>() != null;
+            var templateRect = (RectTransform)template;
+            var oldButtons = new System.Collections.Generic.List<Button>();
+            foreach (Transform child in entries)
+            {
+                var button = child.GetComponent<Button>();
+                if (button != null) oldButtons.Add(button);
+            }
+
+            foreach (var old in oldButtons)
+            {
+                var oldRect = (RectTransform)old.transform;
+                var replacement = Object.Instantiate(template.gameObject, entries, false);
+                replacement.name = old.name;
+                replacement.transform.SetSiblingIndex(oldRect.GetSiblingIndex());
+                var rect = (RectTransform)replacement.transform;
+                if (hasLayoutGroup)
+                {
+                    var element = replacement.GetComponent<LayoutElement>() ?? replacement.AddComponent<LayoutElement>();
+                    element.preferredWidth = templateRect.sizeDelta.x;
+                    element.preferredHeight = templateRect.sizeDelta.y;
+                }
+                else
+                {
+                    rect.anchorMin = oldRect.anchorMin;
+                    rect.anchorMax = oldRect.anchorMax;
+                    rect.pivot = oldRect.pivot;
+                    rect.anchoredPosition = oldRect.anchoredPosition;
+                }
+
+                var label = replacement.transform.Find("Text")?.GetComponent<TMP_Text>() ?? replacement.GetComponentInChildren<TMP_Text>(true);
+                var oldLabel = old.GetComponentInChildren<TMP_Text>(true);
+                if (label != null && oldLabel != null)
+                {
+                    label.text = Localization.instance.textMeshStrings.TryGetValue(oldLabel, out var raw) ? raw : oldLabel.text;
+                    // vanilla sizes its entries to the text; the Auga button is a fixed 200 wide, so let long
+                    // names (localized cinematic titles) run past it on one line instead of wrapping or clipping
+                    label.textWrappingMode = TextWrappingModes.NoWrap;
+                    label.overflowMode = TextOverflowModes.Overflow;
+                    // the cinematics templates get their (token) name after the screen was localized; vanilla
+                    // relies on a Localize component on the label for that
+                    if (oldLabel.GetComponent<Localize>() != null && label.GetComponent<Localize>() == null)
+                    {
+                        label.gameObject.AddComponent<Localize>();
+                    }
+                }
+
+                var newButton = replacement.GetComponent<Button>();
+                newButton.onClick = old.onClick;   // the serialized listeners (OnStartGame, OnCredits, ...) move over
+                newButton.interactable = old.interactable;
+                replacement.SetActive(old.gameObject.activeSelf);
+
+                // OnCinematics instantiates these templates per video and moves Back to the end of the list
+                if (startup.m_cinematicsEntry == old.gameObject) startup.m_cinematicsEntry = replacement;
+                if (startup.m_cinematicsEntryLocked == old.gameObject) startup.m_cinematicsEntryLocked = replacement;
+                if (startup.m_cinematicsBack == old.gameObject) startup.m_cinematicsBack = replacement;
+
+                // FejdStartup.Awake collects the active buttons under MenuList right after this
+                old.gameObject.SetActive(false);
+                Object.Destroy(old.gameObject);
+            }
+
+            var ornament = menuList.Find("ornament");
+            if (ornament != null && Auga.Assets.DividerSmall != null)
+            {
+                var ornamentRect = (RectTransform)ornament;
+                var divider = Object.Instantiate(Auga.Assets.DividerSmall, menuList, false);
+                divider.name = "Divider";
+                divider.transform.SetSiblingIndex(ornamentRect.GetSiblingIndex());
+                var rect = (RectTransform)divider.transform;
+                rect.anchorMin = ornamentRect.anchorMin;
+                rect.anchorMax = ornamentRect.anchorMax;
+                rect.pivot = ornamentRect.pivot;
+                rect.anchoredPosition = ornamentRect.anchoredPosition;
+                rect.sizeDelta = new Vector2(430f, rect.sizeDelta.y);
+                ornament.gameObject.SetActive(false);
+                Object.Destroy(ornament.gameObject);
+            }
+        }
+
         public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
+            ReplaceMainMenuButtons(__instance);
 
             //var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 
