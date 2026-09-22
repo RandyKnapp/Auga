@@ -46,7 +46,12 @@ namespace AugaUnity
                 control = path.Substring(slash + 1);
             }
 
-            var localizedKeyString = Localization.instance.GetBoundKeyString(keyName);
+            // an unbound action shows a dash instead of the game's "MISSING KEY BINDING" placeholder
+            var localizedKeyString = Localization.instance.GetBoundKeyString(keyName, true);
+            if (string.IsNullOrEmpty(localizedKeyString))
+            {
+                localizedKeyString = "-";
+            }
 
             var showMouse = -1;
             if (device == "<Mouse>")

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -29,7 +30,7 @@ namespace AugaUnity
 
     public class ColorButtonTextValues : MonoBehaviour
     {
-        public Text Text;
+        public TMP_Text Text;
         public ColorBlock TextColors = ColorBlock.defaultColorBlock;
     }
 }
