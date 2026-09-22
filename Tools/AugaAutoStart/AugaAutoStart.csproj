@@ -4,7 +4,8 @@
     Development-only BepInEx plugin that drives an automated in-game smoke test of Auga:
     main menu -> settings -> character select -> world -> HUD -> inventory -> map -> pause menu -> in-game settings
     -> chat -> damage text, taking a screenshot of every step, then quits. See BUILDING.md ("Testing in game").
-    Not part of Auga.sln and never shipped; it deploys next to Auga when DeployToValheim is on.
+    Not part of Auga.sln and never shipped; it deploys into the test profile (AugaTestProfile in
+    ..\..\Directory.Build.props, the Gale profile "AugaAuto") when DeployToValheim is on, never into the main profile.
     Paths (ValheimManaged, BepInExCore, ValheimRefs, BepInExPlugins) come from ..\..\Directory.Build.props.
   -->
   <PropertyGroup>
@@ -71,8 +72,9 @@
   </ItemGroup>
 
   <Target Name="DeployToValheim" AfterTargets="Build" Condition="'$(DeployToValheim)' == 'true'">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExPlugins)\AugaAutoStart\" />
-    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExPlugins)\AugaAutoStart\" />
+    <Error Condition="'$(BepInExExtraPlugins)' == ''" Text="No test profile with BepInEx found at $(AugaTestProfile); the helper only deploys there (pass -p:AugaTestProfile=...)." />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExExtraPlugins)\AugaAutoStart\" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExExtraPlugins)\AugaAutoStart\" />
   </Target>
 
 </Project>

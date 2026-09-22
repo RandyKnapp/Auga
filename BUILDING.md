@@ -33,21 +33,23 @@ prefabs keep their script references), then `Auga` embeds `Unity.Auga.dll`, `fas
 the `augaassets` bundle and ILRepack merges `APIManager` into `Auga.dll`.
 
 After a successful build the plugin (`Auga.dll` + `translations.json`) is copied to
-`<BepInExDir>\BepInEx\plugins\Auga\`. Pass `-p:DeployToValheim=false` to skip that, or `-p:BepInExDir=<path>` /
+`<BepInExDir>\BepInEx\plugins\Auga\` and, when it exists, to the test profile as well (`AugaTestProfile`, the Gale
+profile `AugaAuto` by default). Pass `-p:DeployToValheim=false` to skip that, or `-p:BepInExDir=<path>` /
 set `BEPINEX_DIR` to deploy somewhere else.
 
 ## Testing in game
 
 `Tools\AugaAutoStart` is a development-only BepInEx plugin that runs an automated smoke test: it loads a character
 and world, opens the HUD, inventory, map, pause menu, in-game settings and chat, deals damage, takes a screenshot of
-every step and quits. Build and deploy it next to Auga (it is not part of `Auga.sln`):
+every step and quits. It lives in the test profile only (`AugaAuto`), so the main profile is never hijacked. Build
+and deploy it (it is not part of `Auga.sln`):
 
 ```powershell
 msbuild Tools\AugaAutoStart\AugaAutoStart.csproj -restore -p:Configuration=Debug -p:DeployToValheim=true
 ```
 
-Then launch the game directly (Steam must be running; the same arguments Gale uses) with the test settings in the
-environment, and read `%APPDATA%\..\LocalLow\IronGate\Valheim\Player.log` afterwards:
+Then launch the game directly with the test profile (Steam must be running; the same arguments Gale uses) with the
+test settings in the environment, and read `%APPDATA%\..\LocalLow\IronGate\Valheim\Player.log` afterwards:
 
 ```powershell
 $env:AUGA_TEST_CHARACTER = "auga test"   # profile file name (default "auga test")
@@ -56,10 +58,8 @@ $env:AUGA_TEST_SHOTS     = "C:\temp\augashots"
 $env:AUGA_TEST_QUIT      = "12"          # seconds after the last step, 0 = keep running
 $env:AUGA_TEST_DUMP      = "1"           # also dump every vanilla UI hierarchy before Auga replaces it
 $env:AUGA_TEST_ROWS      = "6"           # also screenshot the inventory with this many player rows
-& "C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim.exe" --doorstop-enabled true --doorstop-target-assembly "$env:APPDATA\com.kesomannen.gale\valheim\profiles\Auga\BepInEx\core\BepInEx.Preloader.dll"
+& "C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim.exe" --doorstop-enabled true --doorstop-target-assembly "$env:APPDATA\com.kesomannen.gale\valheim\profiles\AugaAuto\BepInEx\core\BepInEx.Preloader.dll"
 ```
-
-Remove `BepInEx\plugins\AugaAutoStart` from the profile before playing normally or packaging a release.
 
 ## Target framework
 

@@ -58,6 +58,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.75f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.75f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.75f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
+    <Analyzer Include="C:\Auga\AugaUnity\Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Analyzers\IlInterpreterAnalyzer.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_TextEventHandler.cs" />
@@ -636,6 +637,10 @@
       <HintPath>Packages\valheim\SoftReferenceableAssets.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityPipeline.Microsoft.CodeAnalysis.CSharp">
+      <HintPath>Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="ui_lib">
       <HintPath>Packages\valheim\ui_lib.dll</HintPath>
       <Private>False</Private>
@@ -656,12 +661,20 @@
       <HintPath>Packages\valheim\MagicaClothV2.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityPipeline.System.Runtime.CompilerServices.Unsafe">
+      <HintPath>Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Packages\valheim\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Splatform.Steam">
       <HintPath>Packages\valheim\Splatform.Steam.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityPipeline.System.Collections.Immutable">
+      <HintPath>Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Collections.Immutable.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="com.rlabrecque.steamworks.net">
@@ -678,6 +691,14 @@
     </Reference>
     <Reference Include="PlayFab">
       <HintPath>Packages\valheim\PlayFab.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityPipeline.System.Reflection.Metadata">
+      <HintPath>Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.System.Reflection.Metadata.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityPipeline.Microsoft.CodeAnalysis">
+      <HintPath>Library\PackageCache\com.unity.pipeline@ab05e9cd7f74\Runtime\Plugins\CodeAnalysis\UnityPipeline.Microsoft.CodeAnalysis.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">
@@ -1196,6 +1217,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Updater.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Pipeline.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Pipeline.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
@@ -1236,6 +1261,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Editor.ConversionSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Pipeline">
+      <HintPath>Library\ScriptAssemblies\Unity.Pipeline.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
       <Private>False</Private>
@@ -1248,8 +1277,16 @@
       <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Pipeline.Attributes">
+      <HintPath>Library\ScriptAssemblies\Unity.Pipeline.Attributes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.Burst">
       <HintPath>Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Pipeline.IlInterpreter">
+      <HintPath>Library\ScriptAssemblies\Unity.Pipeline.IlInterpreter.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.VisualStudio.Editor">

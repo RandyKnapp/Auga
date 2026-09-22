@@ -179,6 +179,8 @@
   <Target Name="DeployToValheim" AfterTargets="ILRepacker" Condition="'$(DeployToValheim)' == 'true' And '$(IsApiBuild)' != 'true'">
     <Copy SourceFiles="$(TargetPath);$(ProjectDir)translations.json" DestinationFolder="$(BepInExPlugins)\$(ProjectName)\" />
     <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExPlugins)\$(ProjectName)\" />
+    <Copy Condition="'$(BepInExExtraPlugins)' != ''" SourceFiles="$(TargetPath);$(ProjectDir)translations.json" DestinationFolder="$(BepInExExtraPlugins)\$(ProjectName)\" />
+    <Message Condition="'$(BepInExExtraPlugins)' != ''" Importance="high" Text="Deployed $(TargetFileName) to $(BepInExExtraPlugins)\$(ProjectName)\" />
   </Target>
   <!-- API builds are always published to References\AugaAPI for AugaApiExample. -->
   <Target Name="PublishApiReference" AfterTargets="ILRepacker" Condition="'$(IsApiBuild)' == 'true'">

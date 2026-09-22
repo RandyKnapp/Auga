@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!--
     Shared build settings for every project in this repo.
@@ -20,6 +20,9 @@
       AugaRefs          <repo>\References                  (local, git-ignored; see References\README.md)
       ValheimRefs       <repo>\References\Valheim          (publicized game assemblies, generated)
       DeployToValheim   copy build output into <BepInExPlugins> after building (default: true when BepInEx was found).
+      AugaTestProfile   a second BepInEx install (the Gale profile "AugaAuto" by default) that also receives the plugin
+                        and keeps the Tools\AugaAutoStart test helper installed. Override with -p:AugaTestProfile=...
+      BepInExExtraPlugins  <AugaTestProfile>\BepInEx\plugins when that profile has BepInEx, otherwise empty.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -48,6 +51,9 @@
     <BepInExDir Condition="!Exists('$(BepInExDir)\BepInEx\core\BepInEx.dll')">$(ValheimDir)</BepInExDir>
     <BepInExCore>$(BepInExDir)\BepInEx\core</BepInExCore>
     <BepInExPlugins>$(BepInExDir)\BepInEx\plugins</BepInExPlugins>
+    <!-- Test profile: gets the plugin as well and is where the AugaAutoStart helper lives, so the main profile stays clean. -->
+    <AugaTestProfile Condition="'$(AugaTestProfile)' == ''">$(APPDATA)\com.kesomannen.gale\valheim\profiles\AugaAuto</AugaTestProfile>
+    <BepInExExtraPlugins Condition="'$(AugaTestProfile)' != '$(BepInExDir)' And Exists('$(AugaTestProfile)\BepInEx\core\BepInEx.dll')">$(AugaTestProfile)\BepInEx\plugins</BepInExExtraPlugins>
 
     <AugaRefs>$(MSBuildThisFileDirectory)References</AugaRefs>
     <ValheimRefs>$(AugaRefs)\Valheim</ValheimRefs>
