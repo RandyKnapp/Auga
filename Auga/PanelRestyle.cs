@@ -374,7 +374,14 @@ namespace Auga
             var rect = (RectTransform)go.transform;
             CopyPlacement(oldRect, rect);
             rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, oldRect.sizeDelta.y) : new Vector2(oldRect.sizeDelta.x, ScrollbarWidth);
-            if (vertical) StretchVertically(rect);
+            if (vertical)
+            {
+                // a scrollbar inside its scroll view fills it; one placed beside the scroll view (a sibling)
+                // follows the view's vertical extent instead of its parent's
+                var owner = ScrollRectOf(old);
+                if (owner != null && !oldRect.IsChildOf(owner.transform)) AlignVertically(rect, (RectTransform)owner.transform);
+                else StretchVertically(rect);
+            }
             var scrollbar = go.GetComponent<Scrollbar>();
             scrollbar.direction = old.direction;
             NormalizeHandle(scrollbar);
@@ -440,6 +447,32 @@ namespace Auga
         }
 
         /// <summary>Runs a vertical scrollbar over the full height of its parent, keeping its horizontal placement.</summary>
+        /// <summary>The ScrollRect driving <paramref name="scrollbar"/>: an ancestor, or a scroll view next to it that references it.</summary>
+        private static ScrollRect ScrollRectOf(Scrollbar scrollbar)
+        {
+            var ancestor = scrollbar.GetComponentInParent<ScrollRect>();
+            if (ancestor != null) return ancestor;
+            var scope = scrollbar.transform.parent != null ? scrollbar.transform.parent : scrollbar.transform;
+            return scope.GetComponentsInChildren<ScrollRect>(true).FirstOrDefault(s => s.verticalScrollbar == scrollbar || s.horizontalScrollbar == scrollbar);
+        }
+
+        /// <summary><paramref name="rect"/> spans the vertical extent of <paramref name="target"/> (its horizontal placement stays).</summary>
+        public static void AlignVertically(RectTransform rect, RectTransform target)
+        {
+            var parent = rect.parent as RectTransform;
+            if (parent == null) return;
+            var corners = new Vector3[4];
+            target.GetWorldCorners(corners);
+            var bottom = parent.InverseTransformPoint(corners[0]).y - parent.rect.yMin;
+            var top = parent.InverseTransformPoint(corners[1]).y - parent.rect.yMin;
+            var left = rect.offsetMin.x;
+            var right = rect.offsetMax.x;
+            rect.anchorMin = new Vector2(rect.anchorMin.x, 0f);
+            rect.anchorMax = new Vector2(rect.anchorMax.x, 0f);
+            rect.offsetMin = new Vector2(left, bottom);
+            rect.offsetMax = new Vector2(right, top);
+        }
+
         public static void StretchVertically(RectTransform rect)
         {
             var left = rect.offsetMin.x;
@@ -519,6 +552,12 @@ namespace Auga
                 label.text = RawText(oldLabel);
                 if (oldLabel.GetComponent<Localize>() != null && label.GetComponent<Localize>() == null)
                     label.gameObject.AddComponent<Localize>();
+                // the Auga button is often narrower than the vanilla one: a long label shrinks instead of wrapping
+                var size = label.fontSize;
+                label.textWrappingMode = TextWrappingModes.NoWrap;
+                label.enableAutoSizing = true;
+                label.fontSizeMax = size;
+                label.fontSizeMin = Mathf.Max(8f, size * 0.7f);
             }
 
             var button = go.GetComponent<Button>();

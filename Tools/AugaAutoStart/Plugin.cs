@@ -20,6 +20,7 @@ namespace AugaAutoStart
     //   AUGA_TEST_DUMP       "1" to dump the vanilla UI hierarchies (before any Awake patch runs)
     //   AUGA_TEST_ROWS       also screenshot the inventory with this many player rows and the container panel shown
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
+    //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the manage saves dialog and the remove dialog, then quit
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
     {
@@ -120,6 +121,25 @@ namespace AugaAutoStart
             }
         }
 
+        /// <summary>
+        /// The manage saves list loads in several asynchronous steps (cloud usage, save cache, list rows, tab switch),
+        /// each behind the "please wait" sign with gaps in between: done once the sign has stayed hidden for 1.5 s.
+        /// </summary>
+        private static IEnumerator WaitForSaveList(FejdStartup fejd)
+        {
+            var menu = fejd.m_manageSavesMenu;
+            var pleaseWait = menu != null && menu.pleaseWait != null ? menu.pleaseWait : null;
+            var quiet = 0;
+            for (var i = 0; i < 60 && quiet < 3; i++)
+            {
+                yield return new WaitForSecondsRealtime(0.5f);
+                var waiting = menu != null && (menu.pleaseWaitCount > 0 || (pleaseWait != null && pleaseWait.activeInHierarchy));
+                quiet = waiting ? 0 : quiet + 1;
+                var tabs = menu != null ? menu.GetComponentInChildren<TabHandler>(true) : null;
+                Debug.Log($"[AugaAutoStart] manage saves at {(i + 1) * 0.5f:F1}s: sign={(pleaseWait != null ? pleaseWait.name + " self=" + pleaseWait.activeSelf + " hier=" + pleaseWait.activeInHierarchy : "missing")} count={(menu != null ? menu.pleaseWaitCount : -1)} tab={(tabs != null ? tabs.GetActiveTab() : -1)} rows={(menu != null && menu.listRoot != null ? menu.listRoot.childCount : -1)}");
+            }
+        }
+
         public static void Shot(string name)
         {
             var path = Path.Combine(ShotDir, name + ".png");
@@ -135,6 +155,41 @@ namespace AugaAutoStart
             if (string.IsNullOrEmpty(character)) character = "auga test";
             var worldName = Environment.GetEnvironmentVariable("AUGA_TEST_WORLD");
             if (string.IsNullOrEmpty(worldName)) worldName = "AugaTest";
+
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_CHARSELECT") == "1")
+            {
+                // AUGA_TEST_CHARSELECT=1: only the character selection (list, portraits, remove dialog), then quit
+                Debug.Log("[AugaAutoStart] OnStartGame (character select only)");
+                Try(() => fejd.OnStartGame());
+                yield return new WaitForSecondsRealtime(5f); // the portrait booth photographs every profile first
+                Shot("01_characterselect");
+                Try(() => LogRects(fejd.m_selectCharacterPanel.transform, "Panel"));
+                yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] OnManageSaves (characters)");
+                Try(() => fejd.OnManageSaves(1));
+                yield return WaitForSaveList(fejd);
+                Shot("01c_managesaves_characters");
+                Try(() => LogRects(fejd.m_manageSavesMenu.transform, "Panel"));
+                Try(() => LogRects(fejd.m_manageSavesMenu.transform, "SaveList"));
+                // the worlds tab, through its button so the TabHandler switches too
+                Try(() => fejd.m_manageSavesMenu.GetComponentInChildren<TabHandler>(true).m_tabs[0].m_button.onClick.Invoke());
+                yield return WaitForSaveList(fejd);
+                Shot("01d_managesaves_worlds");
+                yield return new WaitForSecondsRealtime(1f); // the capture happens at the end of the frame
+                Try(() => fejd.m_manageSavesMenu.Close());
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnCharacterRemove());
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("01b_removecharacter");
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnButtonRemoveCharacterNo());
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnSelelectCharacterBack());
+                yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] quitting (character select only)");
+                Application.Quit();
+                yield break;
+            }
 
             Debug.Log("[AugaAutoStart] open changelog");
             Try(() => fejd.OnButtonShowChangelog());
