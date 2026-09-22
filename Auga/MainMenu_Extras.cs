@@ -183,13 +183,13 @@ namespace Auga
             var vanillaLog = vanilla.GetComponent<ChangeLog>();
             var canvas = vanilla.transform.parent;
 
-            // the right-hand strip between the top of the screen and the logo/version corner
+            // the left-hand strip between the top of the screen and the bottom-left menu entries
             var container = (RectTransform)new GameObject("AugaChangeLog", typeof(RectTransform)).transform;
             container.SetParent(canvas, false);
-            container.anchorMin = new Vector2(1f, 0f);
-            container.anchorMax = new Vector2(1f, 1f);
-            container.pivot = new Vector2(1f, 1f);
-            container.anchoredPosition = new Vector2(-Margin, -170f);
+            container.anchorMin = new Vector2(0f, 0f);
+            container.anchorMax = new Vector2(0f, 1f);
+            container.pivot = new Vector2(0f, 1f);
+            container.anchoredPosition = new Vector2(Margin, -170f);
             container.sizeDelta = new Vector2(400f, -(170f + 190f));
 
             var log = Object.Instantiate(Auga.Assets.ChangeLogPrefab, container, false);
@@ -203,109 +203,19 @@ namespace Auga
                 changeLog.m_switchChangeLog = vanillaLog.m_switchChangeLog;
             }
             changeLog.m_showPlayerLog = null;
-            // the body text (not the divider title); a classic Text (older prefab) becomes a TextMeshPro text, which
-            // is what the vanilla component writes to and which can hold the whole changelog
-            var text = log.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.GetComponentInParent<HorizontalDividerFitter>() == null);
-            if (text == null)
+            // the prefab wires its own scroll view and scrollbar; only the vanilla component's references are filled in
+            if (changeLog.m_textField == null)
+                changeLog.m_textField = log.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.GetComponentInParent<HorizontalDividerFitter>() == null);
+            if (changeLog.m_scrollbar == null)
             {
-                var legacy = log.GetComponentsInChildren<Text>(true).FirstOrDefault(t => t.GetComponentInParent<HorizontalDividerFitter>() == null);
-                if (legacy != null)
-                    text = ConvertToTextMeshPro(legacy);
-            }
-            if (text != null)
-            {
-                changeLog.m_textField = text;
-                changeLog.m_scrollbar = WrapInScrollView(text.rectTransform);
+                var scrollRect = log.GetComponentInChildren<ScrollRect>(true);
+                changeLog.m_scrollbar = scrollRect != null ? scrollRect.verticalScrollbar : null;
             }
 
             log.SetActive(false);
             startup.m_changeLog = log;
             vanilla.SetActive(false);
             Object.Destroy(vanilla);
-        }
-
-        /// <summary>Replaces a classic Text with a TextMeshPro text of the same look on the same object.</summary>
-        private static TextMeshProUGUI ConvertToTextMeshPro(Text legacy)
-        {
-            var go = legacy.gameObject;
-            var size = legacy.fontSize;
-            var color = legacy.color;
-            var bold = legacy.fontStyle == FontStyle.Bold || legacy.fontStyle == FontStyle.BoldAndItalic;
-            foreach (var effect in go.GetComponents<BaseMeshEffect>()) Object.DestroyImmediate(effect);
-            Object.DestroyImmediate(legacy);
-            var text = go.AddComponent<TextMeshProUGUI>();
-            text.font = (bold ? AugaPanelRestyler.BoldFont : AugaPanelRestyler.RegularFont) ?? AugaPanelRestyler.BoldFont;
-            text.fontSize = size;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.TopLeft;
-            text.textWrappingMode = TextWrappingModes.Normal;
-            text.overflowMode = TextOverflowModes.Overflow;
-            text.richText = true;
-            return text;
-        }
-
-        /// <summary>
-        /// Makes a text scroll vertically with an Auga scrollbar on the right: inside the prefab's own scroll view when
-        /// the text already sits in one, otherwise in a new one that takes the text's place.
-        /// </summary>
-        private static Scrollbar WrapInScrollView(RectTransform bodyRect)
-        {
-            var scrollRect = bodyRect.GetComponentInParent<ScrollRect>();
-            RectTransform scroll;
-            if (scrollRect != null)
-            {
-                scroll = (RectTransform)scrollRect.transform;
-                var viewport = scrollRect.viewport != null ? scrollRect.viewport : scroll;
-                if (viewport.GetComponent<RectMask2D>() == null && viewport.GetComponent<Mask>() == null)
-                    viewport.gameObject.AddComponent<RectMask2D>();
-                if (scrollRect.viewport == null)
-                    scrollRect.viewport = viewport;
-                bodyRect.SetParent(viewport, false);
-            }
-            else
-            {
-                var parent = bodyRect.parent;
-                var index = bodyRect.GetSiblingIndex();
-                scroll = (RectTransform)new GameObject("Scroll", typeof(RectTransform)).transform;
-                scroll.SetParent(parent, false);
-                scroll.SetSiblingIndex(index);
-                AugaPanelRestyler.CopyPlacement(bodyRect, scroll);
-                scroll.offsetMax = new Vector2(scroll.offsetMax.x - (AugaPanelRestyler.ScrollbarWidth + 6f), scroll.offsetMax.y);
-                scroll.gameObject.AddComponent<RectMask2D>();
-                scrollRect = scroll.gameObject.AddComponent<ScrollRect>();
-                scrollRect.viewport = scroll;
-                bodyRect.SetParent(scroll, false);
-            }
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.scrollSensitivity = 30f;
-
-            // keep the text's horizontal margins, hang it from the top and let it grow with its content
-            var sideMargin = Mathf.Max(0f, -bodyRect.sizeDelta.x / 2f);
-            bodyRect.anchorMin = new Vector2(0f, 1f);
-            bodyRect.anchorMax = new Vector2(1f, 1f);
-            bodyRect.pivot = new Vector2(0.5f, 1f);
-            bodyRect.anchoredPosition = Vector2.zero;
-            bodyRect.sizeDelta = new Vector2(-sideMargin * 2f, 0f);
-            var fitter = bodyRect.GetComponent<ContentSizeFitter>() ?? bodyRect.gameObject.AddComponent<ContentSizeFitter>();
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scrollRect.content = bodyRect;
-
-            var scrollbar = AugaPanelRestyler.CreateScrollbar(scroll.parent, "Scrollbar");
-            var scrollbarRect = (RectTransform)scrollbar.transform;
-            scrollbarRect.anchorMin = new Vector2(1f, scroll.anchorMin.y);
-            scrollbarRect.anchorMax = new Vector2(1f, scroll.anchorMax.y);
-            scrollbarRect.pivot = new Vector2(1f, 0.5f);
-            scrollbarRect.anchoredPosition = new Vector2(0f, 0f);
-            scrollbarRect.sizeDelta = new Vector2(AugaPanelRestyler.ScrollbarWidth, scroll.sizeDelta.y);
-            scrollbarRect.offsetMin = new Vector2(scrollbarRect.offsetMin.x, scroll.offsetMin.y);
-            scrollbarRect.offsetMax = new Vector2(scrollbarRect.offsetMax.x, scroll.offsetMax.y);
-            scrollbarRect.sizeDelta = new Vector2(AugaPanelRestyler.ScrollbarWidth, scrollbarRect.sizeDelta.y);
-            scrollbar.direction = Scrollbar.Direction.BottomToTop;
-            scrollRect.verticalScrollbar = scrollbar;
-            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
-            return scrollbar;
         }
 
         /// <summary>The user agreement window, restyled with the generic panel restyler.</summary>
