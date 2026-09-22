@@ -320,6 +320,7 @@ namespace Auga
             rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, oldRect.sizeDelta.y) : new Vector2(oldRect.sizeDelta.x, ScrollbarWidth);
             var scrollbar = go.GetComponent<Scrollbar>();
             scrollbar.direction = old.direction;
+            NormalizeHandle(scrollbar);
             scrollbar.numberOfSteps = old.numberOfSteps;
             scrollbar.size = old.size;
             scrollbar.SetValueWithoutNotify(old.value);
@@ -331,6 +332,31 @@ namespace Auga
             map[old.gameObject] = go;
             map[oldRect] = rect;
             doomed.Add(old.gameObject);
+        }
+
+        /// <summary>
+        /// The ScrollBar prefab's handle is saved with zero-size anchors across the bar, which leaves it invisible;
+        /// the Scrollbar component only drives the anchors along its axis, so the handle must fill the other one.
+        /// </summary>
+        public static void NormalizeHandle(Scrollbar scrollbar)
+        {
+            var handle = scrollbar != null ? scrollbar.handleRect : null;
+            if (handle == null) return;
+            var vertical = scrollbar.direction == Scrollbar.Direction.BottomToTop || scrollbar.direction == Scrollbar.Direction.TopToBottom;
+            if (vertical)
+            {
+                handle.anchorMin = new Vector2(0f, handle.anchorMin.y);
+                handle.anchorMax = new Vector2(1f, handle.anchorMax.y);
+                handle.sizeDelta = new Vector2(0f, handle.sizeDelta.y);
+                handle.anchoredPosition = new Vector2(0f, handle.anchoredPosition.y);
+            }
+            else
+            {
+                handle.anchorMin = new Vector2(handle.anchorMin.x, 0f);
+                handle.anchorMax = new Vector2(handle.anchorMax.x, 1f);
+                handle.sizeDelta = new Vector2(handle.sizeDelta.x, 0f);
+                handle.anchoredPosition = new Vector2(handle.anchoredPosition.x, 0f);
+            }
         }
 
         /// <summary>Auga's scrollbar look on a vanilla scrollbar (used when the bundle has no ScrollBar prefab).</summary>
@@ -363,7 +389,9 @@ namespace Auga
             {
                 go = Object.Instantiate(Auga.Assets.ScrollBar, parent, false);
                 go.name = name;
-                return go.GetComponent<Scrollbar>();
+                var prefabScrollbar = go.GetComponent<Scrollbar>();
+                NormalizeHandle(prefabScrollbar);
+                return prefabScrollbar;
             }
             go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Scrollbar));
             go.transform.SetParent(parent, false);
