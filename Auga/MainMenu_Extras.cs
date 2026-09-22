@@ -1,5 +1,7 @@
 ﻿using AugaUnity;
+using System.Collections.Generic;
 using System.Linq;
+using Auga.Utilities;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
@@ -57,6 +59,78 @@ namespace Auga
         }
     }
 
+    /// <summary>
+    /// Vanilla activates the select panel before it loads the profiles; Auga's list reads them in OnEnable, so they
+    /// are loaded first. The portrait photo booth is created on the first show (it needs the profiles too).
+    /// </summary>
+    [HarmonyPatch(typeof(FejdStartup), "ShowCharacterSelection")]
+    public static class FejdStartup_ShowCharacterSelection_Patch
+    {
+        public static void Prefix(FejdStartup __instance)
+        {
+            if (__instance.m_profiles == null)
+                __instance.m_profiles = SaveSystem.GetAllPlayerProfiles();
+            if (Auga.Assets.MainMenuPrefab == null || __instance.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true) != null)
+                return;
+            if (__instance.m_selectCharacterPanel == null || __instance.m_selectCharacterPanel.GetComponentInChildren<AugaCharacterSelect>(true) == null)
+                return;
+            var template = Auga.Assets.MainMenuPrefab.transform.Find("CharacterSelectPhotoBooth");
+            if (template == null)
+                return;
+            var booth = Object.Instantiate(template.gameObject, __instance.transform, false);
+            booth.name = "CharacterSelectPhotoBooth";
+        }
+    }
+
+    /// <summary>The Auga portrait list follows every vanilla refresh of the character list.</summary>
+    [HarmonyPatch(typeof(FejdStartup), "UpdateCharacterList")]
+    public static class FejdStartup_UpdateCharacterList_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+        {
+            var select = __instance.m_selectCharacterPanel != null ? __instance.m_selectCharacterPanel.GetComponentInChildren<AugaCharacterSelect>(true) : null;
+            if (select != null && select.gameObject.activeInHierarchy)
+                select.UpdateCharacterList();
+        }
+    }
+
+    /// <summary>A new character gets its portrait taken right away.</summary>
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnNewCharacterDone))]
+    public static class FejdStartup_OnNewCharacterDone_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+        {
+            var booth = __instance.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true);
+            if (booth != null)
+                booth.StartCoroutine(TakePhoto(__instance, booth));
+        }
+
+        private static System.Collections.IEnumerator TakePhoto(FejdStartup startup, AugaCharacterSelectPhotoBooth booth)
+        {
+            if (startup.m_profileIndex < 0 || startup.m_profiles == null || startup.m_profileIndex >= startup.m_profiles.Count)
+                yield break;
+            yield return booth.TakePhoto(startup.m_profileIndex);
+            startup.UpdateCharacterList();
+        }
+    }
+
+    /// <summary>While the booth photographs the profiles the preview swap must not play the change effect.</summary>
+    [HarmonyPatch(typeof(FejdStartup), "ClearCharacterPreview")]
+    public static class FejdStartup_ClearCharacterPreview_Patch
+    {
+        public static bool Prefix(FejdStartup __instance)
+        {
+            if (!AugaCharacterSelectPhotoBooth.TakingPhotos)
+                return true;
+            if (__instance.m_playerInstance != null)
+            {
+                Object.Destroy(__instance.m_playerInstance);
+                __instance.m_playerInstance = null;
+            }
+            return false;
+        }
+    }
+
     /// <summary>The merch store button and the "modded" notice are not part of the Auga main menu.</summary>
     [HarmonyPatch(typeof(FejdStartup), "SetupGui")]
     public static class FejdStartup_SetupGui_Patch
@@ -99,6 +173,8 @@ namespace Auga
             Guard("changelog", () => SetupChangeLog(startup));
             Guard("user agreement", () => SetupEula(startup));
             Guard("credits", () => SetupCredits(startup));
+            Guard("character select", () => SetupCharacterSelect(startup));
+            Guard("manage saves", () => SetupManageSaves(startup));
         }
 
         private static void Guard(string what, System.Action step)
@@ -217,6 +293,230 @@ namespace Auga
             startup.m_changeLog = log;
             vanilla.SetActive(false);
             Object.Destroy(vanilla);
+        }
+
+        /// <summary>
+        /// Auga's character selection (a portrait list instead of the vanilla left/right browser) replaces the vanilla
+        /// SelectCharacter panel. FejdStartup keeps driving it: its button fields are re-pointed at the Auga buttons
+        /// (which receive the vanilla click handlers), the single-character labels it writes go to an inactive dummy
+        /// and the list itself is refreshed after every vanilla UpdateCharacterList.
+        /// </summary>
+        private static void SetupCharacterSelect(FejdStartup startup)
+        {
+            var vanilla = startup.m_selectCharacterPanel;
+            if (vanilla == null)
+                return;
+            var template = Auga.Assets.MainMenuPrefab != null ? Auga.Assets.MainMenuPrefab.transform.Find("CharacterSelection/SelectCharacter") : null;
+            if (template == null)
+            {
+                Auga.LogWarning("MainMenu prefab has no CharacterSelection/SelectCharacter; the character selection stays vanilla.");
+                return;
+            }
+
+            var panel = Object.Instantiate(template.gameObject, vanilla.transform.parent, false);
+            panel.name = vanilla.name;
+            panel.transform.SetSiblingIndex(vanilla.transform.GetSiblingIndex());
+            panel.SetActive(vanilla.activeSelf);
+            var v = vanilla.transform;
+            var a = panel.transform;
+            var missing = new List<string>();
+
+            Button VanillaButton(string path) => v.Find(path)?.GetComponent<Button>();
+            Button Wire(string augaPath, Button source, string what)
+            {
+                var button = a.Find(augaPath)?.GetComponent<Button>();
+                if (button == null) { missing.Add(what + ": the Auga prefab has no " + augaPath); return null; }
+                if (source == null) { missing.Add(what + ": no vanilla button to take the click handler from"); return button; }
+                button.onClick = source.onClick;
+                button.interactable = source.interactable;
+                CopyLabel(source.transform.Find("Text")?.GetComponent<TMP_Text>(), button.transform.Find("Label")?.GetComponent<TMP_Text>());
+                return button;
+            }
+            void CopyLabel(TMP_Text source, TMP_Text target)
+            {
+                if (source == null || target == null) return;
+                target.text = AugaPanelRestyler.RawText(source);   // the token; FejdStartup localizes the screen after Awake
+            }
+
+            var start = Wire("Panel/Start", startup.m_csStartButton, "Start");
+            var newButton = Wire("Panel/Inset/NewButton", startup.m_csNewButton, "New");
+            var newBig = Wire("Panel/Inset/NewButtonBig", startup.m_csNewBigButton, "New (empty list)");
+            var remove = Wire("Panel/Inset/RemoveButton", startup.m_csRemoveButton, "Remove");
+            Wire("Panel/Back", VanillaButton("BottomWindow/Back"), "Back");
+            Wire("Panel/ManageSaves", VanillaButton("BottomWindow/ManageSaves"), "Manage saves");
+            Wire("RemoveCharacterDialog/ButtonYes", VanillaButton("RemoveCharacterDialog/Dialog/ButtonYes"), "Remove dialog: yes");
+            Wire("RemoveCharacterDialog/ButtonNo", VanillaButton("RemoveCharacterDialog/Dialog/ButtonNo"), "Remove dialog: no");
+            if (start != null) startup.m_csStartButton = start;
+            if (newButton != null) startup.m_csNewButton = newButton;
+            if (newBig != null) startup.m_csNewBigButton = newBig;
+            if (remove != null) startup.m_csRemoveButton = remove;
+
+            // vanilla browses one character at a time with arrows and a name / save-source label; the Auga list
+            // shows all of them, so those fields point at an inactive dummy that absorbs the writes
+            var dummy = a.Find("Panel/DummyObjects/Dummy");
+            var dummyButton = dummy != null ? dummy.GetComponent<Button>() : null;
+            var dummyText = dummy != null ? dummy.GetComponent<TMP_Text>() : null;
+            if (dummyButton != null) { startup.m_csLeftButton = dummyButton; startup.m_csRightButton = dummyButton; }
+            else missing.Add("dummy button for the left/right arrows");
+            if (dummyText != null) { startup.m_csName = dummyText; startup.m_csFileSource = dummyText; }
+            else missing.Add("dummy text for the character name / save source");
+            var sourceInfo = a.Find("Panel/SourceInfo/Text")?.GetComponent<TMP_Text>();
+            if (sourceInfo != null) startup.m_csSourceInfo = sourceInfo;
+            else missing.Add("SourceInfo/Text");
+
+            var dialog = a.Find("RemoveCharacterDialog");
+            if (dialog != null)
+            {
+                startup.m_removeCharacterDialog = dialog.gameObject;
+                CopyLabel(v.Find("RemoveCharacterDialog/Dialog/topic")?.GetComponent<TMP_Text>(), dialog.Find("Topic")?.GetComponent<TMP_Text>());
+                var name = dialog.Find("Text")?.GetComponent<TMP_Text>();
+                if (name != null) startup.m_removeCharacterName = name;
+                else missing.Add("RemoveCharacterDialog/Text");
+            }
+            else missing.Add("RemoveCharacterDialog");
+
+            var select = panel.GetComponentInChildren<AugaCharacterSelect>(true);
+            if (select != null)
+            {
+                if (select.SourceInfoContent == null) select.SourceInfoContent = sourceInfo;   // not set in the prefab
+                if (select.SourceInfoPanel == null) select.SourceInfoPanel = a.Find("Panel/SourceInfo")?.gameObject;
+                if (select.CharacterPortraitPrefab == null) missing.Add("AugaCharacterSelect.CharacterPortraitPrefab");
+                if (select.RenderTexture == null) missing.Add("AugaCharacterSelect.RenderTexture");
+                if (select.ScrollBar == null) missing.Add("AugaCharacterSelect.ScrollBar");
+            }
+            else missing.Add("AugaCharacterSelect component");
+
+            vanilla.SetActive(false);
+            Object.Destroy(vanilla);
+            startup.m_selectCharacterPanel = panel;
+            if (missing.Count > 0)
+                Debug.LogWarning("[Auga] Character select: " + string.Join("; ", missing));
+        }
+
+        /// <summary>
+        /// The manage saves dialog: the generic restyle for its window, the vanilla World / Character tab buttons
+        /// replaced by a clone of the settings screen's tab bar (the vanilla TabHandler keeps driving them), and
+        /// Auga fonts and colours for the save rows, which vanilla instantiates from two inactive templates in the list.
+        /// </summary>
+        private static void SetupManageSaves(FejdStartup startup)
+        {
+            var panel = startup.m_manageSavesMenu != null ? startup.m_manageSavesMenu.transform.Find("Panel") : null;
+            if (panel == null)
+                return;
+            ReplaceManageSavesTabs(panel);
+            AugaPanelRestyler.Restyle(panel, new RestyleOptions
+            {
+                Titles = { "topic" },
+                DetectHeaders = false,
+                Skip = { "AugaTabButtons", "SaveElement", "BackupSaveElement", "ListRoot" },
+            });
+            var rowOptions = new RestyleOptions { ReplaceBackground = false, ReplaceButtons = false, ReplaceScrollbars = false, DetectHeaders = false };
+            foreach (var path in new[] { "SaveList/SaveElement", "SaveList/BackupSaveElement" })
+            {
+                var template = panel.Find(path);
+                if (template == null)
+                    continue;
+                AugaPanelRestyler.Restyle(template, rowOptions);
+                // the selected row: Auga's flat blue highlight (as in the character list) instead of vanilla's orange
+                foreach (var image in template.GetComponentsInChildren<Image>(true))
+                {
+                    if (image.name != "selected") continue;
+                    image.sprite = null;
+                    image.color = AugaPanelRestyler.LightBlue;
+                }
+            }
+            // vanilla underlines its tabs with a thin strip; the Auga tab bar brings its own dividers
+            foreach (RectTransform child in panel)
+            {
+                var image = child.GetComponent<Image>();
+                if (image != null && child.name.StartsWith("bkg") && child.rect.height <= 6f)
+                    image.enabled = false;
+            }
+            // the "please wait" sign shown while the save list loads (a wooden plank elsewhere under the start GUI)
+            var pleaseWait = startup.m_manageSavesMenu.pleaseWait != null ? startup.m_manageSavesMenu.pleaseWait.transform.Find("panel") : null;
+            if (pleaseWait != null)
+            {
+                var plank = pleaseWait.GetComponent<Image>();
+                if (plank != null && plank.sprite != null) plank.enabled = false;
+                AugaPanelRestyler.Restyle(pleaseWait, new RestyleOptions { DetectHeaders = false, BackgroundOverhang = 0f });
+            }
+        }
+
+        /// <summary>
+        /// The tab buttons of a vanilla TabHandler become Auga settings-style tabs: a clone of the settings tab bar
+        /// (dividers left and right, "Selected" overlay per tab) placed at the vanilla tabs' height, each vanilla
+        /// button replaced by a clone of the bar's tab template carrying the vanilla label, click handler and gamepad
+        /// hint. The TabHandler's tab list is re-pointed, so it keeps working unchanged.
+        /// </summary>
+        private static void ReplaceManageSavesTabs(Transform panel)
+        {
+            var tabHandler = panel.GetComponent<TabHandler>();
+            var template = Auga.Assets.SettingsPrefab != null ? Auga.Assets.SettingsPrefab.transform.Find("panel/TabButtons") : null;
+            if (tabHandler == null || template == null || tabHandler.m_tabs.All(t => t.m_button == null))
+                return;
+
+            var bar = Object.Instantiate(template.gameObject, panel, false);
+            bar.name = "AugaTabButtons";
+            Object.DestroyImmediate(bar.GetComponent<TabHandler>());   // the panel's own TabHandler drives the tabs
+            var tabsParent = bar.transform.Find("Tabs");
+            var tabTemplate = tabsParent != null && tabsParent.childCount > 0 ? tabsParent.GetChild(0) : null;
+            if (tabTemplate == null)
+            {
+                Object.DestroyImmediate(bar);
+                return;
+            }
+
+            // the bar sits at the vanilla tabs' height (their vertical centre, measured in the panel's space)
+            var panelRect = (RectTransform)panel;
+            var barRect = (RectTransform)bar.transform;
+            var first = (RectTransform)tabHandler.m_tabs.First(t => t.m_button != null).m_button.transform;
+            var corners = new Vector3[4];
+            first.GetWorldCorners(corners);
+            var centre = panel.InverseTransformPoint((corners[0] + corners[2]) * 0.5f);
+            barRect.anchorMin = new Vector2(0f, 1f);
+            barRect.anchorMax = new Vector2(1f, 1f);
+            barRect.pivot = new Vector2(0.5f, 0.5f);
+            barRect.anchoredPosition = new Vector2(0f, centre.y - panelRect.rect.yMax);
+            bar.transform.SetSiblingIndex(first.GetSiblingIndex());
+
+            var map = new Dictionary<Object, Object>();
+            var doomed = new List<GameObject>();
+            foreach (var tab in tabHandler.m_tabs)
+            {
+                var old = tab.m_button;
+                if (old == null)
+                    continue;
+                var go = Object.Instantiate(tabTemplate.gameObject, tabsParent, false);
+                go.name = old.name;
+                var oldLabel = old.transform.Find("Text")?.GetComponent<TMP_Text>() ?? old.GetComponentInChildren<TMP_Text>(true);
+                var token = AugaPanelRestyler.RawText(oldLabel);
+                foreach (var path in new[] { "Text", "Selected/Text" })
+                {
+                    var label = go.transform.Find(path)?.GetComponent<TMP_Text>();
+                    if (label == null || token == null)
+                        continue;
+                    label.text = token;
+                    if (oldLabel.GetComponent<Localize>() != null && label.GetComponent<Localize>() == null)
+                        label.gameObject.AddComponent<Localize>();
+                }
+                var button = go.GetComponent<Button>();
+                button.onClick = old.onClick;
+                button.interactable = old.interactable;
+                var pad = old.GetComponent<UIGamePad>();
+                if (pad != null)
+                    SerializedFieldHelper.CopyMissingFields(go.AddComponent<UIGamePad>(), pad, go.transform);
+                go.SetActive(true);
+                tab.m_button = button;
+                map[old.gameObject] = go;
+                map[old] = button;
+                map[old.transform] = go.transform;
+                doomed.Add(old.gameObject);
+            }
+            Object.DestroyImmediate(tabTemplate.gameObject);
+            AugaPanelRestyler.Repoint(panel.root, map);
+            // gone right away: the restyle that follows must not see (and replace) the vanilla tab buttons
+            foreach (var go in doomed)
+                Object.DestroyImmediate(go);
         }
 
         /// <summary>The credits: Auga fonts and colours, a medium Auga button for Back; layout and background stay vanilla.</summary>
