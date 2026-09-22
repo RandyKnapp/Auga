@@ -1,0 +1,561 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Auga.Utilities;
+using AugaUnity;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
+
+namespace Auga
+{
+    /// <summary>What <see cref="AugaPanelRestyler.Restyle"/> should touch, and which texts are headers.</summary>
+    public class RestyleOptions
+    {
+        /// <summary>Text objects that become DividerLarge headers (the panel title). Empty: the largest header found.</summary>
+        public HashSet<string> Titles = new HashSet<string>();
+        /// <summary>Text objects that become DividerMedium headers (section headers).</summary>
+        public HashSet<string> Headers = new HashSet<string>();
+        /// <summary>Objects (and everything under them) that are left alone.</summary>
+        public HashSet<string> Skip = new HashSet<string>();
+        /// <summary>Also treat texts that are clearly larger than the body text (or named *Header/*Title/*Topic) as headers.</summary>
+        public bool DetectHeaders = true;
+        public bool ReplaceBackground = true;
+        public bool ReplaceButtons = true;
+        public bool ReplaceScrollbars = true;
+        public bool RestyleTexts = true;
+    }
+
+    /// <summary>
+    /// Restyles an arbitrary vanilla UI panel in place with Auga's look: Auga fonts and text colours, Auga button
+    /// prefabs (small / medium / fancy by size) with the vanilla click handlers and gamepad hints carried over,
+    /// Auga scrollbars, DividerLarge / DividerMedium headers around the header texts and the Auga panel background.
+    /// Every component in the panel's root canvas that referenced a replaced object (serialized fields, ScrollRect
+    /// scrollbars, Selectable navigation) is re-pointed at the replacement, so the vanilla code keeps working.
+    /// </summary>
+    public static class AugaPanelRestyler
+    {
+        public static readonly Color Brown1 = Hex("#EAE1D9");
+        public static readonly Color Brown2 = Hex("#D1C9C2");
+        public static readonly Color Brown3 = Hex("#A39689");
+        public static readonly Color Brown5 = Hex("#2E2620");
+        public static readonly Color Brown7 = Hex("#181410");
+        public static readonly Color BrightGold = Hex("#EAA800");
+        public static readonly Color LightBlue = Hex("#1AACEF");
+        public static readonly Color ScrollHandle = Hex("#8B7C6A");
+        public const float ScrollbarWidth = 8f;
+
+        private static TMP_FontAsset _bold;
+        private static TMP_FontAsset _regular;
+
+        /// <summary>Source Sans Pro Bold as the TextMeshPro asset the Auga buttons use.</summary>
+        public static TMP_FontAsset BoldFont
+        {
+            get
+            {
+                if (_bold == null) _bold = FontOf(Auga.Assets.ButtonSmall);
+                return _bold;
+            }
+        }
+
+        /// <summary>Source Sans Pro Regular as the TextMeshPro asset the Auga widget labels use.</summary>
+        public static TMP_FontAsset RegularFont
+        {
+            get
+            {
+                if (_regular == null) _regular = FontOf(Auga.Assets.LabeledCheckbox);
+                return _regular;
+            }
+        }
+
+        public static void Restyle(Transform panel, RestyleOptions options = null)
+        {
+            if (panel == null)
+                return;
+            options = options ?? new RestyleOptions();
+            var scope = panel.root;
+            var map = new Dictionary<Object, Object>();
+            var doomed = new List<GameObject>();
+
+            try
+            {
+                if (options.ReplaceBackground) RestyleBackground(panel, options);
+                if (options.RestyleTexts) RestyleTexts(panel, options);
+                ConvertHeaders(panel, options);
+                if (options.ReplaceScrollbars)
+                {
+                    foreach (var scrollbar in panel.GetComponentsInChildren<Scrollbar>(true).ToList())
+                    {
+                        if (IsSkipped(scrollbar.transform, panel, options)) continue;
+                        ReplaceScrollbar(scrollbar, map, doomed);
+                    }
+                }
+                if (options.ReplaceButtons)
+                {
+                    foreach (var button in panel.GetComponentsInChildren<Button>(true).ToList())
+                    {
+                        if (IsSkipped(button.transform, panel, options)) continue;
+                        ReplaceButton(button, map, doomed);
+                    }
+                }
+                Repoint(scope, map);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Auga] Restyling panel '{panel.name}' failed: {e}");
+            }
+            foreach (var go in doomed)
+            {
+                if (go == null) continue;
+                go.SetActive(false);
+                Object.Destroy(go);
+            }
+        }
+
+        // ------------------------------------------------------------------ background
+
+        private static void RestyleBackground(Transform panel, RestyleOptions options)
+        {
+            var panelRect = panel as RectTransform;
+            if (panelRect == null)
+                return;
+            var size = panelRect.rect.size;
+            foreach (Transform child in panel)
+            {
+                if (IsSkipped(child, panel, options)) continue;
+                var image = child.GetComponent<Image>();
+                var rect = child as RectTransform;
+                if (image == null || rect == null || child.GetComponent<Button>() != null || child.GetComponent<Scrollbar>() != null)
+                    continue;
+                // a vanilla backdrop: an image covering (nearly) the whole panel
+                if (rect.rect.width >= size.x * 0.8f && rect.rect.height >= size.y * 0.8f)
+                    image.enabled = false;
+            }
+            if (Auga.Assets.PanelBase != null)
+            {
+                var background = Object.Instantiate(Auga.Assets.PanelBase, panel, false);
+                background.name = "AugaPanelBackground";
+                background.transform.SetAsFirstSibling();
+                Stretch((RectTransform)background.transform);
+            }
+            // flat (sprite-less) boxes inside the panel, e.g. list backgrounds: Auga's dark tone
+            var augaBackground = panel.Find("AugaPanelBackground");
+            foreach (var image in panel.GetComponentsInChildren<Image>(true))
+            {
+                if (image.transform == panel || image.sprite != null || !image.enabled || IsSkipped(image.transform, panel, options)) continue;
+                if (augaBackground != null && image.transform.IsChildOf(augaBackground)) continue;
+                if (image.GetComponentInParent<Selectable>() != null) continue;
+                image.color = new Color(Brown7.r, Brown7.g, Brown7.b, Mathf.Min(image.color.a, 0.6f));
+            }
+        }
+
+        // ------------------------------------------------------------------ texts
+
+        private static void RestyleTexts(Transform panel, RestyleOptions options)
+        {
+            foreach (var text in panel.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (IsSkipped(text.transform, panel, options)) continue;
+                var bold = (text.fontStyle & FontStyles.Bold) != 0;
+                var font = bold ? BoldFont : RegularFont;
+                if (font != null)
+                {
+                    text.font = font;
+                    if (bold) text.fontStyle &= ~FontStyles.Bold; // the bold face carries the weight now
+                }
+                var link = text.GetComponent<Button>() != null && text.GetComponent<Image>() == null;
+                text.color = link ? WithAlpha(LightBlue, text.color.a) : MapColor(text.color);
+            }
+            foreach (var text in panel.GetComponentsInChildren<Text>(true))
+            {
+                if (IsSkipped(text.transform, panel, options)) continue;
+                var bold = text.fontStyle == FontStyle.Bold || text.fontStyle == FontStyle.BoldAndItalic;
+                var font = bold ? Auga.Assets.SourceSansProBold : Auga.Assets.SourceSansProRegular;
+                if (font != null)
+                {
+                    text.font = font;
+                    if (bold) text.fontStyle = text.fontStyle == FontStyle.BoldAndItalic ? FontStyle.Italic : FontStyle.Normal;
+                }
+                text.color = MapColor(text.color);
+            }
+        }
+
+        /// <summary>Whites and grays become Auga's browns, warm accent colours become Auga's gold; anything else stays.</summary>
+        public static Color MapColor(Color color)
+        {
+            Color.RGBToHSV(color, out var h, out var s, out var v);
+            Color target;
+            if (s < 0.2f)
+            {
+                if (v > 0.8f) target = Brown1;
+                else if (v > 0.55f) target = Brown2;
+                else if (v > 0.3f) target = Brown3;
+                else return color;
+            }
+            else if (h >= 0.07f && h <= 0.18f && v > 0.5f)
+                target = BrightGold;
+            else
+                return color;
+            return WithAlpha(target, color.a);
+        }
+
+        // ------------------------------------------------------------------ headers
+
+        private static void ConvertHeaders(Transform panel, RestyleOptions options)
+        {
+            var texts = panel.GetComponentsInChildren<TMP_Text>(true)
+                .Where(t => !IsSkipped(t.transform, panel, options) && t.GetComponentInParent<Selectable>() == null)
+                .ToList();
+            if (texts.Count == 0)
+                return;
+            var sizes = texts.Select(t => t.fontSize).OrderBy(x => x).ToList();
+            var body = sizes[sizes.Count / 2];
+
+            var candidates = new List<TMP_Text>();
+            foreach (var text in texts)
+            {
+                if (options.Titles.Contains(text.name) || options.Headers.Contains(text.name))
+                    candidates.Add(text);
+                else if (options.DetectHeaders && LooksLikeHeader(text, body))
+                    candidates.Add(text);
+            }
+            if (candidates.Count == 0)
+                return;
+
+            TMP_Text title = null;
+            if (options.Titles.Count == 0)
+            {
+                // the panel title: the largest header that is not inside a scroll view
+                title = candidates.Where(t => t.GetComponentInParent<ScrollRect>() == null).OrderByDescending(t => t.fontSize).FirstOrDefault();
+            }
+            foreach (var text in candidates)
+            {
+                var large = options.Titles.Contains(text.name) || text == title;
+                WrapInDivider(text, large);
+            }
+        }
+
+        private static bool LooksLikeHeader(TMP_Text text, float bodySize)
+        {
+            var value = text.text ?? string.Empty;
+            if (value.Length > 80 || value.Contains("\n"))
+                return false;
+            var name = text.name.ToLowerInvariant();
+            if (name.Contains("header") || name.Contains("title") || name.Contains("topic"))
+                return true;
+            return text.fontSize >= bodySize * 1.2f;
+        }
+
+        /// <summary>Puts a header text into the middle of a DividerLarge / DividerMedium that takes the text's place.</summary>
+        public static Transform WrapInDivider(TMP_Text text, bool large)
+        {
+            var prefab = large ? Auga.Assets.DividerLarge : Auga.Assets.DividerMedium;
+            if (prefab == null || text == null)
+                return null;
+            var textRect = text.rectTransform;
+            var parent = textRect.parent;
+            var index = textRect.GetSiblingIndex();
+
+            var divider = Object.Instantiate(prefab, parent, false);
+            divider.name = text.name + "Divider";
+            divider.transform.SetSiblingIndex(index);
+            var rect = (RectTransform)divider.transform;
+            var height = rect.sizeDelta.y;
+            rect.anchorMin = textRect.anchorMin;
+            rect.anchorMax = textRect.anchorMax;
+            rect.pivot = textRect.pivot;
+            rect.anchoredPosition = textRect.anchoredPosition;
+            var stretched = !Mathf.Approximately(textRect.anchorMin.x, textRect.anchorMax.x);
+            rect.sizeDelta = new Vector2(stretched ? textRect.sizeDelta.x : Mathf.Max(textRect.rect.width, 200f), height);
+            if (parent.GetComponent<LayoutGroup>() != null)
+            {
+                var element = divider.GetComponent<LayoutElement>() ?? divider.AddComponent<LayoutElement>();
+                element.preferredHeight = height;
+                element.minHeight = height;
+                var old = text.GetComponent<LayoutElement>();
+                if (old != null)
+                {
+                    element.flexibleWidth = old.flexibleWidth;
+                    element.ignoreLayout = old.ignoreLayout;
+                }
+            }
+
+            var content = divider.transform.Find("Content") as RectTransform;
+            if (content == null)
+                return divider.transform;
+            foreach (var oldElement in text.GetComponents<LayoutElement>()) Object.DestroyImmediate(oldElement);
+            foreach (var fitter in text.GetComponents<ContentSizeFitter>()) Object.DestroyImmediate(fitter);
+            textRect.SetParent(content, false);
+            Stretch(textRect);
+            text.alignment = TextAlignmentOptions.Center;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.margin = Vector4.zero;
+            var header = divider.AddComponent<AugaDividerHeader>();
+            header.Content = content;
+            header.Text = text;
+            return divider.transform;
+        }
+
+        // ------------------------------------------------------------------ scrollbars
+
+        private static void ReplaceScrollbar(Scrollbar old, Dictionary<Object, Object> map, List<GameObject> doomed)
+        {
+            var oldRect = (RectTransform)old.transform;
+            var vertical = old.direction == Scrollbar.Direction.BottomToTop || old.direction == Scrollbar.Direction.TopToBottom;
+            if (Auga.Assets.ScrollBar == null)
+            {
+                RestyleScrollbarInPlace(old, vertical);
+                return;
+            }
+
+            var go = Object.Instantiate(Auga.Assets.ScrollBar, oldRect.parent, false);
+            go.name = old.name;
+            go.transform.SetSiblingIndex(oldRect.GetSiblingIndex());
+            var rect = (RectTransform)go.transform;
+            CopyPlacement(oldRect, rect);
+            rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, oldRect.sizeDelta.y) : new Vector2(oldRect.sizeDelta.x, ScrollbarWidth);
+            var scrollbar = go.GetComponent<Scrollbar>();
+            scrollbar.direction = old.direction;
+            scrollbar.numberOfSteps = old.numberOfSteps;
+            scrollbar.size = old.size;
+            scrollbar.SetValueWithoutNotify(old.value);
+            scrollbar.interactable = old.interactable;
+            scrollbar.onValueChanged = old.onValueChanged;
+            go.SetActive(old.gameObject.activeSelf);
+
+            map[old] = scrollbar;
+            map[old.gameObject] = go;
+            map[oldRect] = rect;
+            doomed.Add(old.gameObject);
+        }
+
+        /// <summary>Auga's scrollbar look on a vanilla scrollbar (used when the bundle has no ScrollBar prefab).</summary>
+        public static void RestyleScrollbarInPlace(Scrollbar scrollbar, bool vertical)
+        {
+            var rect = (RectTransform)scrollbar.transform;
+            rect.sizeDelta = vertical ? new Vector2(ScrollbarWidth, rect.sizeDelta.y) : new Vector2(rect.sizeDelta.x, ScrollbarWidth);
+            var background = scrollbar.GetComponent<Image>();
+            if (background != null)
+            {
+                background.sprite = null;
+                background.type = Image.Type.Simple;
+                background.color = Brown5;
+            }
+            var handle = scrollbar.handleRect != null ? scrollbar.handleRect.GetComponent<Image>() : null;
+            if (handle != null)
+            {
+                handle.sprite = null;
+                handle.type = Image.Type.Simple;
+                handle.color = ScrollHandle;
+            }
+            scrollbar.transition = Selectable.Transition.None;
+        }
+
+        /// <summary>A vertical Auga scrollbar (the ScrollBar prefab, or one built to its look) under <paramref name="parent"/>.</summary>
+        public static Scrollbar CreateScrollbar(Transform parent, string name)
+        {
+            GameObject go;
+            if (Auga.Assets.ScrollBar != null)
+            {
+                go = Object.Instantiate(Auga.Assets.ScrollBar, parent, false);
+                go.name = name;
+                return go.GetComponent<Scrollbar>();
+            }
+            go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            go.transform.SetParent(parent, false);
+            var background = go.GetComponent<Image>();
+            background.color = Brown5;
+            var area = new GameObject("Sliding Area", typeof(RectTransform)).transform as RectTransform;
+            area.SetParent(go.transform, false);
+            Stretch(area);
+            var handle = new GameObject("Handle", typeof(RectTransform), typeof(Image)).transform as RectTransform;
+            handle.SetParent(area, false);
+            Stretch(handle); // the Scrollbar drives the anchors along its axis; the handle fills the other axis
+            handle.GetComponent<Image>().color = ScrollHandle;
+            var scrollbar = go.GetComponent<Scrollbar>();
+            scrollbar.handleRect = handle;
+            scrollbar.targetGraphic = handle.GetComponent<Image>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.transition = Selectable.Transition.None;
+            ((RectTransform)go.transform).sizeDelta = new Vector2(ScrollbarWidth, 100f);
+            return scrollbar;
+        }
+
+        // ------------------------------------------------------------------ buttons
+
+        private static void ReplaceButton(Button old, Dictionary<Object, Object> map, List<GameObject> doomed)
+        {
+            // text links (a Button on a bare text), Auga's own buttons and the parts of other controls stay
+            if (old is ColorButtonText || old.GetComponent<Image>() == null) return;
+            if (old.GetComponentInParent<Scrollbar>() != null || old.GetComponent<TMP_Dropdown>() != null || old.GetComponentInParent<TMP_Dropdown>() != null) return;
+
+            var oldRect = (RectTransform)old.transform;
+            var width = oldRect.rect.width > 0f ? oldRect.rect.width : oldRect.sizeDelta.x;
+            var prefab = width <= 95f ? Auga.Assets.ButtonSmall : width <= 200f ? Auga.Assets.ButtonMedium : Auga.Assets.ButtonFancy;
+            if (prefab == null) return;
+
+            var go = Object.Instantiate(prefab, oldRect.parent, false);
+            go.name = old.name;
+            go.transform.SetSiblingIndex(oldRect.GetSiblingIndex());
+            var rect = (RectTransform)go.transform;
+            var native = ((RectTransform)prefab.transform).sizeDelta;
+            CopyPlacement(oldRect, rect);
+            var stretched = !Mathf.Approximately(oldRect.anchorMin.x, oldRect.anchorMax.x);
+            // the Auga button's own height, but never wider than the vanilla button's slot (side-by-side buttons)
+            var buttonWidth = width > 0f ? Mathf.Min(native.x, width) : native.x;
+            rect.sizeDelta = new Vector2(stretched ? oldRect.sizeDelta.x : buttonWidth, native.y);
+            if (oldRect.parent.GetComponent<LayoutGroup>() != null)
+            {
+                var element = go.GetComponent<LayoutElement>() ?? go.AddComponent<LayoutElement>();
+                element.preferredWidth = buttonWidth;
+                element.preferredHeight = native.y;
+            }
+
+            var label = go.transform.Find("Label")?.GetComponent<TMP_Text>() ?? go.GetComponentInChildren<TMP_Text>(true);
+            var oldLabel = old.transform.Find("Text")?.GetComponent<TMP_Text>() ?? old.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => t.GetComponentInParent<UIGamePad>() == null || t.transform.parent == old.transform);
+            if (label != null && oldLabel != null)
+            {
+                label.text = RawText(oldLabel);
+                if (oldLabel.GetComponent<Localize>() != null && label.GetComponent<Localize>() == null)
+                    label.gameObject.AddComponent<Localize>();
+            }
+
+            var button = go.GetComponent<Button>();
+            button.onClick = old.onClick;
+            button.interactable = old.interactable;
+            button.navigation = old.navigation;
+            var pad = old.GetComponent<UIGamePad>();
+            if (pad != null)
+            {
+                var copy = go.AddComponent<UIGamePad>();
+                SerializedFieldHelper.CopyMissingFields(copy, pad, go.transform);
+            }
+            go.SetActive(old.gameObject.activeSelf);
+
+            map[old.gameObject] = go;
+            map[old] = button;
+            map[oldRect] = rect;
+            doomed.Add(old.gameObject);
+        }
+
+        // ------------------------------------------------------------------ re-pointing
+
+        /// <summary>
+        /// Replaces every reference to a replaced object (serialized fields of any component, ScrollRect scrollbars,
+        /// Selectable navigation) under <paramref name="scope"/> with the replacement.
+        /// </summary>
+        public static void Repoint(Transform scope, Dictionary<Object, Object> map)
+        {
+            if (map.Count == 0)
+                return;
+            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            foreach (var component in scope.GetComponentsInChildren<Component>(true))
+            {
+                if (component == null) continue;
+                if (component is ScrollRect scrollRect)
+                {
+                    if (scrollRect.verticalScrollbar != null && map.TryGetValue(scrollRect.verticalScrollbar, out var v) && v is Scrollbar vs) scrollRect.verticalScrollbar = vs;
+                    if (scrollRect.horizontalScrollbar != null && map.TryGetValue(scrollRect.horizontalScrollbar, out var h) && h is Scrollbar hs) scrollRect.horizontalScrollbar = hs;
+                    continue;
+                }
+                if (component is Selectable selectable)
+                {
+                    var navigation = selectable.navigation;
+                    var changed = false;
+                    if (navigation.selectOnUp != null && map.TryGetValue(navigation.selectOnUp, out var up) && up is Selectable u) { navigation.selectOnUp = u; changed = true; }
+                    if (navigation.selectOnDown != null && map.TryGetValue(navigation.selectOnDown, out var down) && down is Selectable d) { navigation.selectOnDown = d; changed = true; }
+                    if (navigation.selectOnLeft != null && map.TryGetValue(navigation.selectOnLeft, out var left) && left is Selectable l) { navigation.selectOnLeft = l; changed = true; }
+                    if (navigation.selectOnRight != null && map.TryGetValue(navigation.selectOnRight, out var right) && right is Selectable r) { navigation.selectOnRight = r; changed = true; }
+                    if (changed) selectable.navigation = navigation;
+                }
+                if (!(component is MonoBehaviour))
+                    continue;
+                for (var type = component.GetType(); type != null && type != typeof(MonoBehaviour) && type != typeof(Behaviour); type = type.BaseType)
+                {
+                    foreach (var field in type.GetFields(flags | BindingFlags.DeclaredOnly))
+                    {
+                        if (field.IsStatic) continue;
+                        if (!field.IsPublic && field.GetCustomAttribute<SerializeField>() == null) continue;
+                        var fieldType = field.FieldType;
+                        if (typeof(Object).IsAssignableFrom(fieldType))
+                        {
+                            var value = field.GetValue(component) as Object;
+                            if (value != null && map.TryGetValue(value, out var replacement) && replacement != null && fieldType.IsInstanceOfType(replacement))
+                                field.SetValue(component, replacement);
+                        }
+                        else if (typeof(IList).IsAssignableFrom(fieldType))
+                        {
+                            if (!(field.GetValue(component) is IList list)) continue;
+                            for (var i = 0; i < list.Count; i++)
+                            {
+                                if (list[i] is Object item && map.TryGetValue(item, out var replacement) && replacement != null)
+                                {
+                                    var elementType = fieldType.IsArray ? fieldType.GetElementType() : fieldType.IsGenericType ? fieldType.GetGenericArguments()[0] : null;
+                                    if (elementType != null && elementType.IsInstanceOfType(replacement))
+                                        list[i] = replacement;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------ helpers
+
+        private static bool IsSkipped(Transform t, Transform panel, RestyleOptions options)
+        {
+            if (options.Skip.Count == 0)
+                return false;
+            for (var current = t; current != null && current != panel; current = current.parent)
+            {
+                if (options.Skip.Contains(current.name))
+                    return true;
+            }
+            return false;
+        }
+
+        private static TMP_FontAsset FontOf(GameObject prefab)
+        {
+            return prefab != null ? prefab.GetComponentInChildren<TMP_Text>(true)?.font : null;
+        }
+
+        public static string RawText(TMP_Text text)
+        {
+            if (text == null) return string.Empty;
+            return Localization.instance != null && Localization.instance.textMeshStrings.TryGetValue(text, out var raw) ? raw : text.text;
+        }
+
+        public static void CopyPlacement(RectTransform from, RectTransform to)
+        {
+            to.anchorMin = from.anchorMin;
+            to.anchorMax = from.anchorMax;
+            to.pivot = from.pivot;
+            to.anchoredPosition = from.anchoredPosition;
+            to.sizeDelta = from.sizeDelta;
+        }
+
+        public static void Stretch(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+        }
+
+        public static Color WithAlpha(Color color, float alpha)
+        {
+            return new Color(color.r, color.g, color.b, alpha);
+        }
+
+        public static Color Hex(string html)
+        {
+            return ColorUtility.TryParseHtmlString(html, out var color) ? color : Color.white;
+        }
+    }
+}

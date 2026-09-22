@@ -11,7 +11,7 @@ namespace AugaUnity
     {
         public ItemTooltip ItemTooltip;
         public Image Icon;
-        public Text Amount;
+        public TMP_Text Amount;
 
         public virtual void SetItem(ItemDrop.ItemData item, string amount = null)
         {
@@ -24,12 +24,12 @@ namespace AugaUnity
 
     public class BestiaryStatBlock : MonoBehaviour
     {
-        public Text LevelLabel;
+        public TMP_Text LevelLabel;
         public GameObject LevelStar;
-        public Text Health;
-        public Text Weakness;
-        public Text Resistance;
-        public Text Immune;
+        public TMP_Text Health;
+        public TMP_Text Weakness;
+        public TMP_Text Resistance;
+        public TMP_Text Immune;
 
         public virtual void SetStats(Humanoid humanoid, int level)
         {
@@ -79,8 +79,8 @@ namespace AugaUnity
         public GameObject BestiaryContent;
         public RectTransform BestiaryList;
         public GameObject BestiaryListElementPrefab;
-        public Text BestiaryName;
-        public Text BestiaryDescription;
+        public TMP_Text BestiaryName;
+        public TMP_Text BestiaryDescription;
         public CompendiumItem CompendiumItemPrefab;
         public RectTransform DropsContainer;
         public List<BestiaryStatBlock> StatBlocks;

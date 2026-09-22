@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,7 +33,7 @@ namespace AugaUnity
         public TextDisplayMode TextDisplay = TextDisplayMode.JustValue;
         public bool ShowTicks = true;
         [Header("Above, Below, Center, Start, End")]
-        public Text[] CurrentValueText = { null, null, null, null, null };
+        public TMP_Text[] CurrentValueText = { null, null, null, null, null };
 
         [Range(0, 270)]
         public float CurrentValue;

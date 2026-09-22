@@ -1,16 +1,16 @@
 ManifestFileVersion: 0
 UnityVersion: 6000.0.75f1
-CRC: 1936452668
+CRC: 3399133863
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 9984afe1a3410780e3a5e339cf51367f
+    Hash: ec3b32e91166ebf74de1d760d94ecb4e
   TypeTreeHash:
     serializedVersion: 2
-    Hash: c284a6fbb9d7453fb2289ee388bc197e
+    Hash: 733fdb7fa0333ca6dc451a219f30bf4b
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 4a0312b3fd053819cc3619971271bcdd
+    Hash: e8fe6381a05f0c3572374e052da02260
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -46,11 +46,7 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
 - Class: 114
-  Script: {fileID: 11500000, guid: 0d0b652f32a2cc243917e4028fa0f046, type: 3}
-- Class: 114
   Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-- Class: 114
-  Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
 - Class: 114
@@ -93,6 +89,8 @@ ClassTypes:
   Script: {fileID: 11500000, guid: 2a4db7a114972834c8e4117be1d82ba3, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+- Class: 114
+  Script: {fileID: -1044321711, guid: 09f9e281558c480b819d293aa7deb0a4, type: 3}
 - Class: 114
   Script: {fileID: 313648218, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -151,8 +149,6 @@ ClassTypes:
   Script: {fileID: -560918846, guid: b5cd06fc9be3c4b458ca2eada68967c7, type: 3}
 - Class: 114
   Script: {fileID: -1850103303, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
-- Class: 114
-  Script: {fileID: -1557526246, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
   Script: {fileID: -7747446, guid: 045bc81af5d75cb42a79645f3b1c6adb, type: 3}
 - Class: 114
@@ -341,6 +337,12 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_Character
 - AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_Dropdown/DropdownEvent
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_Dropdown/OptionData
+- AssemblyName: Unity.TextMeshPro
+  ClassName: TMPro.TMP_Dropdown/OptionDataList
+- AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_FontFeatureTable
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.TMP_FontWeightPair
@@ -390,14 +392,6 @@ SerializeReferenceClassIdentifiers:
   ClassName: UnityEngine.UI.Button/ButtonClickedEvent
 - AssemblyName: UnityEngine.UI
   ClassName: UnityEngine.UI.ColorBlock
-- AssemblyName: UnityEngine.UI
-  ClassName: UnityEngine.UI.Dropdown/DropdownEvent
-- AssemblyName: UnityEngine.UI
-  ClassName: UnityEngine.UI.Dropdown/OptionData
-- AssemblyName: UnityEngine.UI
-  ClassName: UnityEngine.UI.Dropdown/OptionDataList
-- AssemblyName: UnityEngine.UI
-  ClassName: UnityEngine.UI.FontData
 - AssemblyName: UnityEngine.UI
   ClassName: UnityEngine.UI.MaskableGraphic/CullStateChangedEvent
 - AssemblyName: UnityEngine.UI
@@ -517,8 +511,9 @@ SerializeReferenceClassIdentifiers:
 Assets:
 - Assets/Sprites/HUD/legacy_save.png
 - Assets/Prefabs/AugaTextViewer.prefab
-- Assets/Prefabs/ActiveEffectItem_HUD_Standard.prefab
+- Assets/Prefabs/AugaLogoSmall.prefab
 - Assets/Prefabs/AugaTextInput.prefab
+- Assets/Prefabs/ActiveEffectItem_HUD_Standard.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_cauldron.prefab
 - Assets/Fonts/SourceSansPro-Regular.ttf
 - Assets/Prefabs/LanguageTooltip.prefab
@@ -533,8 +528,9 @@ Assets:
 - Assets/Prefabs/ButtonToggle.prefab
 - Assets/Prefabs/AugaSettings.prefab
 - Assets/Prefabs/AugaMenu.prefab
-- Assets/Prefabs/SkillsElement.prefab
+- Assets/Prefabs/MenuButtonSmall.prefab
 - Assets/Prefabs/MainMenu/WorldListElement.prefab
+- Assets/Prefabs/SkillsElement.prefab
 - Assets/Prefabs/TabButton_MessageLog.prefab
 - Assets/Prefabs/AugaConnecting.prefab
 - Assets/Prefabs/TabButton_PlayerPanel.prefab
@@ -558,22 +554,24 @@ Assets:
 - Assets/Fonts/Norse-Old.asset
 - Assets/Fonts/Noto Sans CJK Regular SDF.asset
 - Assets/Fonts/SourceSansPro-SemiBoldItalic.ttf
+- Assets/Prefabs/MenuButton.prefab
 - Assets/Prefabs/AugaStoreScreen.prefab
 - Assets/Prefabs/ZSFX/sfx_gui_craftitem_workbench_end.prefab
 - Assets/Prefabs/ButtonSettings.prefab
 - Assets/Prefabs/MainMenu.prefab
 - Assets/Prefabs/ButtonDiamond.prefab
-- Assets/Prefabs/LabeledCheckbox.prefab
+- Assets/Prefabs/ChangeLog.prefab
 - Assets/Fonts/SourceSansPro-SemiBoldItalic-old.asset
+- Assets/Prefabs/LabeledCheckbox.prefab
 - Assets/Prefabs/BuildHudElement.prefab
-- Assets/Prefabs/AugaChat.prefab
 - Assets/Prefabs/TabContent_MessageLog.prefab
-- Assets/Prefabs/AugaMessageHud.prefab
 - Assets/Prefabs/VR/LeftWristMountUI.prefab
+- Assets/Prefabs/AugaMessageHud.prefab
 - Assets/Prefabs/TabButton_Base.prefab
 - Assets/Fonts/SourceSansPro-Regular-old.asset
 - Assets/Prefabs/BuildHud.prefab
 - Assets/Fonts/Norsebold SDF.asset
+- Assets/Prefabs/AugaChat.prefab
 - Assets/Sprites/Container_Diamond.png
 - Assets/Prefabs/MainMenu/ServerListElement.prefab
 - Assets/Prefabs/TopLeftMessage.prefab
@@ -591,6 +589,7 @@ Assets:
 - Assets/Prefabs/HotKeyElement.prefab
 - Assets/Prefabs/TabButton_PVP.prefab
 - Assets/Prefabs/LabeledSlider.prefab
+- Assets/Prefabs/ScrollBar.prefab
 - Assets/Prefabs/TabButton_Crafting.prefab
 - Assets/Sprites/Cursor2.png
 - Assets/Prefabs/RightKnot.prefab

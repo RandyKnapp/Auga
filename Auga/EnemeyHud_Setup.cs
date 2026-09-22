@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using TMPro;
+using System.Linq;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,7 +62,7 @@ namespace Auga
                                     newLevelXDisplay.name = levelXDisplayName;
                                 }
 
-                                var text = levelDisplayX.GetComponentInChildren<Text>();
+                                var text = levelDisplayX.GetComponentInChildren<TMP_Text>();
                                 text.text = $"x {level - 1}";
                             }
                         }

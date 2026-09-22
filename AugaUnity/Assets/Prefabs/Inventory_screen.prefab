@@ -213,6 +213,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -892,6 +893,8 @@ MonoBehaviour:
   m_container: {fileID: 8912268196497255992}
   m_dragItemPrefab: {fileID: 171514688490407007, guid: 70c2b5ad94aca8b40b4bcc7bfc8677c5,
     type: 3}
+  m_touchDragEffects: []
+  m_touchSplitAnchor: {fileID: 0}
   m_containerName: {fileID: 919656689976472724}
   m_dropButton: {fileID: 5206079284132443967}
   m_takeAllButton: {fileID: 2702796690813809261}
@@ -904,7 +907,17 @@ MonoBehaviour:
   m_recipeListRoot: {fileID: 8516672232545004620}
   m_recipeListScroll: {fileID: 6548883799737160191}
   m_recipeListSpace: 34
+  m_craftBonusChance: 0.25
+  m_craftBonusAmount: 1
+  m_craftBonusEffect:
+    m_effectPrefabs: []
+  m_craftDurationSkillMaxDecrease: 0.6
   m_craftDuration: 1.5
+  m_multiCraftAmount: 5
+  m_multiCraftDuration: 6
+  m_upgraderDuration: 8
+  m_upgraderDurationPerLevel: 1
+  CraftingVibration: {fileID: 0}
   m_craftingStationName: {fileID: 2360339648416498674}
   m_craftingStationIcon: {fileID: 5125663053844257172}
   m_craftingStationLevelRoot: {fileID: 8213984091475932930}
@@ -944,13 +957,8 @@ MonoBehaviour:
   m_variantDialog: {fileID: 643983014992092502}
   m_skillsDialog: {fileID: 5911145726536599710}
   m_textsDialog: {fileID: 0}
-  m_splitPanel: {fileID: 0}
-  m_splitSlider: {fileID: 0}
-  m_splitAmount: {fileID: 0}
-  m_splitCancelButton: {fileID: 0}
-  m_splitOkButton: {fileID: 0}
-  m_splitIcon: {fileID: 0}
-  m_splitIconName: {fileID: 0}
+  m_splitDialog: {fileID: 0}
+  m_longPressTimeToShowSplit: 1
   m_infoPanel: {fileID: 0}
   m_playerName: {fileID: 0}
   m_armor: {fileID: 0}
@@ -962,6 +970,13 @@ MonoBehaviour:
   m_trophieListSpace: 30
   m_trophieElementPrefab: {fileID: 0}
   m_trophyListScroll: {fileID: 0}
+  m_achievementsPanel: {fileID: 0}
+  m_achievementsListRoot: {fileID: 0}
+  m_achievementsElementPrefab: {fileID: 0}
+  m_achievementsListScroll: {fileID: 0}
+  m_secretAchievementIcon: {fileID: 0}
+  m_achievementsCheatedText: {fileID: 0}
+  m_achievementsCompletionRateText: {fileID: 0}
   m_moveItemEffects:
     m_effectPrefabs: []
   m_craftItemEffects:
@@ -976,9 +991,10 @@ MonoBehaviour:
     m_effectPrefabs: []
   m_playerGrid: {fileID: 0}
   m_splitNumInputTimeoutSec: 0.5
+  m_isSplitDropping: 0
 --- !u!95 &4801675562756710816
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -992,6 +1008,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -1176,9 +1193,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_defaultElement: {fileID: 0}
+  m_defaultElementFallbackMode: 0
   m_rightStickSelectable: {fileID: 0}
   m_enableWhenActiveAndGamepad: {fileID: 0}
   m_groupPriority: 1
+  m_setDefaultOnKBM: 0
+  m_resetActiveElementOnStateChange: 1
 --- !u!1 &7873918572900428654
 GameObject:
   m_ObjectHideFlags: 0
@@ -2449,12 +2469,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3501538415260722804, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[0]
+      propertyPath: 'TabTitles.Array.data[0]'
       value: 
       objectReference: {fileID: 2492781162903541493}
     - target: {fileID: 3501538415260722804, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[1]
+      propertyPath: 'TabTitles.Array.data[1]'
       value: 
       objectReference: {fileID: 8898270482053098006}
     - target: {fileID: 3511999587188331283, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -2599,27 +2619,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[0]
+      propertyPath: 'TabTitles.Array.data[0]'
       value: 
       objectReference: {fileID: 7669025455704820986}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[1]
+      propertyPath: 'TabTitles.Array.data[1]'
       value: 
       objectReference: {fileID: 5196432026783894456}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[2]
+      propertyPath: 'TabTitles.Array.data[2]'
       value: 
       objectReference: {fileID: 957253615337074611}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[3]
+      propertyPath: 'TabTitles.Array.data[3]'
       value: 
       objectReference: {fileID: 6669579808478858320}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[4]
+      propertyPath: 'TabTitles.Array.data[4]'
       value: 
       objectReference: {fileID: 3917037792719602825}
     - target: {fileID: 4026677092144333671, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -3520,7 +3540,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7889163138941262698, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7969854885582796295, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -3687,7 +3707,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TargetGraphic
       value: 
-      objectReference: {fileID: 8108003027034686205}
+      objectReference: {fileID: 4287185407123966755}
     - target: {fileID: 8942519044068651835, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -3745,7 +3765,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7956240619656126317, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8108003027034686205}
+      addedObject: {fileID: 4287185407123966755}
     - targetCorrespondingSourceObject: {fileID: 8297486549625105377, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
       insertIndex: -1
@@ -4027,7 +4047,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 2508932433880644679}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8108003027034686205
+--- !u!114 &4287185407123966755
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4036,7 +4056,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5529217966262608682}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
@@ -4047,20 +4067,79 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
-    m_FontStyle: 0
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 40
-    m_Alignment: 0
-    m_AlignByGeometry: 0
-    m_RichText: 1
-    m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
-    m_LineSpacing: 1
-  m_Text: 
+  m_text: 
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 9ee39a652f6aee74b9f41551f590c49e, type: 2}
+  m_sharedMaterial: {fileID: 3687311910488487409, guid: 9ee39a652f6aee74b9f41551f590c49e,
+    type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 14
+  m_fontSizeBase: 14
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 0
+  m_fontSizeMax: 0
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 3
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 00000000
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 0
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &5638101809878647249 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7849505285950717334, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -5123,6 +5202,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_keyCode: 0
   m_zinputKey: JoyLStick
+  m_availableForConsoleMouse: 0
   m_hint: {fileID: 8265109072453124075}
   m_blockingElements: []
   alternativeGroupHandler: {fileID: 0}

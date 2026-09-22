@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,14 +14,14 @@ namespace AugaUnity
 
         public int Index;
         public bool FlashOnCanEatAgain;
-        [CanBeNull] public Text NameText;
+        [CanBeNull] public TMP_Text NameText;
         public Image Icon;
         public Image CountdownImage;
-        [CanBeNull] public Text TimeRemainingText;
-        [CanBeNull] public Text HealthText;
-        [CanBeNull] public Text StaminaText;
-        [CanBeNull] public Text HealingText;
-        [CanBeNull] public Text EitrText;
+        [CanBeNull] public TMP_Text TimeRemainingText;
+        [CanBeNull] public TMP_Text HealthText;
+        [CanBeNull] public TMP_Text StaminaText;
+        [CanBeNull] public TMP_Text HealingText;
+        [CanBeNull] public TMP_Text EitrText;
         [CanBeNull] public Image HealthIcon;
         [CanBeNull] public Image StaminaIcon;
         [CanBeNull] public Image HealingIcon;
@@ -35,7 +36,7 @@ namespace AugaUnity
         {
             _tooltip = GetComponent<UITooltip>();
             _foodTooltip = GetComponent<FoodTooltip>();
-            _hightlightColor = ColorUtility.ToHtmlStringRGB(HighlightColor);
+            _hightlightColor = "#" + ColorUtility.ToHtmlStringRGB(HighlightColor);
             Show(false);
             Update();
         }

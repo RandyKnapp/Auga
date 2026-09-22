@@ -136,6 +136,24 @@ namespace AugaAutoStart
             var worldName = Environment.GetEnvironmentVariable("AUGA_TEST_WORLD");
             if (string.IsNullOrEmpty(worldName)) worldName = "AugaTest";
 
+            Debug.Log("[AugaAutoStart] open changelog");
+            Try(() => fejd.OnButtonShowChangelog());
+            yield return new WaitForSecondsRealtime(1.5f);
+            Shot("00d_changelog");
+            Try(() => LogRects(fejd.transform, "AugaChangeLog"));
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() => fejd.OnButtonShowChangelog());
+            yield return new WaitForSecondsRealtime(1f);
+
+            Debug.Log("[AugaAutoStart] open user agreement");
+            Try(() => fejd.OnButtonEula());
+            yield return new WaitForSecondsRealtime(1.5f);
+            Shot("00e_eula");
+            Try(() => LogRects(fejd.m_eulaWindow.transform, "Popup"));
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() => fejd.m_eulaWindow.AcceptButton());
+            yield return new WaitForSecondsRealtime(1f);
+
             Debug.Log("[AugaAutoStart] open settings (main menu)");
             Try(() => fejd.OnButtonSettings());
             yield return new WaitForSecondsRealtime(2f);

@@ -45,6 +45,10 @@ namespace Auga
         public GameObject LabeledSliderWithValue;
         public GameObject LabeledKeybind;
         public GameObject LanguageTooltip;
+        public GameObject MenuButtonSmall;
+        public GameObject ChangeLogPrefab;
+        public GameObject AugaLogoSmall;
+        public GameObject ScrollBar;
         public GameObject PanelBase;
         public GameObject ButtonSmall;
         public GameObject ButtonMedium;
@@ -539,6 +543,10 @@ namespace Auga
             Assets.LabeledSliderWithValue = assetBundle.LoadAsset<GameObject>("LabeledSliderWithValue");
             Assets.LabeledKeybind = assetBundle.LoadAsset<GameObject>("LabeledKeybind");
             Assets.LanguageTooltip = assetBundle.LoadAsset<GameObject>("LanguageTooltip");
+            Assets.MenuButtonSmall = assetBundle.LoadAsset<GameObject>("MenuButtonSmall");
+            Assets.ChangeLogPrefab = assetBundle.LoadAsset<GameObject>("ChangeLog");
+            Assets.AugaLogoSmall = assetBundle.LoadAsset<GameObject>("AugaLogoSmall");
+            Assets.ScrollBar = assetBundle.LoadAsset<GameObject>("ScrollBar");
             Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
             Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
             Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
@@ -565,7 +573,39 @@ namespace Auga
             // OnSelect, which a mouse triggers on pointer down, so every click sounded twice (down and up).
             // Strip the select sfx from every prefab asset in the bundle (the tab buttons are stand-alone
             // prefabs instantiated by the tab controllers); every instance made from them inherits that.
-            RemoveSelectSfx(assetBundle.LoadAllAssets<GameObject>());
+            var prefabs = assetBundle.LoadAllAssets<GameObject>();
+            RemoveSelectSfx(prefabs);
+            WarnAboutClassicTexts(prefabs);
+        }
+
+        /// <summary>
+        /// Auga is TextMeshPro only: every bundled prefab that still carries a classic UnityEngine.UI.Text is reported
+        /// (to the Unity log, so it shows regardless of Auga's own logging setting) so it can be fixed in Unity.
+        /// </summary>
+        private static void WarnAboutClassicTexts(params GameObject[] prefabs)
+        {
+            var offenders = 0;
+            foreach (var prefab in prefabs)
+            {
+                if (prefab == null || prefab.transform.parent != null)
+                    continue;
+                var texts = prefab.GetComponentsInChildren<Text>(true);
+                if (texts.Length == 0)
+                    continue;
+                offenders++;
+                var paths = new List<string>();
+                foreach (var text in texts)
+                {
+                    if (paths.Count >= 8) { paths.Add("..."); break; }
+                    var path = text.name;
+                    for (var t = text.transform.parent; t != null && t != prefab.transform; t = t.parent)
+                        path = t.name + "/" + path;
+                    paths.Add(path);
+                }
+                Debug.LogWarning($"[Auga] Prefab '{prefab.name}' uses classic UI Text on {texts.Length} object(s); convert them to TextMeshPro: {string.Join(", ", paths)}");
+            }
+            if (offenders > 0)
+                Debug.LogWarning($"[Auga] {offenders} bundled prefab(s) still use classic UI Text (see the warnings above).");
         }
 
         private static void RemoveSelectSfx(params GameObject[] prefabs)

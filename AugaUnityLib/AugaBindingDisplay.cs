@@ -1,3 +1,4 @@
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,15 +8,15 @@ namespace AugaUnity
     {
         public string AutomaticKeyName;
 
-        public Text KeybindText;
+        public TMP_Text KeybindText;
         public GameObject KeybindBox;
-        public Text LongKeybindText;
+        public TMP_Text LongKeybindText;
         public GameObject LongKeybindBox;
         public GameObject Mouse1;
         public GameObject Mouse2;
         public GameObject Mouse3;
         public GameObject MouseX;
-        public Text MouseXText;
+        public TMP_Text MouseXText;
 
         public void Update()
         {

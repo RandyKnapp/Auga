@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,7 @@ namespace AugaUnity
 {
     public class SelectedCharacterInfo : MonoBehaviour
     {
-        public Text TextBox;
+        public TMP_Text TextBox;
 
         private string _currentProfile;
         private readonly StringBuilder _sb = new StringBuilder();

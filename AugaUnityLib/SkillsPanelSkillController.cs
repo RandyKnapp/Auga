@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -9,8 +10,8 @@ namespace AugaUnity
         public Image Icon;
         public Image ProgressBarLevel;
         public Image ProgressBarAccumulator;
-        public Text NameText;
-        public Text LevelText;
+        public TMP_Text NameText;
+        public TMP_Text LevelText;
         public float StartFill;
         public float EndFill;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,8 +14,8 @@ namespace AugaUnity
         public Color HighlightColor2;
 
         public Stat PlayerStat;
-        public Text PrimaryText;
-        public Text SecondaryText;
+        public TMP_Text PrimaryText;
+        public TMP_Text SecondaryText;
 
         private string _highlightColor1;
         private string _highlightColor2;
@@ -22,8 +23,8 @@ namespace AugaUnity
         [UsedImplicitly]
         public virtual void Start()
         {
-            _highlightColor1 = ColorUtility.ToHtmlStringRGB(HighlightColor1);
-            _highlightColor2 = ColorUtility.ToHtmlStringRGB(HighlightColor2);
+            _highlightColor1 = "#" + ColorUtility.ToHtmlStringRGB(HighlightColor1);
+            _highlightColor2 = "#" + ColorUtility.ToHtmlStringRGB(HighlightColor2);
             Update();
         }
 

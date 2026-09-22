@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
 {
     public class MessageLogElement : MonoBehaviour
     {
-        public Text Timestamp;
-        public Text Message;
-        public Text Subtext;
+        public TMP_Text Timestamp;
+        public TMP_Text Message;
+        public TMP_Text Subtext;
 
         public void Setup(ILogData logData)
         {

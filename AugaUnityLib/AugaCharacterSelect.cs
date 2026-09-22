@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.PostProcessing;
@@ -108,7 +109,7 @@ namespace AugaUnity
         public RectTransform CharacterList;
         public RenderTexture RenderTexture;
         public GameObject SourceInfoPanel;
-        public Text SourceInfoContent;
+        public TMP_Text SourceInfoContent;
 
         private readonly List<CharacterSelectPortrait> _portraits = new List<CharacterSelectPortrait>();
         private bool _onFirstUpdate;
@@ -173,10 +174,10 @@ namespace AugaUnity
     public class CharacterSelectPortrait : MonoBehaviour
     {
         public RawImage Image;
-        public Text CharacterName;
+        public TMP_Text CharacterName;
         public Button Button;
         public GameObject Selected;
-        public Text StatsText;
+        public TMP_Text StatsText;
         public Image LocalSave;
         public Image LegacySave;
         public Image CloudSave;
