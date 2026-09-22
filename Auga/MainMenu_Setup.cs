@@ -1,4 +1,5 @@
 ﻿using AugaUnity;
+using System.Linq;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
@@ -78,7 +79,7 @@ namespace Auga
             ConvertMenuList(startup, startup.m_cinematicsMenuList != null ? startup.m_cinematicsMenuList.transform : startup.transform.Find("Menu/CinematicsMenuEntries"), template);
         }
 
-        private static void ConvertMenuList(FejdStartup startup, Transform menuList, Transform template)
+        internal static void ConvertMenuList(FejdStartup startup, Transform menuList, Transform template)
         {
             if (menuList == null)
                 return;
@@ -136,10 +137,20 @@ namespace Auga
                 newButton.interactable = old.interactable;
                 replacement.SetActive(old.gameObject.activeSelf);
 
-                // OnCinematics instantiates these templates per video and moves Back to the end of the list
-                if (startup.m_cinematicsEntry == old.gameObject) startup.m_cinematicsEntry = replacement;
-                if (startup.m_cinematicsEntryLocked == old.gameObject) startup.m_cinematicsEntryLocked = replacement;
-                if (startup.m_cinematicsBack == old.gameObject) startup.m_cinematicsBack = replacement;
+                // anything else the vanilla entry carried (the changelog news badge) comes along, as does the
+                // platform filter on the player log entry
+                foreach (var child in old.transform.Cast<Transform>().ToList())
+                {
+                    if (child.name == "Text" || child.name.EndsWith("Knot")) continue;
+                    child.SetParent(replacement.transform, false);
+                }
+                var platform = old.GetComponent<PlatformEnable>();
+                if (platform != null && replacement.GetComponent<PlatformEnable>() == null)
+                    replacement.AddComponent<PlatformEnable>().m_enabledPlatforms = platform.m_enabledPlatforms;
+
+                // FejdStartup keeps references to several entries (cinematics templates, the changelog / eula /
+                // player log buttons for gamepad navigation): point them at the replacements
+                RepointStartupFields(startup, old, replacement);
 
                 // FejdStartup.Awake collects the active buttons under MenuList right after this
                 old.gameObject.SetActive(false);
@@ -164,10 +175,28 @@ namespace Auga
             }
         }
 
+        private static void RepointStartupFields(FejdStartup startup, Button old, GameObject replacement)
+        {
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+            foreach (var field in typeof(FejdStartup).GetFields(flags))
+            {
+                if (field.IsStatic) continue;
+                var value = field.GetValue(startup);
+                if (value == null) continue;
+                if (field.FieldType == typeof(GameObject) && (GameObject)value == old.gameObject)
+                    field.SetValue(startup, replacement);
+                else if (typeof(Selectable).IsAssignableFrom(field.FieldType) && (Object)value == old)
+                    field.SetValue(startup, replacement.GetComponent<Button>());
+                else if (typeof(Transform).IsAssignableFrom(field.FieldType) && (Object)value == old.transform)
+                    field.SetValue(startup, replacement.transform);
+            }
+        }
+
         public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
             ReplaceMainMenuButtons(__instance);
+            MainMenuExtras.Setup(__instance);
 
             //var originalChangeLogAsset = __instance.GetComponentInChildren<ChangeLog>(true).m_changeLog;
 

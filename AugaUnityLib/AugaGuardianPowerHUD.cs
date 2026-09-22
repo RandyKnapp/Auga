@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -7,8 +8,8 @@ namespace AugaUnity
     {
         public GameObject Root;
         public Image Icon;
-        public Text Name;
-        public Text Cooldown;
+        public TMP_Text Name;
+        public TMP_Text Cooldown;
 
         public void OnEnable()
         {

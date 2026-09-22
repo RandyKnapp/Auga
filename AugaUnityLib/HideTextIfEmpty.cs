@@ -1,16 +1,17 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
 {
-    [RequireComponent(typeof(Text))]
+    [RequireComponent(typeof(TextMeshProUGUI))]
     public class HideTextIfEmpty : MonoBehaviour
     {
-        private Text _text;
+        private TMP_Text _text;
 
         public void OnEnable()
         {
-            _text = GetComponent<Text>();
+            _text = GetComponent<TMP_Text>();
             HideIfEmpty();
         }
 

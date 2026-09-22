@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
@@ -8,7 +9,7 @@ namespace AugaUnity
         public GameObject Enabled;
         public GameObject Disabled;
         public GameObject Inactive;
-        public Text PleaseWaitText;
+        public TMP_Text PleaseWaitText;
 
         public void Awake()
         {

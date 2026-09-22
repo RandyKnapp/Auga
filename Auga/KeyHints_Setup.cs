@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using AugaUnity;
 using TMPro;
 using UnityEngine;
@@ -100,7 +100,7 @@ namespace Auga
                     continue;
                 if (display.GetComponents<AugaBindingDisplay>().Length != 1)
                     continue;
-                if (display.transform.Find("Label")?.GetComponent<Text>() == null)
+                if (display.transform.Find("Label")?.GetComponent<TMP_Text>() == null)
                     continue;
                 return display;
             }
@@ -182,7 +182,7 @@ namespace Auga
             var display = row.GetComponent<AugaBindingDisplay>();
             display.AutomaticKeyName = string.Empty;
             var slot = display.LongKeybindBox.transform.parent;
-            var label = row.transform.Find("Label")?.GetComponent<Text>() ?? row.GetComponentInChildren<Text>(true);
+            var label = row.transform.Find("Label")?.GetComponent<TMP_Text>() ?? row.GetComponentInChildren<TMP_Text>(true);
 
             if (units.Count == 0)
             {
@@ -229,7 +229,8 @@ namespace Auga
                 var labelRect = label.rectTransform;
                 labelRect.anchoredPosition = new Vector2(labelOffset, labelRect.anchoredPosition.y);
                 labelRect.sizeDelta = new Vector2(-labelOffset, labelRect.sizeDelta.y);
-                label.horizontalOverflow = HorizontalWrapMode.Overflow;
+                label.textWrappingMode = TextWrappingModes.NoWrap;
+                label.overflowMode = TextOverflowModes.Overflow;
                 label.text = string.Join(" ", labels);
                 Localization.instance.Localize(label.transform); // caches the tokens for language changes
                 // the prefab's AlwaysUpper component upper-cases the label later; measure what will be shown
@@ -361,11 +362,11 @@ namespace Auga
         }
 
         /// <summary>A "+" between two keys, styled like the row's label (a copy of it keeps font, outline and shadow).</summary>
-        private static void AddSeparator(Transform row, Text style, string text, float x, float width)
+        private static void AddSeparator(Transform row, TMP_Text style, string text, float x, float width)
         {
             var go = style != null
                 ? Object.Instantiate(style.gameObject, row, false)
-                : new GameObject("Separator", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+                : new GameObject("Separator", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
             go.name = "Separator";
             go.SetActive(true);
             var rect = (RectTransform)go.transform;
@@ -373,9 +374,10 @@ namespace Auga
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(x, 0f);
             rect.sizeDelta = new Vector2(width, RowHeight);
-            var separator = go.GetComponent<Text>();
-            separator.alignment = TextAnchor.MiddleCenter;
-            separator.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var separator = go.GetComponent<TMP_Text>();
+            separator.alignment = TextAlignmentOptions.Center;
+            separator.textWrappingMode = TextWrappingModes.NoWrap;
+            separator.overflowMode = TextOverflowModes.Overflow;
             separator.raycastTarget = false;
             separator.text = text;
         }

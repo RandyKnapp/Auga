@@ -13,7 +13,7 @@ namespace AugaUnity
         public Button leftPageArrow;
         public Button rightPageArrow;
         public GameObject buildMenu;
-        public Text CategoryTitle;
+        public TMP_Text CategoryTitle;
         public HorizontalLayoutGroup TabLayoutGroup;
         public ContentSizeFitter TabContentFitter;
         public Hud hud;
