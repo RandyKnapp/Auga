@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Auga.Utilities;
+using GUIFramework;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
@@ -174,6 +175,7 @@ namespace Auga
             Guard("user agreement", () => SetupEula(startup));
             Guard("credits", () => SetupCredits(startup));
             Guard("character select", () => SetupCharacterSelect(startup));
+            Guard("new character", () => SetupNewCharacter(startup));
             Guard("manage saves", () => SetupManageSaves(startup));
         }
 
@@ -306,10 +308,11 @@ namespace Auga
             var vanilla = startup.m_selectCharacterPanel;
             if (vanilla == null)
                 return;
-            var template = Auga.Assets.MainMenuPrefab != null ? Auga.Assets.MainMenuPrefab.transform.Find("CharacterSelection/SelectCharacter") : null;
+            var template = Auga.Assets.SelectCharacterPrefab != null ? Auga.Assets.SelectCharacterPrefab.transform
+                : Auga.Assets.MainMenuPrefab != null ? Auga.Assets.MainMenuPrefab.transform.Find("CharacterSelection/SelectCharacter") : null;
             if (template == null)
             {
-                Auga.LogWarning("MainMenu prefab has no CharacterSelection/SelectCharacter; the character selection stays vanilla.");
+                Auga.LogWarning("The bundle has no SelectCharacter prefab; the character selection stays vanilla.");
                 return;
             }
 
@@ -322,21 +325,7 @@ namespace Auga
             var missing = new List<string>();
 
             Button VanillaButton(string path) => v.Find(path)?.GetComponent<Button>();
-            Button Wire(string augaPath, Button source, string what)
-            {
-                var button = a.Find(augaPath)?.GetComponent<Button>();
-                if (button == null) { missing.Add(what + ": the Auga prefab has no " + augaPath); return null; }
-                if (source == null) { missing.Add(what + ": no vanilla button to take the click handler from"); return button; }
-                button.onClick = source.onClick;
-                button.interactable = source.interactable;
-                CopyLabel(source.transform.Find("Text")?.GetComponent<TMP_Text>(), button.transform.Find("Label")?.GetComponent<TMP_Text>());
-                return button;
-            }
-            void CopyLabel(TMP_Text source, TMP_Text target)
-            {
-                if (source == null || target == null) return;
-                target.text = AugaPanelRestyler.RawText(source);   // the token; FejdStartup localizes the screen after Awake
-            }
+            Button Wire(string augaPath, Button source, string what) => WireButton(a, augaPath, source, what, missing);
 
             var start = Wire("Panel/Start", startup.m_csStartButton, "Start");
             var newButton = Wire("Panel/Inset/NewButton", startup.m_csNewButton, "New");
@@ -517,6 +506,133 @@ namespace Auga
             // gone right away: the restyle that follows must not see (and replace) the vanilla tab buttons
             foreach (var go in doomed)
                 Object.DestroyImmediate(go);
+        }
+
+        /// <summary>
+        /// The Auga button at <paramref name="augaPath"/> takes over a vanilla button: its click handlers, interactable
+        /// state and label token (FejdStartup localizes the screen after Awake).
+        /// </summary>
+        private static Button WireButton(Transform auga, string augaPath, Button source, string what, List<string> missing)
+        {
+            var button = auga.Find(augaPath)?.GetComponent<Button>();
+            if (button == null) { missing.Add(what + ": the Auga prefab has no " + augaPath); return null; }
+            if (source == null) { missing.Add(what + ": no vanilla button to take the click handler from"); return button; }
+            button.onClick = source.onClick;
+            button.interactable = source.interactable;
+            CopyLabel(source.transform.Find("Text")?.GetComponent<TMP_Text>(), button.transform.Find("Label")?.GetComponent<TMP_Text>());
+            return button;
+        }
+
+        private static void CopyLabel(TMP_Text source, TMP_Text target)
+        {
+            if (source == null || target == null) return;
+            target.text = AugaPanelRestyler.RawText(source);   // the token; FejdStartup localizes the screen after Awake
+        }
+
+        /// <summary>
+        /// Auga's new character panel (name, sex toggles, colour sliders and a portrait grid for hair and beard)
+        /// replaces the vanilla one. FejdStartup keeps driving it: the name field, Done / Cancel and the "name exists"
+        /// label are re-pointed and the vanilla click handlers move over. Its PlayerCustomizaton gets what only the
+        /// vanilla scene holds (the "no hair" / "no beard" items) and a dummy for the labels Auga does not show.
+        /// </summary>
+        private static void SetupNewCharacter(FejdStartup startup)
+        {
+            var vanilla = startup.m_newCharacterPanel;
+            if (vanilla == null)
+                return;
+            var template = Auga.Assets.NewCharacterPanelPrefab != null ? Auga.Assets.NewCharacterPanelPrefab.transform
+                : Auga.Assets.MainMenuPrefab != null ? Auga.Assets.MainMenuPrefab.transform.Find("CharacterSelection/NewCharacterPanel") : null;
+            if (template == null)
+            {
+                Auga.LogWarning("The bundle has no NewCharacterPanel prefab; the new character screen stays vanilla.");
+                return;
+            }
+
+            var panel = Object.Instantiate(template.gameObject, vanilla.transform.parent, false);
+            panel.name = vanilla.name;
+            panel.transform.SetSiblingIndex(vanilla.transform.GetSiblingIndex());
+            panel.SetActive(vanilla.activeSelf);
+            var a = panel.transform;
+            var missing = new List<string>();
+
+            var done = WireButton(a, "Panel/Done", startup.m_csNewCharacterDone, "Done", missing);
+            var cancel = WireButton(a, "Panel/Cancel", startup.m_csNewCharacterCancel, "Cancel", missing);
+            if (done != null) startup.m_csNewCharacterDone = done;
+            if (cancel != null) startup.m_csNewCharacterCancel = cancel;
+
+            var name = a.Find("Panel/Content/CharacterName")?.GetComponent<GuiInputField>();
+            if (name != null)
+            {
+                var old = startup.m_csNewCharacterName;
+                if (old != null)
+                {
+                    name.characterLimit = old.characterLimit;
+                    name.characterValidation = old.characterValidation;
+                    name.contentType = old.contentType;
+                }
+                // Auga's field submits on Enter (GuiInputFieldSubmit); that is Done, once the name is long enough
+                var submit = name.GetComponent<GuiInputFieldSubmit>();
+                if (submit != null)
+                {
+                    submit.m_onSubmit = _ =>
+                    {
+                        var button = startup.m_csNewCharacterDone;
+                        if (button != null && button.interactable && button.gameObject.activeInHierarchy)
+                            button.onClick.Invoke();
+                    };
+                }
+                startup.m_csNewCharacterName = name;
+            }
+            else missing.Add("Panel/Content/CharacterName (GuiInputField)");
+
+            var error = a.Find("Panel/Content/NameExistsWarning");
+            if (error != null)
+            {
+                error.gameObject.SetActive(false);
+                startup.m_newCharacterError = error.gameObject;
+            }
+            else missing.Add("Panel/Content/NameExistsWarning");
+
+            var custom = panel.GetComponent<PlayerCustomizaton>();
+            var vanillaCustom = vanilla.GetComponent<PlayerCustomizaton>();
+            if (custom != null)
+            {
+                if (vanillaCustom != null)
+                {
+                    custom.m_noHair = vanillaCustom.m_noHair;
+                    custom.m_noBeard = vanillaCustom.m_noBeard;
+                    custom.m_hairToolTier = vanillaCustom.m_hairToolTier;
+                }
+                else missing.Add("vanilla PlayerCustomizaton (the no-hair / no-beard items)");
+                // vanilla names the current hair and beard in labels and toggles a beard panel; Auga's portrait grid
+                // shows the selection itself, so those writes go to the inactive dummy
+                var dummy = a.Find("Panel/DummyObjects/Dummy") as RectTransform;
+                var dummyText = dummy != null ? dummy.GetComponent<TMP_Text>() : null;
+                if (custom.m_selectedHair == null) custom.m_selectedHair = dummyText;
+                if (custom.m_selectedBeard == null) custom.m_selectedBeard = dummyText;
+                if (custom.m_beardPanel == null) custom.m_beardPanel = dummy;
+                if (custom.m_selectedHair == null || custom.m_selectedBeard == null || custom.m_beardPanel == null)
+                    missing.Add("a dummy for PlayerCustomizaton's hair / beard labels");
+                if (custom.m_skinHue == null) missing.Add("PlayerCustomizaton.m_skinHue");
+                if (custom.m_hairTone == null) missing.Add("PlayerCustomizaton.m_hairTone");
+                if (custom.m_hairLevel == null) missing.Add("PlayerCustomizaton.m_hairLevel");
+                if (custom.m_maleToggle == null || custom.m_femaleToggle == null) missing.Add("PlayerCustomizaton sex toggles");
+            }
+            else missing.Add("PlayerCustomizaton component");
+
+            var portraits = panel.GetComponentInChildren<CharacterPortraitsController>(true);
+            if (portraits == null) missing.Add("CharacterPortraitsController");
+            else
+            {
+                if (portraits.PortraitPrefab == null) missing.Add("CharacterPortraitsController.PortraitPrefab");
+                if (portraits.RenderTexture == null) missing.Add("CharacterPortraitsController.RenderTexture");
+            }
+
+            vanilla.SetActive(false);
+            Object.Destroy(vanilla);
+            startup.m_newCharacterPanel = panel;
+            if (missing.Count > 0)
+                Debug.LogWarning("[Auga] New character: " + string.Join("; ", missing));
         }
 
         /// <summary>The credits: Auga fonts and colours, a medium Auga button for Back; layout and background stay vanilla.</summary>
