@@ -20,7 +20,7 @@ namespace AugaAutoStart
     //   AUGA_TEST_DUMP       "1" to dump the vanilla UI hierarchies (before any Awake patch runs)
     //   AUGA_TEST_ROWS       also screenshot the inventory with this many player rows and the container panel shown
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
-    //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the manage saves dialog and the remove dialog, then quit
+    //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the new character screen, the manage saves dialog and the remove dialog, then quit
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
     {
@@ -140,6 +140,20 @@ namespace AugaAutoStart
             }
         }
 
+        /// <summary>Logs the average frame rate over two seconds of real time.</summary>
+        private static IEnumerator SampleFrameRate(string what)
+        {
+            var frames = 0;
+            var start = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - start < 2f)
+            {
+                frames++;
+                yield return null;
+            }
+            var seconds = Time.realtimeSinceStartup - start;
+            Debug.Log($"[AugaAutoStart] frame rate on {what}: {frames / seconds:F1} fps ({frames} frames in {seconds:F2}s)");
+        }
+
         public static void Shot(string name)
         {
             var path = Path.Combine(ShotDir, name + ".png");
@@ -162,13 +176,39 @@ namespace AugaAutoStart
                 Debug.Log("[AugaAutoStart] OnStartGame (character select only)");
                 Try(() => fejd.OnStartGame());
                 yield return new WaitForSecondsRealtime(5f); // the portrait booth photographs every profile first
+                yield return SampleFrameRate("character select");
                 Shot("01_characterselect");
                 Try(() => LogRects(fejd.m_selectCharacterPanel.transform, "Panel"));
                 yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] OnCharacterNew");
+                Try(() => fejd.OnCharacterNew());
+                yield return new WaitForSecondsRealtime(3f); // the portrait grid renders over a few frames
+                yield return SampleFrameRate("new character (hair)");
+                Shot("01e_newcharacter_hair");
+                Try(() => LogRects(fejd.m_newCharacterPanel.transform, "Panel"));
+                Try(() => fejd.m_csNewCharacterName.text = "Auga Probe");
+                Try(() =>
+                {
+                    var female = fejd.m_newCharacterPanel.transform.Find("Panel/Content/ToggleGroup/Toggle_Female")?.GetComponent<Toggle>();
+                    if (female != null) female.isOn = true;
+                });
+                Try(() => fejd.m_newCharacterError.SetActive(true)); // the "name exists" label, for its look only
+                yield return new WaitForSecondsRealtime(1.5f);
+                Shot("01f_newcharacter_female_named");
+                yield return new WaitForSecondsRealtime(0.5f); // the capture happens at the end of the frame
+                Try(() => fejd.m_newCharacterError.SetActive(false));
+                Try(() => fejd.m_newCharacterPanel.GetComponentInChildren<TabHandler>(true).m_tabs[1].m_button.onClick.Invoke());
+                yield return new WaitForSecondsRealtime(2f);
+                yield return SampleFrameRate("new character (beard)");
+                Shot("01g_newcharacter_beard");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => fejd.OnNewCharacterCancel());
+                yield return new WaitForSecondsRealtime(1.5f);
                 Debug.Log("[AugaAutoStart] OnManageSaves (characters)");
                 Try(() => fejd.OnManageSaves(1));
                 yield return WaitForSaveList(fejd);
                 Shot("01c_managesaves_characters");
+                yield return new WaitForSecondsRealtime(0.5f); // the capture happens at the end of the frame
                 Try(() => LogRects(fejd.m_manageSavesMenu.transform, "Panel"));
                 Try(() => LogRects(fejd.m_manageSavesMenu.transform, "SaveList"));
                 // the worlds tab, through its button so the TabHandler switches too

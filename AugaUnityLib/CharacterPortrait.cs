@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -16,6 +17,14 @@ namespace AugaUnity
         Beard
     }
 
+    /// <summary>
+    /// The grid of hair (or beard) portraits on the new character screen. Each portrait is a photo of the preview
+    /// player wearing one item, taken with a private camera. Photos are cached: they are retaken only when the
+    /// model itself changes (body, skin, hair colour, the item in the other slot), and then a few per frame
+    /// (<see cref="RendersPerFrame"/>) round-robin until every portrait is current again. Photos are taken at the
+    /// end of the frame, once the model has settled for a few frames: a body mesh swapped this frame has no valid
+    /// skinning data yet for an extra camera render (Unity then draws nothing and logs a mesh data mismatch).
+    /// </summary>
     public class CharacterPortraitsController : MonoBehaviour
     {
         public CharacterPortrait PortraitPrefab;
@@ -23,14 +32,25 @@ namespace AugaUnity
         public RenderTexture RenderTexture;
         public PortraitMode Mode;
         public PostProcessingProfile Profile;
+        [Tooltip("How many out-of-date portraits are re-rendered per frame")]
+        public int RendersPerFrame = 5;
+        [Tooltip("Frames the model gets to settle after a change before its portraits are retaken")]
+        public int SettleFrames = 5;
 
         private Camera _camera;
         private Transform _lookTarget;
+        private GameObject _playerInstance;
         private PortraitMode _currentMode;
         private const float FOV = 11;
         private readonly Vector3 _offset = new Vector3(0, -0.05f, 0);
         private PlayerCustomizaton _playerCustomizaton;
         private readonly List<CharacterPortrait> _characterPortraits = new List<CharacterPortrait>();
+        private readonly List<bool> _stale = new List<bool>();
+        private int _staleCount;
+        private int _cursor;
+        private int _lookChangedFrame = -1;
+        private Coroutine _renderLoop;
+        private (int model, Vector3 skin, Vector3 hair, int otherItem) _renderedLook;
         private readonly Renderer[] _noRenderers = Array.Empty<Renderer>();
 
         [UsedImplicitly]
@@ -42,6 +62,20 @@ namespace AugaUnity
             _camera.name = "AugaCamera NewCharPortraits";
 
             _currentMode = Mode;
+        }
+
+        [UsedImplicitly]
+        public void OnEnable()
+        {
+            _renderLoop = StartCoroutine(RenderLoop());
+        }
+
+        [UsedImplicitly]
+        public void OnDisable()
+        {
+            if (_renderLoop != null)
+                StopCoroutine(_renderLoop);
+            _renderLoop = null;
         }
 
         public void SwitchToHairMode()
@@ -78,6 +112,8 @@ namespace AugaUnity
                 Destroy(characterPortrait.gameObject);
             }
             _characterPortraits.Clear();
+            _stale.Clear();
+            _cursor = 0;
 
             var count = Mode == PortraitMode.Hair ? _playerCustomizaton.m_hairs.Count : _playerCustomizaton.m_beards.Count;
             for (var i = 0; i < count; i++)
@@ -87,7 +123,19 @@ namespace AugaUnity
                 characterPortrait.Button.onClick.AddListener(() => OnPortraitClick(index));
                 characterPortrait.Setup(_playerCustomizaton, Mode, index);
                 _characterPortraits.Add(characterPortrait);
+                _stale.Add(true);
             }
+            _staleCount = count;
+            _lookChangedFrame = Time.frameCount;
+        }
+
+        /// <summary>Every portrait is retaken (a few per frame) once the model has settled.</summary>
+        public void MarkAllStale()
+        {
+            for (var i = 0; i < _stale.Count; i++)
+                _stale[i] = true;
+            _staleCount = _stale.Count;
+            _lookChangedFrame = Time.frameCount;
         }
 
         public void OnPortraitClick(int index)
@@ -104,20 +152,68 @@ namespace AugaUnity
             }
         }
 
-        public void Update()
+        // LateUpdate: after PlayerCustomizaton has pushed the sliders into the model; the photos follow at the end of the frame
+        public void LateUpdate()
         {
-            var newLookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
-            if (_characterPortraits.Count == 0 || _lookTarget != newLookTarget || _currentMode != Mode)
+            var startup = FejdStartup.instance;
+            var playerInstance = startup != null ? startup.m_playerInstance : null;
+            if (playerInstance == null || _playerCustomizaton == null || _playerCustomizaton.m_hairs == null)
+                return;
+
+            if (playerInstance != _playerInstance)
+            {
+                _playerInstance = playerInstance;
+                _lookTarget = Utils.FindChild(playerInstance.transform, "Head");
+                InitializeChraracterPortraits();
+            }
+            else if (_characterPortraits.Count == 0 || _currentMode != Mode)
             {
                 InitializeChraracterPortraits();
             }
-
             _currentMode = Mode;
-            _lookTarget = newLookTarget;
-            _camera.transform.LookAt(_lookTarget.position + _offset);
 
             var player = _playerCustomizaton.GetPlayer();
+            if (player == null || _lookTarget == null)
+                return;
             var visEquip = player.m_visEquipment;
+
+            // the part of the model every portrait shares: a change there dates all of them
+            var look = (visEquip.m_modelIndex, visEquip.m_skinColor, visEquip.m_hairColor,
+                Mode == PortraitMode.Hair ? visEquip.m_currentBeardItemHash : visEquip.m_currentHairItemHash);
+            if (!look.Equals(_renderedLook))
+            {
+                _renderedLook = look;
+                MarkAllStale();
+            }
+
+            var currentIndex = Mode == PortraitMode.Hair ? _playerCustomizaton.GetHairIndex() : _playerCustomizaton.GetBeardIndex();
+            for (var index = 0; index < _characterPortraits.Count; index++)
+            {
+                _characterPortraits[index].Selected.SetActive(index == currentIndex);
+            }
+        }
+
+        private IEnumerator RenderLoop()
+        {
+            var endOfFrame = new WaitForEndOfFrame();
+            while (true)
+            {
+                yield return endOfFrame;
+                if (_staleCount == 0 || _lookTarget == null || Time.frameCount - _lookChangedFrame < Mathf.Max(0, SettleFrames))
+                    continue;
+                var player = _playerCustomizaton != null ? _playerCustomizaton.GetPlayer() : null;
+                if (player == null)
+                    continue;
+                RenderStalePortraits(player.m_visEquipment);
+            }
+        }
+
+        /// <summary>Retakes up to <see cref="RendersPerFrame"/> stale portraits, continuing round-robin where the last frame stopped.</summary>
+        private void RenderStalePortraits(VisEquipment visEquip)
+        {
+            _camera.transform.LookAt(_lookTarget.position + _offset);
+
+            // the item being browsed is what each portrait adds itself; the model's own copy of it stays out of the photos
             var itemInstance = Mode == PortraitMode.Hair ? visEquip.m_hairItemInstance : visEquip.m_beardItemInstance;
             var renderers = itemInstance?.GetComponentsInChildren<Renderer>() ?? _noRenderers;
             foreach (var renderer in renderers)
@@ -125,12 +221,18 @@ namespace AugaUnity
                 renderer.forceRenderingOff = true;
             }
 
-            var currentIndex = Mode == PortraitMode.Hair ? _playerCustomizaton.GetHairIndex() : _playerCustomizaton.GetBeardIndex();
-            for (var index = 0; index < _characterPortraits.Count; index++)
+            var count = _characterPortraits.Count;
+            var budget = Mathf.Max(1, RendersPerFrame);
+            for (var step = 0; step < count && budget > 0; step++)
             {
-                var characterPortrait = _characterPortraits[index];
-                characterPortrait.Selected.SetActive(index == currentIndex);
-                characterPortrait.DoRender(visEquip, _camera);
+                var index = (_cursor + step) % count;
+                if (!_stale[index])
+                    continue;
+                _characterPortraits[index].DoRender(visEquip, _camera);
+                _stale[index] = false;
+                _staleCount--;
+                budget--;
+                _cursor = (index + 1) % count;
             }
 
             foreach (var renderer in renderers)
@@ -160,6 +262,10 @@ namespace AugaUnity
 
             _attachedItem = visEquip.AttachItem(itemHash, 0, visEquip.m_helmet);
             _renderers = _attachedItem != null ? _attachedItem.GetComponentsInChildren<Renderer>().ToList() : new List<Renderer>();
+            foreach (var renderer in _renderers)
+            {
+                renderer.forceRenderingOff = true;   // only visible while its own photo is taken
+            }
         }
 
         public void DoRender(VisEquipment visEquip, Camera camera)
