@@ -209,11 +209,15 @@ namespace Auga
                 __instance.m_containerGrid.m_onRightClick = null;
 
                 // The vanilla container panel now lives inside root/Player; Auga replaces Player and Container as
-                // siblings under root, so move the vanilla container out first (it is replaced below anyway).
+                // siblings under root, so move the vanilla container out first (it is replaced below anyway). It
+                // goes right after Player: SetParent appends it as the last child, behind the split dialog, and
+                // Replace keeps the sibling index it finds, so the split stack dialog opened underneath the container.
+                var vanillaPlayer = __instance.transform.Find("root/Player");
                 var vanillaContainer = __instance.transform.Find("root/Player/Container");
                 if (vanillaContainer != null)
                 {
                     vanillaContainer.SetParent(__instance.transform.Find("root"), false);
+                    vanillaContainer.SetSiblingIndex(vanillaPlayer.GetSiblingIndex() + 1);
                 }
 
                 var playerInventory = __instance.Replace("root/Player", Auga.Assets.InventoryScreen, "root/Player");
@@ -487,11 +491,11 @@ namespace Auga
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.SetupRequirementList))]
         public static class InventoryGui_SetupRequirementList_Patch
         {
-            public static void Postfix(InventoryGui __instance, int quality, Player player, bool allowedQuality)
+            public static void Postfix(InventoryGui __instance, int quality, Player player, bool allowedQuality, int amount)
             {
                 if (CraftingPanel != null)
                 {
-                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, quality, player, allowedQuality);
+                    CraftingPanel.PostSetupRequirementList(__instance.m_selectedRecipe.Recipe, __instance.m_selectedRecipe.ItemData, quality, player, allowedQuality, amount);
                 }
             }
         }
