@@ -84,6 +84,7 @@ namespace AugaUnity
         public CompendiumItem CompendiumItemPrefab;
         public RectTransform DropsContainer;
         public List<BestiaryStatBlock> StatBlocks;
+        public AugaAchievementsPanel Achievements;
 
         protected readonly List<KeyValuePair<string, GameObject>> _bestiaryItems = new List<KeyValuePair<string, GameObject>>();
         protected int _selectedBestiaryIndex = -1;
@@ -152,6 +153,9 @@ namespace AugaUnity
         {
             if (Input.GetKeyDown(KeyCode.Escape) || ZInput.GetButtonDown("JoyMenu"))
             {
+                // the achievement details popup closes first, as on the vanilla screen
+                if (Achievements != null && Achievements.CloseDetailsIfOpen())
+                    return;
                 HideCompendium();
             }
         }

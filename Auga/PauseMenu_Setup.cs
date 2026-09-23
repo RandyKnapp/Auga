@@ -253,6 +253,7 @@ namespace Auga
                 var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
                 newMenu.CurrentPlayersPrefab = AugaPlayerListPrefab.Create(playerPrefab);
                 WireNewMenuFields(newMenu, __instance);
+                Compendium_Setup.SetupAchievements(newMenu.GetComponentInChildren<AugaCompendiumController>(true));
                 Object.Destroy(__instance.gameObject);
             }
 
@@ -388,8 +389,9 @@ namespace Auga
             [UsedImplicitly]
             public static void Postfix(Menu __instance)
             {
-                var compendium = __instance.GetComponent<AugaCompendiumController>();
-                if (compendium != null)
+                // the compendium is a child of the menu prefab, not a component on the menu itself
+                var compendium = __instance.GetComponentInChildren<AugaCompendiumController>(true);
+                if (compendium != null && compendium.gameObject.activeSelf)
                 {
                     compendium.HideCompendium();
                 }
