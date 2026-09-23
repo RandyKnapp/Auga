@@ -101,6 +101,8 @@ namespace Auga
             minimap.m_windMarker = (RectTransform)newMiniMap.Find("WindIndicator");
             newMiniMap.gameObject.AddComponent<MovableHudElement>().Init("Minimap", TextAnchor.UpperRight, -40, -40);
 
+            // the ping selector's art, as vanilla's Awake resolved it (platform variants), before the vanilla map goes
+            var pingSprite = minimap.m_pingImageObject != null && minimap.m_pingImageObject.sprite != null ? minimap.m_pingImageObject.sprite : minimap.m_pingIcon;
             var newMap = Hud.instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
             minimap.m_largeRoot = newMap.gameObject;
             minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
@@ -126,6 +128,7 @@ namespace Auga
             minimap.m_selectedIcons[Minimap.PinType.Icon2] = minimap.m_selectedIcon2;
             minimap.m_selectedIcons[Minimap.PinType.Icon3] = minimap.m_selectedIcon3;
             minimap.m_selectedIcons[Minimap.PinType.Icon4] = minimap.m_selectedIcon4;
+            SetupPingIcon(minimap, newMap, pingSprite);
             minimap.SelectIcon(Minimap.PinType.Icon0);
             minimap.m_nameInput = newMap.Find("NameField").GetComponent<GuiInputField>();
 
@@ -168,6 +171,7 @@ namespace Auga
             SetRightClickListener(newMap.transform, "IconPanel/Icon4", minimap.OnAltPressedIcon4);
             SetRightClickListener(newMap.transform, "IconBoss", minimap.OnAltPressedIconBoss);
             SetRightClickListener(newMap.transform, "IconDeath", minimap.OnAltPressedIconDeath);
+            SetButtonListener(newMap.transform, "IconPing", minimap.OnPressedPingIcon);
 
             var mapInputHandler = minimap.m_mapImageLarge.GetComponent<UIInputHandler>();
             mapInputHandler.m_onRightClick += _ => minimap.RemovePinUnderPointer();
@@ -179,9 +183,63 @@ namespace Auga
             minimap.Reset();
         }
 
+        /// <summary>
+        /// The ping pin selector vanilla added to the large map: with it selected a double tap on the map sends a
+        /// ping instead of placing a pin. Vanilla shows it only while touch input is active (its touch ping panel)
+        /// and drops back to the first icon when touch goes away; SelectIcon flags its image on every selection, so
+        /// the Auga map needs a live one. The prefab's IconPing button is used when it has one; otherwise the death
+        /// button is cloned below the boss and death buttons and given vanilla's ping art.
+        /// </summary>
+        private static void SetupPingIcon(Minimap minimap, Transform map, Sprite pingSprite)
+        {
+            var iconPing = map.Find("IconPing");
+            if (iconPing == null)
+            {
+                var template = map.Find("IconDeath");
+                var boss = map.Find("IconBoss") as RectTransform;
+                if (template == null)
+                    return;
+                iconPing = Object.Instantiate(template, map, false);
+                iconPing.name = "IconPing";
+                var rect = (RectTransform)iconPing;
+                var templateRect = (RectTransform)template;
+                var step = boss != null ? templateRect.anchoredPosition - boss.anchoredPosition : new Vector2(0f, -48f);
+                rect.anchoredPosition = templateRect.anchoredPosition + step;
+                var mouseClick = iconPing.GetComponent<MouseClick>();
+                if (mouseClick != null)
+                    mouseClick.m_rightClick = new UnityEvent();
+            }
+            var icon = iconPing.Find("Icon")?.GetComponent<Image>();
+            if (icon != null && pingSprite != null)
+                icon.sprite = pingSprite;
+            minimap.m_pingImageObject = icon;
+            minimap.m_selectedIconPing = iconPing.Find("Selected")?.GetComponent<Image>();
+            minimap.m_touchPingPanel = iconPing;
+            iconPing.gameObject.SetActive(ZInput.IsTouchActive());
+        }
+
+        /// <summary>
+        /// Vanilla greys the button behind a hidden pin type; Auga's map buttons carry the pin art in an Icon
+        /// child, which follows the same state so the filter is readable.
+        /// </summary>
+        [HarmonyPatch(nameof(Minimap.ToggleIconFilter))]
+        [HarmonyPostfix]
+        public static void Minimap_ToggleIconFilter_Postfix(Minimap __instance)
+        {
+            foreach (var pair in __instance.m_selectedIcons)
+            {
+                if (pair.Value == null) continue;
+                var icon = pair.Value.transform.parent.Find("Icon")?.GetComponent<Image>();
+                if (icon != null)
+                    icon.color = __instance.m_visibleIconTypes[(int)pair.Key] ? Color.white : Color.gray;
+            }
+        }
+
         private static void SetButtonListener(Transform root, string childName, UnityAction listener)
         {
-            var button = root.Find(childName).GetComponent<Button>();
+            var button = root.Find(childName)?.GetComponent<Button>();
+            if (button == null)
+                return;
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(listener);
         }
