@@ -400,8 +400,10 @@ namespace Auga
                     instance.m_pieceDescription.text = Localization.instance.Localize(piece.m_description);
                     instance.m_buildIcon.enabled = true;
                     instance.m_buildIcon.sprite = piece.m_icon;
+                    // the snapping icon only exists while alternative placement is active; without one the image
+                    // must go off (it used to keep its last sprite and stay visible for every piece)
                     Sprite snappingIconForPiece = instance.GetSnappingIconForPiece(piece);
-                    if (snappingIconForPiece != null)
+                    if (instance.m_snappingIcon != null)
                     {
                         instance.m_snappingIcon.sprite = snappingIconForPiece;
                         instance.m_snappingIcon.enabled = snappingIconForPiece != null && (piece.m_category == Piece.PieceCategory.BuildingWorkbench || piece.m_groundPiece || piece.m_waterPiece);
@@ -435,13 +437,13 @@ namespace Auga
                         craftingStation.ShowAreaMarker();
                         component1.color = Color.white;
                         component3.text = "";
-                        component3.color = Color.white;
+                        component3.color = AugaPanelRestyler.Brown2;
                     }
                     else
                     {
                         component1.color = Color.gray;
-                        component3.text = "None";
-                        component3.color = Mathf.Sin(Time.time * 10f) > 0.0 ? Color.red : Color.white;
+                        component3.text = Localization.instance.Localize("$menu_none");
+                        component3.color = Mathf.Sin(Time.time * 10f) > 0.0 ? Color.red : AugaPanelRestyler.Brown2;
                     }
                 }
 
@@ -644,11 +646,9 @@ namespace Auga
     [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild))]
     public static class Hud_UpdateBuild_Patch
     {
-        private static void Postfix(Hud __instance, Player player)
-        { 
-            MessageHud.instance.m_messageCenterText.gameObject.SetActive(!player.InPlaceMode());
-        }
-        
+        // The centre message used to be switched off while building (the old Auga build menu sat where it shows).
+        // The current menu does not, and the game reports snap point changes as centre messages, so it stays on.
+
         [UsedImplicitly]
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
