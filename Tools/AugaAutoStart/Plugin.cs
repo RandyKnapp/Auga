@@ -22,6 +22,7 @@ namespace AugaAutoStart
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
     //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the new character screen, the manage saves dialog and the remove dialog, then quit
     //   AUGA_TEST_STARTGAME  "1": screenshot the world list, the new world dialog, the server list and the add server dialog, then quit
+    //   AUGA_TEST_CROSSPLAY  "1": host the test world as a password-protected crossplay server (it gets a join code) and log the join code overlay's timeline
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
     {
@@ -49,8 +50,22 @@ namespace AugaAutoStart
                 }
                 Logger.LogInfo("hierarchy dumps enabled");
             }
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
+            {
+                // the join code overlay's timeline: every show / hide of it and of the pause menu, with the time
+                var harmony = new Harmony("augatest.joincode");
+                harmony.Patch(AccessTools.Method(typeof(JoinCode), "Activate"), postfix: new HarmonyMethod(typeof(Plugin), nameof(LogJoinCodeActivate)));
+                harmony.Patch(AccessTools.Method(typeof(JoinCode), "Deactivate"), postfix: new HarmonyMethod(typeof(Plugin), nameof(LogJoinCodeDeactivate)));
+                harmony.Patch(AccessTools.Method(typeof(Menu), "Show"), postfix: new HarmonyMethod(typeof(Plugin), nameof(LogMenuShow)));
+                harmony.Patch(AccessTools.Method(typeof(Menu), "Hide"), postfix: new HarmonyMethod(typeof(Plugin), nameof(LogMenuHide)));
+            }
             Logger.LogInfo($"AugaAutoStart ready, screenshots -> {ShotDir}");
         }
+
+        public static void LogJoinCodeActivate(JoinCode __instance, bool firstSpawn) => Debug.Log($"[AugaAutoStart] t={Time.realtimeSinceStartup:F1}s JoinCode.Activate(firstSpawn={firstSpawn}) code='{__instance.m_joinCode}' root active={__instance.m_root.activeSelf}");
+        public static void LogJoinCodeDeactivate() => Debug.Log($"[AugaAutoStart] t={Time.realtimeSinceStartup:F1}s JoinCode.Deactivate");
+        public static void LogMenuShow() => Debug.Log($"[AugaAutoStart] t={Time.realtimeSinceStartup:F1}s Menu.Show");
+        public static void LogMenuHide() => Debug.Log($"[AugaAutoStart] t={Time.realtimeSinceStartup:F1}s Menu.Hide");
 
         // Runs before any other Awake prefix/postfix: writes the untouched prefab hierarchy of the instance.
         public static void DumpPrefix(object __instance)
@@ -402,6 +417,18 @@ namespace AugaAutoStart
                 Debug.Log($"[AugaAutoStart] world '{worldName}' after create: {fejd.m_world != null}");
                 if (fejd.m_world == null) { Quit("no world"); yield break; }
             }
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
+            {
+                // AUGA_TEST_CROSSPLAY=1: host the world as a password-protected crossplay server, which gives it a join code
+                Try(() =>
+                {
+                    fejd.m_openServerToggle.isOn = true;
+                    fejd.m_publicServerToggle.isOn = false;
+                    fejd.m_crossplayServerToggle.isOn = true;
+                    fejd.m_serverPassword.text = "augatest1";
+                });
+                yield return new WaitForSecondsRealtime(0.5f);
+            }
             Debug.Log("[AugaAutoStart] OnWorldStart");
             Try(() => fejd.OnWorldStart());
 
@@ -481,6 +508,19 @@ namespace AugaAutoStart
         private static IEnumerator Exercise()
         {
             Shot("10_hud");
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
+            {
+                // the join code overlay: shown on the first spawn, it must fade and hide itself within ten seconds
+                // the first-spawn show again, now that the lobby (and the code) exist: it must fade and hide itself
+                Try(() => JoinCode.Show(true));
+                for (var i = 0; i < 8; i++)
+                {
+                    Try(() => Debug.Log($"[AugaAutoStart] join code t={i * 3}s: code='{ZPlayFabMatchmaking.JoinCode}' instance={(JoinCode.m_instance != null)} root active={(JoinCode.m_instance != null && JoinCode.m_instance.m_root.activeInHierarchy)} inMenu={(JoinCode.m_instance != null && JoinCode.m_instance.m_inMenu)} visible={(JoinCode.m_instance != null ? JoinCode.m_instance.m_isVisible : -1f):F1} enabled={(JoinCode.m_instance != null && JoinCode.m_instance.isActiveAndEnabled)}"));
+                    if (i == 1) Shot("10d_joincode");
+                    yield return new WaitForSecondsRealtime(3f);
+                }
+                Shot("10e_joincode_later");
+            }
             DumpLive("Hud", Hud.instance);
             DumpLive("KeyHints", KeyHints.instance);
             DumpLive("Menu", Menu.instance);

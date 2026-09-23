@@ -401,7 +401,7 @@ namespace Auga
                 {
                     if (image.name != "selected") continue;
                     image.sprite = null;
-                    image.color = AugaPanelRestyler.LightBlue;
+                    image.color = AugaPanelRestyler.SelectionBlue;
                 }
             }
             // vanilla underlines its tabs with a thin strip; the Auga tab bar brings its own dividers
