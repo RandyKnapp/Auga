@@ -14,7 +14,7 @@ namespace AugaUnity
             if (player != null)
             {
                 var staggerPercentage = player.GetStaggerPercentage();
-                LeftBar.SetValue(staggerPercentage);
+                LeftBar?.SetValue(staggerPercentage);
 
                 Icon.enabled = true;
 

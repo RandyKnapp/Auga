@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Valheim.UI;
 using Object = UnityEngine.Object;
 
 namespace Auga
@@ -250,7 +251,7 @@ namespace Auga
                 var parent = __instance.transform.parent;
                 var playerPrefab = __instance.CurrentPlayersPrefab;
                 var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
-                newMenu.CurrentPlayersPrefab = playerPrefab;
+                newMenu.CurrentPlayersPrefab = AugaPlayerListPrefab.Create(playerPrefab);
                 WireNewMenuFields(newMenu, __instance);
                 Object.Destroy(__instance.gameObject);
             }
@@ -442,5 +443,103 @@ namespace Auga
             }
         }
     }
-}
 
+    /// <summary>
+    /// The join code overlay (top of the screen on the first spawn, and while the pause menu is open) is vanilla and
+    /// untouched by Auga; its show / hide moments go to the log so a session where it lingers can be traced.
+    /// </summary>
+    [HarmonyPatch]
+    public static class JoinCode_Trace_Patch
+    {
+        public static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(JoinCode), "Activate");
+            yield return AccessTools.Method(typeof(JoinCode), "Deactivate");
+        }
+
+        public static void Postfix(JoinCode __instance, System.Reflection.MethodBase __originalMethod)
+        {
+            Auga.Log($"join code {__originalMethod.Name} at {Time.realtimeSinceStartup:F1}s: shown={__instance.m_root.activeSelf} inMenu={__instance.m_inMenu} visibleFor={__instance.m_isVisible:F1}s code={(string.IsNullOrEmpty(__instance.m_joinCode) ? "none" : "set")}");
+        }
+    }
+
+    /// <summary>
+    /// The in-game player list (pause menu > Current Players) is vanilla's SessionPlayerList prefab. Auga's menu
+    /// instantiates a restyled copy of it instead: the copy is made once per game scene under an inactive holder
+    /// (nothing in it runs there), restyled in place and handed to the menu as its CurrentPlayersPrefab. The copy
+    /// carries the generic panel restyle for the window (background, title, Back button, scrollbar) and Auga
+    /// fonts, colours and the flat blue selection on the row template, which vanilla clones for every player. The
+    /// row's icon buttons (block / report / mute / kick) and every serialized reference stay as they are, so the
+    /// vanilla list logic keeps working. The holder is a plain scene object: it goes with the scene, and the next
+    /// Menu.Start builds a fresh copy from whatever prefab that scene loaded.
+    /// </summary>
+    public static class AugaPlayerListPrefab
+    {
+        private static GameObject _holder;
+
+        public static GameObject Create(GameObject vanillaPrefab)
+        {
+            if (vanillaPrefab == null)
+                return null;
+            if (_holder != null)
+                Object.Destroy(_holder);
+            _holder = new GameObject("AugaPlayerListPrefab");
+            _holder.SetActive(false);
+            var copy = Object.Instantiate(vanillaPrefab, _holder.transform, false);
+            copy.name = vanillaPrefab.name;
+            try
+            {
+                Restyle(copy);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Auga] Restyling the player list prefab failed: {e}");
+            }
+            return copy;
+        }
+
+        private static void Restyle(GameObject copy)
+        {
+            var panel = copy.transform.Find("panel");
+            if (panel == null)
+                return;
+            var list = copy.GetComponent<SessionPlayerList>();
+            var template = list != null && list._ownPlayer != null ? list._ownPlayer.transform : panel.Find("playerList/Viewport/Content/Player");
+
+            // vanilla's plank is the panel's own image; the restyler only hides backdrops that are children
+            var plank = panel.GetComponent<Image>();
+            if (plank != null && plank.sprite != null)
+                plank.enabled = false;
+            AugaPanelRestyler.Restyle(panel, new RestyleOptions
+            {
+                Titles = { "Settings_topic" },
+                DetectHeaders = false,
+                Skip = { "Player", "Misc" },
+            });
+
+            if (template == null)
+                return;
+            AugaPanelRestyler.Restyle(template, new RestyleOptions
+            {
+                ReplaceBackground = false,
+                ReplaceButtons = false,
+                ReplaceScrollbars = false,
+                DetectHeaders = false,
+            });
+            // the row: Auga's dark tone instead of vanilla's box art, the selected row Auga's flat blue highlight
+            // (as in the character list and the manage saves rows) instead of vanilla's frame
+            var background = template.Find("Background")?.GetComponent<Image>();
+            if (background != null)
+            {
+                background.sprite = null;
+                background.color = new Color(AugaPanelRestyler.Brown7.r, AugaPanelRestyler.Brown7.g, AugaPanelRestyler.Brown7.b, 0.5f);
+            }
+            var selection = template.Find("Background/Selection")?.GetComponent<Image>();
+            if (selection != null)
+            {
+                selection.sprite = null;
+                selection.color = AugaPanelRestyler.SelectionBlue;
+            }
+        }
+    }
+}

@@ -140,6 +140,20 @@ namespace Auga
             __instance.m_staggerProgress = newStaggerPanel.Find("staggerbar/RightBar/Background/FillMask/FillFast").GetComponent<GuiBar>();
             newStaggerPanel.gameObject.AddComponent<MovableHudElement>().Init("StaggerPanel", TextAnchor.LowerCenter, 0, 151);
 
+            // the adrenaline bar, as the stagger bar: the prefab's panel takes over the vanilla one; Hud's own update
+            // is replaced (see Hud_UpdateAdrenaline_Patch) because vanilla resizes and repositions the panel every frame
+            var newAdrenalinePanel = __instance.Replace("hudroot/adrenalinepanel", Auga.Assets.Hud);
+            if (newAdrenalinePanel != null)
+            {
+                __instance.m_adrenalineBarRoot = (RectTransform)newAdrenalinePanel;
+                __instance.m_adrenalineAnimator = newAdrenalinePanel.GetComponent<Animator>();
+                __instance.m_adrenalineBarFast = newAdrenalinePanel.Find("adrenalinebar/RightBar/Background/FillMask/FillFast")?.GetComponent<GuiBar>();
+                __instance.m_adrenalineBarSlow = newAdrenalinePanel.Find("adrenalinebar/RightBar/Background/FillMask/FillSlow")?.GetComponent<GuiBar>();
+                __instance.m_adrenalineText = newAdrenalinePanel.Find("adrenalinebar/RightBar/AdrenalineTextCenter")?.GetComponent<TMP_Text>();
+                newAdrenalinePanel.gameObject.AddComponent<MovableHudElement>().Init("AdrenalinePanel", TextAnchor.LowerCenter, 0, 126);
+                newAdrenalinePanel.gameObject.AddComponent<AugaAdrenalinePanel>().Setup();
+            }
+
             //Let's play here to see about changing the default Build HUD in a different way.
             var buildHud = __instance.m_buildHud;
             var dummy = new GameObject("dummyBuildHud", new[] { typeof(RectTransform) });
@@ -649,6 +663,100 @@ namespace Auga
                     yield return instruction;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Auga's adrenaline panel: the equipped trinket's icon, visibility through the panel's Animator when its
+    /// controller has a "Visible" bool (as the stagger bar) or through a fade until it does, and vanilla's lift above
+    /// the build / ship HUD applied to the inner bar (the panel itself belongs to its MovableHudElement).
+    /// </summary>
+    public class AugaAdrenalinePanel : MonoBehaviour
+    {
+        private const float FadeSpeed = 6f;
+        private const float LiftAboveBuildHud = 190f;   // vanilla moves its bar from 130 up to 320
+
+        private RectTransform _bar;
+        private Image _icon;
+        private Animator _animator;
+        private bool _animatorDrivesVisibility;
+        private CanvasGroup _group;
+        private Vector2 _barBase;
+        private bool _lifted;
+
+        public void Setup()
+        {
+            _bar = transform.Find("adrenalinebar") as RectTransform;
+            _icon = transform.Find("adrenalinebar/IconBG/Icon")?.GetComponent<Image>();
+            _animator = GetComponent<Animator>();
+            _animatorDrivesVisibility = _animator != null && _animator.runtimeAnimatorController != null
+                && _animator.parameters.Any(p => p.name == "Visible" && p.type == AnimatorControllerParameterType.Bool);
+            if (!_animatorDrivesVisibility)
+            {
+                _group = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+                _group.alpha = 0f;
+                _group.interactable = false;
+                _group.blocksRaycasts = false;
+            }
+            if (_bar != null) _barBase = _bar.anchoredPosition;
+            if (_icon != null) _icon.enabled = false;
+        }
+
+        public void Show(bool visible, float dt)
+        {
+            if (_animatorDrivesVisibility)
+            {
+                _animator.SetBool("Visible", visible);
+                return;
+            }
+            if (_group != null)
+                _group.alpha = Mathf.MoveTowards(_group.alpha, visible ? 1f : 0f, dt * FadeSpeed);
+        }
+
+        public void SetIcon(ItemDrop.ItemData trinket)
+        {
+            if (_icon == null) return;
+            var sprite = trinket != null ? trinket.GetIcon() : null;
+            _icon.sprite = sprite;
+            _icon.enabled = sprite != null;
+        }
+
+        public void Lift(bool lifted)
+        {
+            if (_bar == null || lifted == _lifted) return;
+            _lifted = lifted;
+            _bar.anchoredPosition = _barBase + (lifted ? new Vector2(0f, LiftAboveBuildHud) : Vector2.zero);
+        }
+    }
+
+    /// <summary>
+    /// Vanilla's adrenaline update sizes the bar from the maximum adrenaline and moves the panel every frame. With
+    /// the Auga panel in place the update is: fill the two bars with adrenaline over its last known maximum, write
+    /// the value into the panel's text, show the panel while there is any, set the trinket icon, lift the bar above
+    /// the build / ship HUD.
+    /// </summary>
+    [HarmonyPatch(typeof(Hud), "UpdateAdrenaline")]
+    public static class Hud_UpdateAdrenaline_Patch
+    {
+        public static bool Prefix(Hud __instance, Player player, float dt)
+        {
+            var panel = __instance.m_adrenalineBarRoot != null ? __instance.m_adrenalineBarRoot.GetComponent<AugaAdrenalinePanel>() : null;
+            if (panel == null)
+                return true;   // vanilla panel: vanilla update
+            var max = player.GetMaxAdrenaline();
+            if (max > 0f) __instance.m_lastMaxAdrenaline = max;
+            var adrenaline = player.GetAdrenaline();
+            panel.Show(adrenaline > 0f, dt);
+            if (adrenaline > 0f)
+            {
+                var value = __instance.m_lastMaxAdrenaline > 0f ? adrenaline / __instance.m_lastMaxAdrenaline : 0f;
+                if (__instance.m_adrenalineBarSlow != null) __instance.m_adrenalineBarSlow.SetValue(value);
+                if (__instance.m_adrenalineBarFast != null) __instance.m_adrenalineBarFast.SetValue(value);
+                if (__instance.m_adrenalineText != null) __instance.m_adrenalineText.text = Mathf.FloorToInt(adrenaline).ToString();
+                panel.SetIcon(player.m_trinketItem);
+                panel.Lift((__instance.m_buildHud != null && __instance.m_buildHud.activeSelf) || (__instance.m_shipHudRoot != null && __instance.m_shipHudRoot.activeSelf));
+            }
+            return false;
         }
     }
 }

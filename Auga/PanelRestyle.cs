@@ -58,7 +58,10 @@ namespace Auga
         public static readonly Color Brown5 = Hex("#2E2620");
         public static readonly Color Brown7 = Hex("#181410");
         public static readonly Color BrightGold = Hex("#EAA800");
+        /// <summary>Text links and emphasis.</summary>
         public static readonly Color LightBlue = Hex("#1AACEF");
+        /// <summary>The selected row of a list (Auga.Colors.Blue).</summary>
+        public static readonly Color SelectionBlue = Hex("#216388");
         public static readonly Color ScrollHandle = Hex("#8B7C6A");
         public const float ScrollbarWidth = 8f;
 

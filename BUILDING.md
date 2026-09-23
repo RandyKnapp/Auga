@@ -61,6 +61,7 @@ $env:AUGA_TEST_ROWS      = "6"           # also screenshot the inventory with th
 $env:AUGA_TEST_SETTINGS  = "1"           # only screenshot every settings tab from the main menu, then quit
 $env:AUGA_TEST_CHARSELECT = "1"          # only screenshot the character selection, new character, manage saves and the remove dialog, then quit
 $env:AUGA_TEST_STARTGAME = "1"           # only screenshot the world list, new world, server list and add server dialogs, then quit
+$env:AUGA_TEST_CROSSPLAY = "1"           # host the test world as a password-protected crossplay server and log the join code overlay
 & "C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim.exe" --doorstop-enabled true --doorstop-target-assembly "$env:APPDATA\com.kesomannen.gale\valheim\profiles\AugaAuto\BepInEx\core\BepInEx.Preloader.dll"
 ```
 

@@ -1,4 +1,5 @@
 ﻿using Auga.Utilities;
+using System.Linq;
 using AugaUnity;
 using HarmonyLib;
 using UnityEngine;
@@ -45,9 +46,31 @@ namespace Auga
             SetupHelper.ApplyRootCanvas(primary.gameObject, canvasSettings);
             if (topLeft != null)
             {
-                // keep the message log inside the new root canvas (it was a sibling of HudMessage before)
-                var canvasRoot = primary.GetComponentInParent<Canvas>();
-                topLeft.SetParent(canvasRoot != null ? canvasRoot.transform : primary, false);
+                // vanilla draws the message log behind the inventory (its own TopLeftMessage canvas at sorting
+                // order 500, the inventory at 600) and only the centre messages above it (HudMessage, 1000). The
+                // Auga log therefore lives in the vanilla TopLeftMessage canvas, emptied of the vanilla placeholder.
+                var vanillaLog = parent.Find("TopLeftMessage");
+                if (vanillaLog != null)
+                {
+                    // The vanilla placeholder stays, inactive, as the first child: the Auga element is the template
+                    // every log entry is cloned from, and its AugaTopLeftMessage treats sibling 0 as the oldest entry,
+                    // fading and destroying it. Destroying the placeholder made the template itself sibling 0.
+                    foreach (var child in vanillaLog.Cast<Transform>().ToList())
+                        child.gameObject.SetActive(false);
+                    if (vanillaLog.childCount == 0)
+                    {
+                        var placeholder = new GameObject("Placeholder", typeof(RectTransform));
+                        placeholder.transform.SetParent(vanillaLog, false);
+                        placeholder.SetActive(false);
+                    }
+                    topLeft.SetParent(vanillaLog, false);
+                    topLeft.SetAsLastSibling();
+                }
+                else
+                {
+                    var canvasRoot = primary.GetComponentInParent<Canvas>();
+                    topLeft.SetParent(canvasRoot != null ? canvasRoot.transform : primary, false);
+                }
             }
             Object.Destroy(prefabInstance);
 
@@ -60,7 +83,8 @@ namespace Auga
         /// Vanilla draws the top-left pickup message in a separate root canvas ("TopLeftMessage", next to
         /// "HudMessage") that only the vanilla MessageHud references. That instance is replaced above before its
         /// Start() could fade the placeholder out, so the prefab's sample text ("You picked up an Axe" with a helmet
-        /// icon) would stay on screen forever. The Auga message HUD carries its own log, so drop the vanilla canvas.
+        /// icon) would stay on screen forever. The canvas normally hosts the Auga log now (see the Awake prefix);
+        /// a vanilla TopLeftMessage canvas that still holds nothing of Auga's is dropped.
         /// </summary>
         [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.Start))]
         [HarmonyPostfix]
@@ -70,7 +94,9 @@ namespace Auga
                 return;
 
             var vanillaTopLeft = __instance.transform.parent.Find("TopLeftMessage");
-            if (vanillaTopLeft != null && !vanillaTopLeft.IsChildOf(__instance.transform) && vanillaTopLeft.GetComponentInChildren<AugaTopLeftMessageController>(true) == null)
+            if (vanillaTopLeft != null && !vanillaTopLeft.IsChildOf(__instance.transform)
+                && vanillaTopLeft.GetComponentInChildren<AugaTopLeftMessage>(true) == null
+                && vanillaTopLeft.GetComponentInChildren<AugaTopLeftMessageController>(true) == null)
             {
                 Auga.Log("Removing the vanilla TopLeftMessage canvas; the Auga message HUD has its own log.");
                 Object.Destroy(vanillaTopLeft.gameObject);
