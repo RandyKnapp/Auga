@@ -202,22 +202,59 @@ namespace AugaUnity
             RequirementsContainer.SetActive(hasRecipe && !showingVariants);
         }
 
-        public virtual bool HaveRequirementsHelper(Player player, Piece.Requirement[] requirements, int qualityLevel)
+        /// <summary>
+        /// Vanilla's item check for the given requirements: the amount for the quality times the craft multiplier,
+        /// counted per quality level as the game does (a craft consumes items of a single quality).
+        /// </summary>
+        public virtual bool HaveRequirementsHelper(Player player, Piece.Requirement[] requirements, int qualityLevel, int amount = 1)
         {
             foreach (var resource in requirements)
             {
-                if (resource.m_resItem)
-                {
-                    var amount = resource.GetAmount(qualityLevel);
-                    var num = player.m_inventory.CountItems(resource.m_resItem.m_itemData.m_shared.m_name);
-                    if (num < amount)
-                        return false;
-                }
+                if (resource.m_resItem == null)
+                    continue;
+                var need = resource.GetAmount(qualityLevel) * amount;
+                if (CountAtBestQuality(player, resource) < need)
+                    return false;
             }
             return true;
         }
 
-        public virtual void PostSetupRequirementList(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedWorkbenchQuality)
+        private static int CountAtBestQuality(Player player, Piece.Requirement resource)
+        {
+            var shared = resource.m_resItem.m_itemData.m_shared;
+            var best = 0;
+            for (var level = 1; level <= shared.m_maxQuality; level++)
+            {
+                best = Mathf.Max(best, player.m_inventory.CountItems(shared.m_name, level));
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// The requirements vanilla just put into the slots (InventoryGui.SetupRequirementList): it leaves out
+        /// upgrader-only materials at a normal station and the reverse, and for a recipe that needs only one of
+        /// its ingredients it lists the known ones. Falls back to the recipe's own list when the game's is not for
+        /// this recipe.
+        /// </summary>
+        protected virtual List<Piece.Requirement> DisplayedRequirements(Recipe recipe, int quality)
+        {
+            var inventoryGui = InventoryGui.instance;
+            if (inventoryGui != null && inventoryGui.m_reqList != null && inventoryGui.m_selectedRecipe.Recipe == recipe)
+            {
+                return inventoryGui.m_reqList;
+            }
+            var list = new List<Piece.Requirement>();
+            foreach (var resource in recipe.m_resources)
+            {
+                if (resource.m_resItem != null && resource.GetAmount(quality) > 0)
+                {
+                    list.Add(resource);
+                }
+            }
+            return list;
+        }
+
+        public virtual void PostSetupRequirementList(Recipe recipe, ItemDrop.ItemData item, int quality, Player player, bool allowedWorkbenchQuality, int amount = 1)
         {
             if (TabController.SelectedIndex == 1 && item != null)
             {
@@ -241,23 +278,38 @@ namespace AugaUnity
 
             var canCraft = allowedWorkbenchQuality;
             var states = new List<WireState>();
-            var index = 0;
+            var wireCount = _currentPanel.WireFrame.Wires.Length;
             if (allowedWorkbenchQuality)
             {
-                foreach (var resource in recipe.m_resources)
+                var requirements = DisplayedRequirements(recipe, quality);
+                var haves = new List<bool>(requirements.Count);
+                var anyHave = false;
+                var allHave = true;
+                foreach (var resource in requirements)
                 {
-                    var amountRequired = resource.GetAmount(quality);
-                    if (resource.m_resItem != null && amountRequired > 0)
-                    {
-                        var have = HaveRequirementsHelper(player, new[] { resource }, quality);
-                        states.Add(have ? WireState.Have : WireState.DontHave);
-                        canCraft = canCraft && have;
-                        ++index;
-                    }
+                    var have = HaveRequirementsHelper(player, new[] { resource }, quality, amount);
+                    haves.Add(have);
+                    anyHave |= have;
+                    allHave &= have;
                 }
+
+                // more requirements than slots: vanilla shows a rotating window of them, the wires follow it
+                var first = 0;
+                if (requirements.Count > wireCount && wireCount > 0)
+                {
+                    first = (int)Time.fixedTime % Mathf.CeilToInt((float)requirements.Count / wireCount) * wireCount;
+                }
+                // a recipe that needs only one of its ingredients is craftable with any of them; the others are
+                // then absent rather than missing
+                var onlyOne = recipe.m_requireOnlyOneIngredient;
+                for (var k = first; k < haves.Count && states.Count < wireCount; k++)
+                {
+                    states.Add(haves[k] ? WireState.Have : onlyOne && anyHave ? WireState.Absent : WireState.DontHave);
+                }
+                canCraft = canCraft && (onlyOne ? anyHave : allHave);
             }
 
-            for (; index < _currentPanel.WireFrame.Wires.Length; ++index)
+            while (states.Count < wireCount)
             {
                 states.Add(WireState.Absent);
             }
