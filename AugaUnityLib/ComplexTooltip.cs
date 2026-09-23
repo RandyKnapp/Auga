@@ -529,7 +529,7 @@ namespace AugaUnity
                                 continue;
                             
                             if (!string.IsNullOrEmpty(line.Trim()))
-                                outputString.AppendLine(line);
+                                outputString.Append(line).Append('\n');   // not AppendLine: its \r\n breaks the game's $token localization
                         }
                     }
                 }
@@ -829,7 +829,7 @@ namespace AugaUnity
                             foundSubtitle = true;
                         }
                         else
-                            outputString.AppendLine(line);
+                            outputString.Append(line).Append('\n');   // not AppendLine: its \r\n breaks the game's $token localization
                     }
                 }
             }
