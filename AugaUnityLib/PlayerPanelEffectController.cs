@@ -14,6 +14,11 @@ namespace AugaUnity
         public Image CountdownImage;
         [CanBeNull] public TMP_Text NameText;
         public TMP_Text InfoText;
+        /// <summary>
+        /// The time / value line of the two-line layout (NameText above it). When both are set, an effect without a
+        /// time or value shows its name on the single InfoText line instead, and the two lines are hidden.
+        /// </summary>
+        [CanBeNull] public TMP_Text TimeText;
 
         protected readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
         protected StatusTooltip _statusTooltip;
@@ -61,11 +66,26 @@ namespace AugaUnity
             }
 
             Icon.sprite = statusEffect.m_icon;
-            if (NameText != null)
+            var name = Localization.instance.Localize(statusEffect.m_name);
+            var info = Localization.instance.Localize(statusEffect.GetIconText());
+            if (NameText != null && TimeText != null)
             {
-                NameText.text = Localization.instance.Localize(statusEffect.m_name);
+                var hasInfo = !string.IsNullOrEmpty(info);
+                NameText.gameObject.SetActive(hasInfo);
+                TimeText.gameObject.SetActive(hasInfo);
+                InfoText.gameObject.SetActive(!hasInfo);
+                NameText.text = name;
+                TimeText.text = info;
+                InfoText.text = name;
             }
-            InfoText.text = Localization.instance.Localize(statusEffect.GetIconText());
+            else
+            {
+                if (NameText != null)
+                {
+                    NameText.text = name;
+                }
+                InfoText.text = info;
+            }
 
             var hasTimer = statusEffect.m_ttl > 0;
             CountdownBG.enabled = hasTimer;
