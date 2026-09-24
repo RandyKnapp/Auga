@@ -195,6 +195,7 @@ namespace Auga
         public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
+            AugaPanelRestyler.LinkGameFontFallbacks();
             ReplaceMainMenuButtons(__instance);
             MainMenuExtras.Setup(__instance);
 

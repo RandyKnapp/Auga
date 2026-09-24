@@ -88,6 +88,50 @@ namespace Auga
             }
         }
 
+        private static bool _gameFontsLinked;
+
+        /// <summary>
+        /// Source Sans Pro has no glyph for some symbols other mods put into text (EpicLoot's set bonus bullet, for
+        /// one) and TextMeshPro then draws a box. The game's own body fonts, whose Noto fallback chain covers them,
+        /// are appended as fallbacks of every Source Sans Pro asset. Does nothing until the game's fonts are loaded,
+        /// so it is called again from the in-game HUD setup.
+        /// </summary>
+        public static void LinkGameFontFallbacks()
+        {
+            if (_gameFontsLinked)
+                return;
+            TMP_FontAsset serif = null, sans = null;
+            var augaFonts = new List<TMP_FontAsset>();
+            foreach (var font in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
+            {
+                if (font == null)
+                    continue;
+                if (font.name == "Valheim-AveriaSerifLibre")
+                    serif = font;
+                else if (font.name == "Valheim-AveriaSansLibre")
+                    sans = font;
+                else if (font.name.StartsWith("SourceSansPro"))
+                    augaFonts.Add(font);
+            }
+            var gameFonts = new List<TMP_FontAsset>();
+            if (serif != null) gameFonts.Add(serif);
+            if (sans != null) gameFonts.Add(sans);
+            if (gameFonts.Count == 0)
+                return;
+            _gameFontsLinked = true;
+            foreach (var font in augaFonts)
+            {
+                if (font.fallbackFontAssetTable == null)
+                    font.fallbackFontAssetTable = new List<TMP_FontAsset>();
+                foreach (var gameFont in gameFonts)
+                {
+                    if (!font.fallbackFontAssetTable.Contains(gameFont))
+                        font.fallbackFontAssetTable.Add(gameFont);
+                }
+            }
+            Auga.Log($"Fonts: {string.Join(", ", gameFonts.ConvertAll(f => f.name))} added as fallbacks of {augaFonts.Count} Source Sans Pro assets.");
+        }
+
         public static void Restyle(Transform panel, RestyleOptions options = null)
         {
             if (panel == null)

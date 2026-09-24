@@ -5,8 +5,9 @@
 .DESCRIPTION
     1. Publicizes the Valheim game assemblies (private members become public so the mod can patch them)
        into References\Valheim\*_publicized.dll using BepInEx.AssemblyPublicizer.Cli.
-    2. Builds Blaxxun's APIManager (https://github.com/blaxxun-boop/APIManager) from source into
-       References\APIManager\APIManager.dll. Auga merges it into Auga.dll with ILRepack.
+    2. Builds Blaxxun's APIManager (https://github.com/blaxxun-boop/APIManager) from source, with
+       Tools\APIManager\nested-types.patch applied, into References\APIManager\APIManager.dll. Auga merges it
+       into Auga.dll with ILRepack.
 
     Requirements: .NET SDK (for the publicizer tool), Visual Studio 2022 MSBuild, git, a Valheim install and a
     BepInEx install (a Gale/r2modman profile or the game folder). Re-run after every Valheim update.
@@ -86,6 +87,13 @@ Write-Host 'Cloning blaxxun-boop/APIManager...'
 $src = Join-Path $work 'src'
 git clone -q https://github.com/blaxxun-boop/APIManager $src
 if (-not (Test-Path (Join-Path $src 'APIManager\APIManager.csproj'))) { throw 'APIManager clone failed.' }
+
+# Tools\APIManager\nested-types.patch: upstream redirects a mod's types nested in an embedded API copy (closures,
+# iterators) to the outer Auga type and rewrites definitions, which corrupts the assembly when Cecil writes it
+# ("Failed patching ... InvalidCastException" at load for mods that embed the old Auga API shim).
+Write-Host 'Applying Tools\APIManager\nested-types.patch...'
+git -C $src apply --whitespace=nowarn (Join-Path $repo 'Tools\APIManager\nested-types.patch')
+if ($LASTEXITCODE -ne 0) { throw 'APIManager patch did not apply (upstream changed?). See Tools\APIManager\nested-types.patch.' }
 
 $gamePath = Join-Path $work 'GamePath'
 New-Item -ItemType Directory -Force $gamePath | Out-Null

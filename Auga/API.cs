@@ -90,12 +90,13 @@ namespace Auga
         public static GameObject Panel_Create(Transform parent, Vector2 size, string name, bool withCornerDecoration)
         {
 #if ! API
-            var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
             if (Auga.Assets.PanelBase == null)
             {
-                Auga.LogError($"Auga.Assets.PanelBase is null");
-                Thread.Sleep(25000);
+                Auga.LogError("Panel_Create: Auga.Assets.PanelBase is null");
+                return null;
             }
+
+            var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
             panel.name = name;
             if (!withCornerDecoration)
             {

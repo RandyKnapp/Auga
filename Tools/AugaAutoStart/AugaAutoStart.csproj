@@ -73,6 +73,10 @@
       <HintPath>$(ValheimManaged)\UnityEngine.UIModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>$(ValheimManaged)\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="DeployToValheim" AfterTargets="Build" Condition="'$(DeployToValheim)' == 'true'">
