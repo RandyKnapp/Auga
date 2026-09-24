@@ -18,7 +18,8 @@
 .\setup-references.ps1            # or: .\setup-references.ps1 -ValheimDir <path> -BepInExDir <path>
 ```
 
-This publicizes the game assemblies into `References\Valheim` and builds `References\APIManager\APIManager.dll`.
+This publicizes the game assemblies into `References\Valheim` and builds `References\APIManager\APIManager.dll`
+from the upstream source with `Tools\APIManager\nested-types.patch` applied (see the patch for why).
 Re-run it after every Valheim update. See `References\README.md`.
 
 ## Build

@@ -454,7 +454,10 @@ namespace Auga
 
         private void LoadDependencies()
         {
-            var assembly = Assembly.GetCallingAssembly();
+            // Auga's own assembly, named explicitly: GetCallingAssembly() answered with whatever called Awake, and
+            // when Awake is detoured (a Harmony or MonoMod hook from another mod) that is a dynamic assembly, so the
+            // embedded resources ("Auga.<file>") were looked up under the wrong name and never found
+            var assembly = typeof(Auga).Assembly;
             LoadEmbeddedAssembly(assembly, "ui_lib.dll"); // Fishlabs.GuiInputField shim for the prefabs (see UiLibShim)
             LoadEmbeddedAssembly(assembly, "fastJSON.dll");
             LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
@@ -462,10 +465,11 @@ namespace Auga
 
         private static void LoadEmbeddedAssembly(Assembly assembly, string assemblyName)
         {
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{assembly.GetName().Name}.{assemblyName}");
+            var resourceName = $"{assembly.GetName().Name}.{assemblyName}";
+            var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null)
             {
-                LogError($"Could not load embedded assembly ({assemblyName})!");
+                LogError($"Could not load embedded assembly ({assemblyName}): no resource '{resourceName}' in {assembly.GetName().Name}. Resources: {string.Join(", ", assembly.GetManifestResourceNames())}");
                 return;
             }
 
@@ -650,8 +654,14 @@ namespace Auga
                 return AssetBundle.LoadFromFile(assetBundlePath);
             }
 
-            var assembly = Assembly.GetCallingAssembly();
-            var assetBundle = AssetBundle.LoadFromStream(assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{filename}"));
+            var assembly = typeof(Auga).Assembly;   // not GetCallingAssembly(): see LoadDependencies
+            var stream = assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{filename}");
+            if (stream == null)
+            {
+                LogError($"Could not load the embedded asset bundle ({filename}); no such resource in {assembly.GetName().Name}.");
+                return null;
+            }
+            var assetBundle = AssetBundle.LoadFromStream(stream);
 
             return assetBundle;
         }
@@ -679,28 +689,37 @@ namespace Auga
             return assetFileName;
         }
 
+        /// <summary>
+        /// Whether a message of this level goes out. Before the config is loaded (the dependency loading in Awake
+        /// runs first) warnings and errors always do; a failure there used to throw inside the logger itself and
+        /// hide the real problem.
+        /// </summary>
+        private static bool ShouldLog(LogLevel level)
+        {
+            if (_loggingEnabled == null || _logLevel == null)
+                return level == LogLevel.Warning || level == LogLevel.Error;
+            return _loggingEnabled.Value && _logLevel.Value <= level;
+        }
+
         public static void Log(string message)
         {
-            if (_loggingEnabled.Value && _logLevel.Value <= LogLevel.Info)
-            {
-                _instance.Logger.LogInfo(message);
-            }
+            if (!ShouldLog(LogLevel.Info)) return;
+            if (_instance != null && _instance.Logger != null) _instance.Logger.LogInfo(message);
+            else Debug.Log($"[Auga] {message}");
         }
 
         public static void LogWarning(string message)
         {
-            if (_loggingEnabled.Value && _logLevel.Value <= LogLevel.Warning)
-            {
-                _instance.Logger.LogWarning(message);
-            }
+            if (!ShouldLog(LogLevel.Warning)) return;
+            if (_instance != null && _instance.Logger != null) _instance.Logger.LogWarning(message);
+            else Debug.LogWarning($"[Auga] {message}");
         }
 
         public static void LogError(string message)
         {
-            if (_loggingEnabled.Value && _logLevel.Value <= LogLevel.Error)
-            {
-                _instance.Logger.LogError(message);
-            }
+            if (!ShouldLog(LogLevel.Error)) return;
+            if (_instance != null && _instance.Logger != null) _instance.Logger.LogError(message);
+            else Debug.LogError($"[Auga] {message}");
         }
 
         [UsedImplicitly]

@@ -1,0 +1,26 @@
+diff --git a/APIManager/Patcher.cs b/APIManager/Patcher.cs
+index 57dfecf..0fa261f 100644
+--- a/APIManager/Patcher.cs
++++ b/APIManager/Patcher.cs
+@@ -535,7 +535,8 @@ public static class Patcher
+ 				parameter.ParameterType = VisitType(parameter.ParameterType, referencingEntityName);
+ 			}
+ 
+-			if (method is not MethodSpecification)
++			// a definition keeps its declaring type: only references are redirected
++			if (method is not MethodSpecification and not MethodDefinition)
+ 			{
+ 				method.DeclaringType = VisitType(method.DeclaringType, referencingEntityName);
+ 			}
+@@ -582,7 +583,10 @@ public static class Patcher
+ 			{
+ 				if (type.IsNested)
+ 				{
+-					return FixupType(type.DeclaringType);
++					// a type nested in a redirected type (the closures, iterators and helper types of an API copy
++					// the mod embeds) stays in the module: the real assembly's nested types are different objects,
++					// and a reference to the outer type in its place corrupts the definitions inside it
++					return type;
+ 				}
+ 
+ 				if (patchingAssembly.GetType(type.FullName) is { } originalType)

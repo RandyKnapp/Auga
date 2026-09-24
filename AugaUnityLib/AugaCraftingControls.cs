@@ -28,10 +28,6 @@ namespace AugaUnity
         private void Awake()
         {
             _instance = this;
-            Debug.LogWarning($"ACP is Awake.");
-            Debug.LogWarning($"AAA is null: {aaa == null}");
-            Debug.LogWarning($"InputAmount is null: {inputAmount == null}");
-            Debug.LogWarning($"CraftButton is null: {craftButton == null}");
         }
     }
 }

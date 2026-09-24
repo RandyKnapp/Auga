@@ -52,6 +52,7 @@ namespace Auga
         [UsedImplicitly]
         public static void Postfix(Hud __instance)
         {
+            AugaPanelRestyler.LinkGameFontFallbacks();
             try
             {
                 SetupSelectedPiece(__instance);
@@ -287,15 +288,20 @@ namespace Auga
             repairRow.anchoredPosition = Vector2.zero;
             repairRow.sizeDelta = new Vector2(0f, RepairRowHeight);
 
-            var label = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
+            // the text component gets its font before it wakes up: TMP looks for its default font asset (which the
+            // game does not ship) on Awake when none is set and warns about it
+            var labelObject = new GameObject("Label", typeof(RectTransform));
+            labelObject.SetActive(false);
+            var label = labelObject.AddComponent<TextMeshProUGUI>();
+            if (AugaPanelRestyler.BoldFont != null) label.font = AugaPanelRestyler.BoldFont;
             var labelRect = label.rectTransform;
             labelRect.SetParent(repairRow, false);
+            labelObject.SetActive(true);
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;
             labelRect.offsetMin = Vector2.zero;
             labelRect.offsetMax = new Vector2(-(RepairRowHeight + RepairLabelPadding), 0f);
             label.text = "$piece_repair";
-            if (AugaPanelRestyler.BoldFont != null) label.font = AugaPanelRestyler.BoldFont;
             label.fontSize = RepairLabelSize;
             label.fontStyle = FontStyles.UpperCase;
             label.color = AugaPanelRestyler.Brown3;

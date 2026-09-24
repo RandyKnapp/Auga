@@ -7,6 +7,8 @@ using System.Text;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
@@ -14,7 +16,7 @@ namespace AugaAutoStart
 {
     // Test-only helper. Controlled by environment variables:
     //   AUGA_TEST_CHARACTER  profile filename (default "auga test")
-    //   AUGA_TEST_WORLD      world name       (default "AugaTest")
+    //   AUGA_TEST_WORLD      world name       (default "AugaAutoTest")
     //   AUGA_TEST_SHOTS      folder for screenshots + hierarchy dumps (default %TEMP%\augashots)
     //   AUGA_TEST_QUIT       seconds after the UI exercise to quit the game (default 0 = never)
     //   AUGA_TEST_DUMP       "1" to dump the vanilla UI hierarchies (before any Awake patch runs)
@@ -22,6 +24,10 @@ namespace AugaAutoStart
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
     //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the new character screen, the manage saves dialog and the remove dialog, then quit
     //   AUGA_TEST_STARTGAME  "1": screenshot the world list, the new world dialog, the server list and the add server dialog, then quit
+    //   AUGA_TEST_EPICLOOT_HASAUGA "1": force EpicLoot.HasAuga = true as soon as EpicLoot is loaded (its Auga branches are otherwise off)
+    //   AUGA_TEST_ENCHANTING "1": spawn an EpicLoot enchanting table, open its UI and screenshot every tab (after the magic items)
+    //   AUGA_TEST_MENUTOUR   "1": also open the changelog, user agreement, credits, settings and cinematics from the main menu (default: only start the game)
+    //   AUGA_TEST_MAGIC      "1": spawn EpicLoot magic items of every rarity (magicitem console command), pick them up and screenshot each one's inventory tooltip; or "Rarity:Item;Set:SetID;..." to choose them
     //   AUGA_TEST_CROSSPLAY  "1": host the test world as a password-protected crossplay server (it gets a join code) and log the join code overlay's timeline
     [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
     public class Plugin : BaseUnityPlugin
@@ -99,8 +105,25 @@ namespace AugaAutoStart
             for (var i = 0; i < t.childCount; i++) Dump(t.GetChild(i), depth + 1, sb);
         }
 
+        private bool _epicLootFlagDone;
+
+        /// <summary>AUGA_TEST_EPICLOOT_HASAUGA=1: EpicLoot never assigns its HasAuga flag, so its Auga code paths can only be exercised by forcing it.</summary>
+        private void ForceEpicLootHasAuga()
+        {
+            if (_epicLootFlagDone) return;
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_EPICLOOT_HASAUGA") != "1") { _epicLootFlagDone = true; return; }
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "EpicLoot");
+            if (assembly == null) return;   // not loaded yet
+            _epicLootFlagDone = true;
+            var field = assembly.GetType("EpicLoot.EpicLoot")?.GetField("HasAuga", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (field == null) { Debug.LogWarning("[AugaAutoStart] EpicLoot.EpicLoot.HasAuga not found"); return; }
+            field.SetValue(null, true);
+            Debug.Log("[AugaAutoStart] EpicLoot.HasAuga forced to true");
+        }
+
         private void Update()
         {
+            ForceEpicLootHasAuga();
             if (!_menuStarted)
             {
                 var fejd = FejdStartup.instance;
@@ -196,7 +219,7 @@ namespace AugaAutoStart
             var character = Environment.GetEnvironmentVariable("AUGA_TEST_CHARACTER");
             if (string.IsNullOrEmpty(character)) character = "auga test";
             var worldName = Environment.GetEnvironmentVariable("AUGA_TEST_WORLD");
-            if (string.IsNullOrEmpty(worldName)) worldName = "AugaTest";
+            if (string.IsNullOrEmpty(worldName)) worldName = "AugaAutoTest";
 
             if (Environment.GetEnvironmentVariable("AUGA_TEST_STARTGAME") == "1")
             {
@@ -316,73 +339,79 @@ namespace AugaAutoStart
                 yield break;
             }
 
-            Debug.Log("[AugaAutoStart] open changelog");
-            Try(() => fejd.OnButtonShowChangelog());
-            yield return new WaitForSecondsRealtime(1.5f);
-            Shot("00d_changelog");
-            Try(() => LogRects(fejd.transform, "AugaChangeLog"));
-            yield return new WaitForSecondsRealtime(1f);
-            Try(() => fejd.OnButtonShowChangelog());
-            yield return new WaitForSecondsRealtime(1f);
-
-            Debug.Log("[AugaAutoStart] open user agreement");
-            Try(() => fejd.OnButtonEula());
-            yield return new WaitForSecondsRealtime(1.5f);
-            Shot("00e_eula");
-            Try(() => LogRects(fejd.m_eulaWindow.transform, "Popup"));
-            yield return new WaitForSecondsRealtime(1f);
-            Try(() => fejd.m_eulaWindow.AcceptButton());
-            yield return new WaitForSecondsRealtime(1f);
-
-            Debug.Log("[AugaAutoStart] open credits");
-            Try(() => fejd.OnCredits());
-            yield return new WaitForSecondsRealtime(12f); // the list scrolls in from below
-            Shot("00f_credits");
-            yield return new WaitForSecondsRealtime(1f);
-            Try(() => fejd.OnCreditsBack());
-            yield return new WaitForSecondsRealtime(1f);
-
-            Debug.Log("[AugaAutoStart] open settings (main menu)");
-            Try(() => fejd.OnButtonSettings());
-            yield return new WaitForSecondsRealtime(2f);
-            Shot("00b_settings");
-            Try(() => DumpSettingsTexts("mainmenu"));
-            DumpLive("Settings", Settings.instance);
-            var settingsOnly = Environment.GetEnvironmentVariable("AUGA_TEST_SETTINGS") == "1";
-            if (settingsOnly && Settings.instance != null)
+            // AUGA_TEST_MENUTOUR=1: also walk the main menu dialogs (changelog, user agreement, credits, settings,
+            // cinematics) before starting the game; the default run touches nothing in the main menu but Start.
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_MENUTOUR") == "1")
             {
-                // AUGA_TEST_SETTINGS=1: screenshot every settings tab, then quit without starting a level
-                var handler = Settings.instance.m_tabHandler;
-                var count = handler != null ? handler.m_tabs.Count : 0;
-                for (var i = 0; i < count; i++)
-                {
-                    var tab = handler.m_tabs[i];
-                    if (tab.m_button == null || !tab.m_button.gameObject.activeSelf) continue;
-                    var name = tab.m_page != null ? tab.m_page.name : i.ToString();
-                    Debug.Log("[AugaAutoStart] settings tab " + name);
-                    Try(() => handler.SetActiveTab(i));
-                    yield return new WaitForSecondsRealtime(1f);
-                    Shot("00b_settings_" + i + "_" + name);
-                    Try(() => LogRects(Settings.instance.transform, "Bottom"));
-                    yield return new WaitForSecondsRealtime(1f);
-                }
+                Debug.Log("[AugaAutoStart] open changelog");
+                Try(() => fejd.OnButtonShowChangelog());
+                yield return new WaitForSecondsRealtime(1.5f);
+                Shot("00d_changelog");
+                Try(() => LogRects(fejd.transform, "AugaChangeLog"));
                 yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnButtonShowChangelog());
+                yield return new WaitForSecondsRealtime(1f);
+
+                Debug.Log("[AugaAutoStart] open user agreement");
+                Try(() => fejd.OnButtonEula());
+                yield return new WaitForSecondsRealtime(1.5f);
+                Shot("00e_eula");
+                Try(() => LogRects(fejd.m_eulaWindow.transform, "Popup"));
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.m_eulaWindow.AcceptButton());
+                yield return new WaitForSecondsRealtime(1f);
+
+                Debug.Log("[AugaAutoStart] open credits");
+                Try(() => fejd.OnCredits());
+                yield return new WaitForSecondsRealtime(12f); // the list scrolls in from below
+                Shot("00f_credits");
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnCreditsBack());
+                yield return new WaitForSecondsRealtime(1f);
+
+                Debug.Log("[AugaAutoStart] open settings (main menu)");
+                Try(() => fejd.OnButtonSettings());
+                yield return new WaitForSecondsRealtime(2f);
+                Shot("00b_settings");
+                Try(() => DumpSettingsTexts("mainmenu"));
+                DumpLive("Settings", Settings.instance);
+                var settingsOnly = Environment.GetEnvironmentVariable("AUGA_TEST_SETTINGS") == "1";
+                if (settingsOnly && Settings.instance != null)
+                {
+                    // AUGA_TEST_SETTINGS=1: screenshot every settings tab, then quit without starting a level
+                    var handler = Settings.instance.m_tabHandler;
+                    var count = handler != null ? handler.m_tabs.Count : 0;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var tab = handler.m_tabs[i];
+                        if (tab.m_button == null || !tab.m_button.gameObject.activeSelf) continue;
+                        var name = tab.m_page != null ? tab.m_page.name : i.ToString();
+                        Debug.Log("[AugaAutoStart] settings tab " + name);
+                        Try(() => handler.SetActiveTab(i));
+                        yield return new WaitForSecondsRealtime(1f);
+                        Shot("00b_settings_" + i + "_" + name);
+                        Try(() => LogRects(Settings.instance.transform, "Bottom"));
+                        yield return new WaitForSecondsRealtime(1f);
+                    }
+                    yield return new WaitForSecondsRealtime(1f);
+                    Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
+                    yield return new WaitForSecondsRealtime(1f);
+                    Debug.Log("[AugaAutoStart] quitting (settings only)");
+                    Application.Quit();
+                    yield break;
+                }
                 Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
                 yield return new WaitForSecondsRealtime(1f);
-                Debug.Log("[AugaAutoStart] quitting (settings only)");
-                Application.Quit();
-                yield break;
-            }
-            Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
-            yield return new WaitForSecondsRealtime(1f);
 
-            Debug.Log("[AugaAutoStart] open cinematics menu");
-            Try(() => fejd.OnCinematics());
-            yield return new WaitForSecondsRealtime(1f);
-            Shot("00c_cinematics");
-            yield return new WaitForSecondsRealtime(1f);
-            Try(() => fejd.OnCinematicsBack());
-            yield return new WaitForSecondsRealtime(1f);
+                Debug.Log("[AugaAutoStart] open cinematics menu");
+                Try(() => fejd.OnCinematics());
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("00c_cinematics");
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => fejd.OnCinematicsBack());
+                yield return new WaitForSecondsRealtime(1f);
+
+            }
 
             Debug.Log("[AugaAutoStart] OnStartGame");
             Try(() => fejd.OnStartGame());
@@ -507,6 +536,22 @@ namespace AugaAutoStart
 
         private static IEnumerator Exercise()
         {
+            // a death in an earlier run (the damage step at low health) leaves the inventory in a tombstone at the
+            // spot; the later steps need that inventory (weapon, hammer), so it is taken back first
+            Try(() =>
+            {
+                var player = Player.m_localPlayer;
+                foreach (var tomb in UnityEngine.Object.FindObjectsOfType<TombStone>())
+                {
+                    var container = tomb.GetComponent<Container>();
+                    if (container == null || Vector3.Distance(tomb.transform.position, player.transform.position) > 80f) continue;
+                    var inventory = container.GetInventory();
+                    var count = inventory.NrOfItems();
+                    player.GetInventory().MoveAll(inventory);
+                    Debug.Log($"[AugaAutoStart] tombstone at {tomb.transform.position}: took {count - inventory.NrOfItems()} of {count} items");
+                }
+            });
+            yield return new WaitForSecondsRealtime(1f);
             Shot("10_hud");
             if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
             {
@@ -586,6 +631,16 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(2f);
             Shot("11_inventory");
             yield return new WaitForSecondsRealtime(0.5f);
+            // other mods' panels inside the player inventory (Equipment and Quick Slots): where they and their slots landed
+            DumpLive("InventoryGuiOpen", InventoryGui.instance);
+            Try(() =>
+            {
+                var player = InventoryGui.instance.m_player;
+                LogRect(player, 0);
+                LogRect(InventoryGui.instance.m_playerGrid.m_gridRoot, 0);
+                foreach (var name in new[] { "EAQS", "EaqsSlotRoot", "Divider", "Paperdolls" })
+                    LogRects(player, name);
+            });
             // tab clicks: every sound object alive right after a click is logged (one is right, two is the bug).
             // The helper does not reference Auga's Unity library, so the tab buttons are found by hierarchy.
             Try(() => Debug.Log("[AugaAutoStart] set-active-group effects: " + string.Join(", ", InventoryGui.instance.m_setActiveGroupEffects.m_effectPrefabs.Select(e => e.m_prefab != null ? e.m_prefab.name : "null"))));
@@ -629,6 +684,8 @@ namespace AugaAutoStart
             Try(() => InventoryGui.instance.Hide());
             yield return new WaitForSecondsRealtime(1f);
 
+            yield return MagicItems();
+
             Debug.Log("[AugaAutoStart] open map");
             Try(() => Minimap.instance.SetMapMode(Minimap.MapMode.Large));
             yield return new WaitForSecondsRealtime(2f);
@@ -642,6 +699,7 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(2f);
             Shot("13_menu");
             yield return new WaitForSecondsRealtime(1f);
+            yield return Compendium();
             Debug.Log("[AugaAutoStart] open settings (in game)");
             Try(() => Menu.instance.OnSettings());
             yield return new WaitForSecondsRealtime(2f);
@@ -688,6 +746,8 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(1f);
 
             Debug.Log("[AugaAutoStart] damage self");
+            Try(() => { var player = Player.m_localPlayer; if (player.GetHealth() < 15f) player.SetHealth(player.GetMaxHealth()); });
+            yield return null;
             Try(() => Player.m_localPlayer.Damage(new HitData { m_damage = { m_damage = 5f } }));
             yield return new WaitForSecondsRealtime(2f);
             Shot("15_damage");
@@ -700,6 +760,318 @@ namespace AugaAutoStart
                 Debug.Log("[AugaAutoStart] quitting");
                 Application.Quit();
             }
+        }
+
+        // AUGA_TEST_MAGIC: EpicLoot's magic items. One item per spec is spawned with the "magicitem" console command
+        // and picked up, then each is hovered in the inventory and its tooltip screenshotted. The tooltip follows the
+        // OS cursor and hides as soon as the cursor is outside the hovered slot, so the cursor is warped onto the slot.
+        private static IEnumerator MagicItems()
+        {
+            var spec = Environment.GetEnvironmentVariable("AUGA_TEST_MAGIC");
+            if (string.IsNullOrEmpty(spec)) yield break;
+            var console = global::Console.instance;
+            if (console == null || !Terminal.commands.ContainsKey("magicitem"))
+            {
+                Debug.LogWarning("[AugaAutoStart] no magicitem console command (EpicLoot not loaded?)");
+                yield break;
+            }
+
+            var specs = new List<KeyValuePair<string, string>>();
+            if (spec == "1")
+            {
+                specs.Add(new KeyValuePair<string, string>("Magic", "SwordBronze"));
+                specs.Add(new KeyValuePair<string, string>("Rare", "ShieldBronzeBuckler"));
+                specs.Add(new KeyValuePair<string, string>("Epic", "BowFineWood"));
+                specs.Add(new KeyValuePair<string, string>("Legendary", "ArmorBronzeChest"));
+                specs.Add(new KeyValuePair<string, string>("Mythic", "AxeIron"));
+            }
+            else
+            {
+                foreach (var part in spec.Split(';'))
+                {
+                    var pair = part.Split(':');
+                    if (pair.Length == 2) specs.Add(new KeyValuePair<string, string>(pair[0].Trim(), pair[1].Trim()));
+                }
+            }
+
+            var player = Player.m_localPlayer;
+            Try(() => Debug.Log($"[AugaAutoStart] inventory before: {player.GetInventory().NrOfItems()} items, {CountMagicItems(player)} carrying EpicLoot data"));
+            Try(LogFonts);
+            var before = new HashSet<ItemDrop.ItemData>(player.GetInventory().GetAllItems());
+            // EpicLoot registers its commands as cheats, and the game then wants devcommands plus a "confirmcheats"
+            // that marks the world and character as cheated for good; running the command's action directly skips
+            // that gate and leaves the test world unmarked
+            foreach (var s in specs)
+            {
+                // "Set:<setID>" spawns a whole legendary set (magicitemset); anything else is "magicitem <rarity> <item>"
+                var isSet = string.Equals(s.Key, "Set", StringComparison.OrdinalIgnoreCase);
+                var command = isSet ? $"magicitemset {s.Value}" : $"magicitem {s.Key} {s.Value} 1";
+                if (!Terminal.commands.TryGetValue(isSet ? "magicitemset" : "magicitem", out var consoleCommand))
+                {
+                    Debug.LogWarning("[AugaAutoStart] no console command for " + command);
+                    continue;
+                }
+                Debug.Log("[AugaAutoStart] console: " + command);
+                Try(() => consoleCommand.action(new Terminal.ConsoleEventArgs(command, console, consoleCommand)));
+                yield return null;
+            }
+            yield return new WaitForSecondsRealtime(1.5f);
+
+            Try(() =>
+            {
+                foreach (var drop in UnityEngine.Object.FindObjectsOfType<ItemDrop>())
+                {
+                    if (Vector3.Distance(drop.transform.position, player.transform.position) > 10f) continue;
+                    var picked = player.Pickup(drop.gameObject, false, false);
+                    Debug.Log($"[AugaAutoStart] pickup {drop.name}: {picked}");
+                }
+            });
+            yield return new WaitForSecondsRealtime(1f);
+
+            var magic = player.GetInventory().GetAllItems().Where(i => !before.Contains(i)).ToList();
+            foreach (var item in magic)
+                Debug.Log($"[AugaAutoStart] new item {item.m_shared.m_name} at {item.m_gridPos} quality={item.m_quality} customData=[{string.Join(", ", item.m_customData.Keys)}]");
+            if (magic.Count == 0)
+            {
+                Debug.LogWarning("[AugaAutoStart] no magic items ended up in the inventory");
+                yield break;
+            }
+
+            Debug.Log("[AugaAutoStart] open inventory (magic items)");
+            Try(() => InventoryGui.instance.Show(null));
+            yield return new WaitForSecondsRealtime(1.5f);
+            Shot("16_magic_inventory");
+            yield return new WaitForSecondsRealtime(0.5f);
+
+            var grid = InventoryGui.instance.m_playerGrid;
+            var shotIndex = 0;
+            foreach (var item in magic)
+            {
+                var index = item.m_gridPos.y * grid.m_width + item.m_gridPos.x;
+                var element = index >= 0 && index < grid.m_elements.Count ? grid.m_elements[index] : null;
+                if (element == null)
+                {
+                    Debug.LogWarning($"[AugaAutoStart] no grid element for {item.m_shared.m_name} at {item.m_gridPos}");
+                    continue;
+                }
+                var rect = (RectTransform)element.transform;
+                var corners = new Vector3[4];
+                rect.GetWorldCorners(corners);
+                var center = (Vector2)((corners[0] + corners[2]) / 2f);
+                Try(() => LogMagicElement(element));
+                if (shotIndex == 0 && element.m_tooltip != null && element.m_tooltip.m_tooltipPrefab != null)
+                    Try(() => LogTree(element.m_tooltip.m_tooltipPrefab.transform, 0, 3));
+                var target = center;
+                for (var attempt = 0; attempt < 3; attempt++)
+                {
+                    var warpTo = target;
+                    Try(() => { if (Mouse.current != null) Mouse.current.WarpCursorPosition(warpTo); });
+                    yield return null;
+                    yield return null;
+                    var pointer = (Vector2)ZInput.pointerPosition;
+                    var inside = RectTransformUtility.RectangleContainsScreenPoint(rect, pointer);
+                    Debug.Log($"[AugaAutoStart] hover attempt {attempt} for {item.m_shared.m_name}: slot centre={center} warped to={warpTo} pointer={pointer} inside={inside}");
+                    if (!inside)
+                    {
+                        target = center + (center - pointer);   // the cursor landed off target: aim past it by the same error
+                        continue;
+                    }
+                    Try(() => ExecuteEvents.Execute(element.gameObject, new PointerEventData(EventSystem.current) { position = pointer, pointerEnter = element.gameObject }, ExecuteEvents.pointerEnterHandler));
+                    yield return new WaitForSecondsRealtime(1.5f);   // the tooltip appears half a second after the hover starts
+                    if (UITooltip.m_tooltip != null && UITooltip.m_tooltip.activeInHierarchy) break;
+                    Debug.Log($"[AugaAutoStart] hover attempt {attempt}: no tooltip shown (current={(UITooltip.m_current != null ? UITooltip.m_current.name : "null")} hovered={(UITooltip.m_hovered != null ? UITooltip.m_hovered.name : "null")})");
+                }
+                Try(() => LogTooltip(item));
+                var itemName = Localization.instance.Localize(item.m_shared.m_name).Replace(" ", "");
+                Shot($"16_tooltip_{shotIndex++}_{itemName}");
+                yield return new WaitForSecondsRealtime(1f);
+            }
+
+            Try(() => InventoryGui.instance.Hide());
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() =>
+            {
+                var weapon = magic.FirstOrDefault(i => i.IsWeapon());
+                if (weapon != null) Debug.Log($"[AugaAutoStart] equip magic {weapon.m_shared.m_name}: {player.EquipItem(weapon)}");
+            });
+            yield return new WaitForSecondsRealtime(1.5f);
+            Shot("17_magic_hud");
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return EnchantingTable();
+            Try(() => RemoveSpawnedItems(player, magic));
+        }
+
+        /// <summary>Auga's compendium (pause menu): opened through its controller, every tab screenshotted, closed again.</summary>
+        private static IEnumerator Compendium()
+        {
+            var controllerType = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "Unity.Auga")?.GetType("AugaUnity.AugaCompendiumController");
+            var controller = controllerType != null && Menu.instance != null ? Menu.instance.GetComponentInChildren(controllerType, true) : null;
+            if (controller == null)
+            {
+                Debug.LogWarning("[AugaAutoStart] no AugaCompendiumController under the menu");
+                yield break;
+            }
+            Debug.Log("[AugaAutoStart] open compendium");
+            Try(() => controllerType.GetMethod("ShowCompendium").Invoke(controller, null));
+            yield return new WaitForSecondsRealtime(1.5f);
+            var tabHandler = controllerType.GetField("TabController")?.GetValue(controller) as TabHandler;
+            var count = tabHandler != null ? tabHandler.m_tabs.Count : 0;
+            for (var i = 0; i < count; i++)
+            {
+                var tab = tabHandler.m_tabs[i];
+                if (tab.m_button == null || !tab.m_button.gameObject.activeSelf) continue;
+                var name = tab.m_page != null ? tab.m_page.name : i.ToString();
+                Debug.Log("[AugaAutoStart] compendium tab " + name);
+                Try(() => tabHandler.SetActiveTab(i));
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("13c_compendium_" + i + "_" + name);
+                yield return new WaitForSecondsRealtime(0.5f);
+            }
+            Try(() => controllerType.GetMethod("HideCompendium").Invoke(controller, null));
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        /// <summary>AUGA_TEST_ENCHANTING=1: an EpicLoot enchanting table spawned in front of the player, its UI opened and every tab screenshotted, then removed again.</summary>
+        private static IEnumerator EnchantingTable()
+        {
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_ENCHANTING") != "1") yield break;
+            var prefab = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab("piece_enchantingtable") : null;
+            if (prefab == null)
+            {
+                Debug.LogWarning("[AugaAutoStart] no piece_enchantingtable prefab (EpicLoot not loaded?)");
+                yield break;
+            }
+            var player = Player.m_localPlayer;
+            var position = player.transform.position + player.transform.forward * 2.5f;
+            GameObject table = null;
+            Try(() => table = UnityEngine.Object.Instantiate(prefab, position, Quaternion.LookRotation(-player.transform.forward)));
+            if (table == null) yield break;
+            yield return new WaitForSecondsRealtime(1f);
+            var tableComponent = table.GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(c => c != null && c.GetType().Name == "EnchantingTable");
+            Try(() => Debug.Log($"[AugaAutoStart] enchanting table spawned: {table.name} components=[{string.Join(", ", table.GetComponents<Component>().Select(c => c != null ? c.GetType().Name : "null"))}]"));
+            var uiType = tableComponent != null ? tableComponent.GetType().Assembly.GetType("EpicLoot_UnityLib.EnchantingTableUI") : null;
+            if (uiType == null)
+            {
+                Debug.LogWarning("[AugaAutoStart] enchanting table component or UI type not found");
+                Try(() => ZNetScene.instance.Destroy(table));
+                yield break;
+            }
+            Debug.Log("[AugaAutoStart] open enchanting table UI");
+            Try(() => uiType.GetMethod("Show", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { tableComponent }));
+            yield return new WaitForSecondsRealtime(2f);
+            var ui = uiType.GetProperty("instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null) as Component;
+            Debug.Log($"[AugaAutoStart] enchanting UI instance={(ui != null)} shown={(ui != null && ui.gameObject.activeInHierarchy)}");
+            Shot("18_enchanting_0");
+            yield return new WaitForSecondsRealtime(0.5f);
+            if (ui != null)
+            {
+                DumpLive("EnchantingTableUI", ui);
+                var tabHandler = uiType.GetField("TabHandler")?.GetValue(ui) as TabHandler;
+                var count = tabHandler != null ? tabHandler.m_tabs.Count : 0;
+                for (var i = 1; i < count; i++)
+                {
+                    var tab = tabHandler.m_tabs[i];
+                    var name = tab.m_page != null ? tab.m_page.name : i.ToString();
+                    Debug.Log("[AugaAutoStart] enchanting tab " + name);
+                    Try(() => tabHandler.SetActiveTab(i));
+                    yield return new WaitForSecondsRealtime(1f);
+                    Shot("18_enchanting_" + i + "_" + name);
+                    yield return new WaitForSecondsRealtime(0.5f);
+                }
+                Try(() => uiType.GetMethod("Hide", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).Invoke(null, null));
+            }
+            yield return new WaitForSecondsRealtime(0.5f);
+            Try(() => ZNetScene.instance.Destroy(table));
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
+
+        private const string MagicItemKey = "randyknapp.mods.epicloot#EpicLoot.MagicItemComponent";
+
+        /// <summary>
+        /// Items carrying EpicLoot's component data. EpicLoot attaches that component to ordinary equipment as well
+        /// (with no magic item inside), so this is a count for the log, never a list of things to delete.
+        /// </summary>
+        private static int CountMagicItems(Player player)
+        {
+            return player.GetInventory().GetAllItems().Count(i => i.m_customData != null && i.m_customData.ContainsKey(MagicItemKey));
+        }
+
+        /// <summary>Takes the items this run spawned out of the inventory again, so they do not pile up in the test character's save.</summary>
+        private static void RemoveSpawnedItems(Player player, List<ItemDrop.ItemData> spawned)
+        {
+            var inventory = player.GetInventory();
+            var removed = 0;
+            foreach (var item in spawned)
+            {
+                if (!inventory.ContainsItem(item)) continue;
+                if (item.m_equipped) player.UnequipItem(item);
+                inventory.RemoveItem(item);
+                removed++;
+            }
+            Debug.Log($"[AugaAutoStart] removed {removed} of the {spawned.Count} spawned items; {inventory.NrOfItems()} items remain");
+        }
+
+        private static void LogFonts()
+        {
+            var probe = new[] { '\u2023', '\u25C6', '\u25CA', '\u2666', '\u25BE', '\u25B2' };
+            foreach (var font in Resources.FindObjectsOfTypeAll<TMP_FontAsset>())
+            {
+                if (font == null) continue;
+                var has = string.Join("", probe.Select(c => font.HasCharacter(c) ? c.ToString() : "_"));
+                var fallbacks = font.fallbackFontAssetTable != null ? string.Join(", ", font.fallbackFontAssetTable.Where(f => f != null).Select(f => f.name)) : "";
+                Debug.Log($"[AugaAutoStart] font {font.name}: glyphs[{has}] population={font.atlasPopulationMode} fallbacks=[{fallbacks}]");
+            }
+            var globalFallbacks = TMP_Settings.fallbackFontAssets != null ? string.Join(", ", TMP_Settings.fallbackFontAssets.Where(f => f != null).Select(f => f.name)) : "";
+            Debug.Log($"[AugaAutoStart] TMP settings fallbacks=[{globalFallbacks}] default={(TMP_Settings.defaultFontAsset != null ? TMP_Settings.defaultFontAsset.name : "null")}");
+        }
+
+        private static void LogTree(Transform t, int depth, int maxDepth)
+        {
+            var rt = t as RectTransform;
+            var corners = new Vector3[4];
+            if (rt != null) rt.GetWorldCorners(corners);
+            var tmp = t.GetComponent<TMP_Text>();
+            var extra = tmp != null ? $" font={(tmp.font != null ? tmp.font.name : "null")} text='{ShortText(tmp.text)}'" : "";
+            var layoutElement = t.GetComponent<LayoutElement>();
+            Debug.Log($"[AugaAutoStart] tree {new string(' ', depth * 2)}{t.name} active={t.gameObject.activeSelf} size={(rt != null ? rt.rect.size : Vector2.zero)} world=({corners[0].x:F0},{corners[0].y:F0})-({corners[2].x:F0},{corners[2].y:F0}) anchors={(rt != null ? rt.anchorMin + "-" + rt.anchorMax : "-")} pivot={(rt != null ? rt.pivot : Vector2.zero)} ignoreLayout={(layoutElement != null && layoutElement.ignoreLayout)}{extra}");
+            if (depth >= maxDepth) return;
+            for (var i = 0; i < t.childCount; i++) LogTree(t.GetChild(i), depth + 1, maxDepth);
+        }
+
+        private static string ShortText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            text = text.Replace("\n", " | ");
+            return text.Length > 50 ? text.Substring(0, 50) + "..." : text;
+        }
+
+        private static void LogTooltip(ItemDrop.ItemData item)
+        {
+            var tooltip = UITooltip.m_tooltip;
+            if (tooltip == null)
+            {
+                Debug.LogWarning($"[AugaAutoStart] tooltip for {item.m_shared.m_name}: none instantiated");
+                return;
+            }
+            Debug.Log($"[AugaAutoStart] tooltip for {item.m_shared.m_name}: {PathOf(tooltip.transform)} active={tooltip.activeInHierarchy} pos={tooltip.transform.position}");
+            LogTree(tooltip.transform, 0, 3);
+            foreach (var text in tooltip.GetComponentsInChildren<TMP_Text>(false))
+                Debug.Log($"[AugaAutoStart] tooltip text {text.name}: '{text.text.Replace("\n", " | ")}'");
+        }
+
+        /// <summary>The children of an inventory slot with their images: EpicLoot adds "magicItem" and "setItem" backgrounds.</summary>
+        private static void LogMagicElement(InventoryElement element)
+        {
+            var sb = new StringBuilder();
+            foreach (Transform child in element.transform)
+            {
+                var image = child.GetComponent<Image>();
+                sb.Append(child.name).Append(child.gameObject.activeSelf ? "" : "(off)");
+                if (image != null)
+                    sb.Append('[').Append(image.enabled ? "" : "disabled ").Append(image.sprite != null ? image.sprite.name : "nosprite").Append(' ').Append(ColorUtility.ToHtmlStringRGBA(image.color)).Append(']');
+                sb.Append(' ');
+            }
+            Debug.Log("[AugaAutoStart] element " + element.name + ": " + sb);
         }
 
         private static string PathOf(Transform t)
