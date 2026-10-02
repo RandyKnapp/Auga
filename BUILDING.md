@@ -2,6 +2,17 @@
 
 ## Requirements
 
+For a reproducible local build with Steam Valheim, BepInEx 5 and Visual Studio
+MSBuild installed, run `Tools/Build-Local.ps1`. Pass `-ValheimDir` for a different
+install directory. The script pins the publicizer and APIManager revision,
+generates references under the ignored `References` directory, builds the API
+before the solution, and disables game deployment.
+`References/build-provenance.json` records source revisions and game/plugin hashes.
+The development test helper is built separately and never shipped in Auga.dll.
+
+See [CharacterMenuStats.md](Docs/CharacterMenuStats.md) for the character-selection
+regression fixed and validated on Valheim 1.0.16.
+
 * Valheim (Steam) with the current game version. The build reads the Unity and game assemblies straight from
   `<Valheim>\valheim_Data\Managed`.
 * BepInEx 5.4.23.x for Valheim, either in the game folder or in a mod manager profile. By default the build looks
