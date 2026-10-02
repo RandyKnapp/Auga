@@ -75,22 +75,28 @@ namespace AugaUnity
             _lookTarget = Utils.FindChild(FejdStartup.instance.m_playerInstance.transform, "Head");
             _camera.transform.LookAt(_lookTarget.position + _offset);
 
-            _camera.Render();
-            var profilePic = new Texture2D(RenderTexture.width, RenderTexture.height, RenderTexture.graphicsFormat, RenderTexture.mipmapCount, TextureCreationFlags.None);
-
-            RenderTexture.active = RenderTexture;
-            profilePic.ReadPixels(new Rect(0, 0, RenderTexture.width, RenderTexture.height), 0, 0);
-            profilePic.Apply();
-            var bytes = profilePic.EncodeToPNG();
-
-            SaveProfilePic(profile, bytes);
-            
-            Destroy(profilePic);
+            var previousTarget = RenderTexture.active;
+            Texture2D profilePic = null;
+            try
+            {
+                _camera.Render();
+                profilePic = new Texture2D(RenderTexture.width, RenderTexture.height, RenderTexture.graphicsFormat, RenderTexture.mipmapCount, TextureCreationFlags.None);
+                RenderTexture.active = RenderTexture;
+                profilePic.ReadPixels(new Rect(0, 0, RenderTexture.width, RenderTexture.height), 0, 0);
+                profilePic.Apply();
+                SaveProfilePic(profile, profilePic.EncodeToPNG());
+            }
+            finally
+            {
+                RenderTexture.active = previousTarget;
+                if (profilePic != null) Destroy(profilePic);
+            }
         }
 
         private void SaveProfilePic(PlayerProfile profile, byte[] bytes)
         {
             var outputFilePath = GetOutputFilePathForProfile(profile);
+            Directory.CreateDirectory(Path.GetDirectoryName(outputFilePath));
             File.WriteAllBytes(outputFilePath, bytes);
         }
 
@@ -204,7 +210,7 @@ namespace AugaUnity
             _index = index;
             CharacterName.text = profile.m_playerName;
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
-            StatsText.text = $"{profile.GetStat(PlayerStatType.Deaths)}\n{profile.GetStat(PlayerStatType.Builds)}\n{profile.GetStat(PlayerStatType.Crafts)}";
+            StatsText.text = $"{GetMenuStat(profile, PlayerStatType.Deaths)}\n{GetMenuStat(profile, PlayerStatType.Builds)}\n{GetMenuStat(profile, PlayerStatType.Crafts)}";
 
             var outputFilePath = AugaCharacterSelectPhotoBooth.GetOutputFilePathForProfile(profile);
             if (File.Exists(outputFilePath))
@@ -222,6 +228,13 @@ namespace AugaUnity
             CloudSave?.gameObject.SetActive(profile.m_fileSource == FileHelpers.FileSource.Cloud || profile.m_fileSource == FileHelpers.FileSource.Auto);
 
             Update();
+        }
+
+        // GetStat selects achievement difficulty from the active world. Character selection
+        // has no world yet; display the saved lifetime counters, including cheated activity.
+        internal static float GetMenuStat(PlayerProfile profile, PlayerStatType stat)
+        {
+            return profile.m_playerStats[PlayerProfile.c_RawStats][stat];
         }
 
         public void Update()
