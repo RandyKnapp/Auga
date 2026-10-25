@@ -421,6 +421,14 @@ namespace AugaAutoStart
 
             Try(() => fejd.SetSelectedProfile(character));
             Debug.Log($"[AugaAutoStart] selected profile index {fejd.m_profileIndex} of {fejd.m_profiles?.Count}");
+            // the game falls back to the first profile in the list (the most recently played one, so the user's own
+            // character) when the requested one is missing or unreadable; that is never what a test run should do
+            var selected = fejd.m_profiles != null && fejd.m_profileIndex >= 0 && fejd.m_profileIndex < fejd.m_profiles.Count ? fejd.m_profiles[fejd.m_profileIndex] : null;
+            if (selected == null || !string.Equals(selected.GetFilename(), character, StringComparison.OrdinalIgnoreCase))
+            {
+                Quit($"character '{character}' is not in the profile list (selected '{selected?.GetFilename()}'); not starting");
+                yield break;
+            }
             yield return new WaitForSecondsRealtime(1f);
             Debug.Log("[AugaAutoStart] OnCharacterStart");
             Try(() => fejd.OnCharacterStart());
@@ -623,12 +631,41 @@ namespace AugaAutoStart
             Try(() => LogKeyHintState("build"));
             Shot("10c_buildhints");
             yield return new WaitForSecondsRealtime(1f);
+            // the build menu itself (other mods rebuild it: AAABuildMenu)
+            if (hammer != null)
+            {
+                Debug.Log("[AugaAutoStart] open build menu");
+                Try(() => Hud.instance.TogglePieceSelection());
+                yield return new WaitForSecondsRealtime(2f);
+                Try(() => Debug.Log($"[AugaAutoStart] build menu visible={Hud.IsPieceSelectionVisible()}"));
+                Shot("10d_buildmenu");
+                yield return new WaitForSecondsRealtime(0.5f);
+                Try(() => Hud.HidePieceSelection());
+                yield return new WaitForSecondsRealtime(1f);
+            }
             Try(() => { if (hammer != null) Player.m_localPlayer.UnequipItem(hammer); });
             yield return new WaitForSecondsRealtime(1f);
 
             Debug.Log("[AugaAutoStart] open inventory");
             Try(() => InventoryGui.instance.Show(null));
             yield return new WaitForSecondsRealtime(2f);
+            Try(() =>
+            {
+                var inventory = Player.m_localPlayer.GetInventory();
+                var grid = InventoryGui.instance.m_playerGrid;
+                Debug.Log($"[AugaAutoStart] inventory {inventory.GetWidth()}x{inventory.GetHeight()} items={inventory.NrOfItems()} weight={inventory.GetTotalWeight():F0}; grid {grid.m_width}x{grid.m_height} elements={grid.m_elements.Count} prefab={(grid.m_elementPrefab != null ? grid.m_elementPrefab.name : "null")} gridRoot={(grid.m_gridRoot != null ? grid.m_gridRoot.gameObject.activeInHierarchy.ToString() : "null")} inventoryGridObject={grid.gameObject.activeInHierarchy} visible={InventoryGui.IsVisible()}");
+                foreach (var item in inventory.GetAllItems()) Debug.Log($"[AugaAutoStart]   item {item.m_shared.m_name} x{item.m_stack} at {item.m_gridPos}");
+                var gui = InventoryGui.instance;
+                Debug.Log($"[AugaAutoStart] gui animator visible={InventoryGui.IsVisible()} pieceSelection={Hud.IsPieceSelectionVisible()} menuVisible={Menu.IsVisible()} playerPanelActive={gui.m_player.gameObject.activeInHierarchy} hiddenFrames={gui.m_hiddenFrames}");
+                var containers = UnityEngine.Object.FindObjectsOfType<Container>().Count(c => Vector3.Distance(c.transform.position, Player.m_localPlayer.transform.position) < 40f);
+                Debug.Log($"[AugaAutoStart] containers within 40 m: {containers}");
+                if (grid.m_elements.Count == 0)
+                {
+                    Debug.Log("[AugaAutoStart] grid empty: calling UpdateInventory directly");
+                    gui.UpdateInventory(Player.m_localPlayer);
+                    Debug.Log($"[AugaAutoStart] after direct update: elements={grid.m_elements.Count} grid {grid.m_width}x{grid.m_height}");
+                }
+            });
             Shot("11_inventory");
             yield return new WaitForSecondsRealtime(0.5f);
             // other mods' panels inside the player inventory (Equipment and Quick Slots): where they and their slots landed

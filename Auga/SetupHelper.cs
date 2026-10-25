@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,6 +6,98 @@ namespace Auga
 {
     public static class SetupHelper
     {
+        /// <summary>The children of a vanilla object that other mods added: everything not on the vanilla prefab's own list.</summary>
+        public static List<Transform> ForeignChildren(Transform vanillaRoot, params string[] vanillaNames)
+        {
+            var result = new List<Transform>();
+            if (vanillaRoot == null)
+                return result;
+            var known = new HashSet<string>(vanillaNames);
+            foreach (Transform child in vanillaRoot)
+            {
+                if (!known.Contains(child.name))
+                    result.Add(child);
+            }
+            return result;
+        }
+
+        /// <summary>Moves objects other mods added to a vanilla root over to its Auga replacement, layout values kept.</summary>
+        public static void AdoptChildren(List<Transform> children, Transform newRoot)
+        {
+            if (children == null || newRoot == null)
+                return;
+            foreach (var child in children)
+            {
+                if (child == null)
+                    continue;
+                child.SetParent(newRoot, false);
+                Auga.Log($"Kept '{child.name}' (added by another mod) under {newRoot.name}.");
+            }
+        }
+
+        /// <summary>
+        /// The components other mods read off vanilla's buttons after Auga swapped them out (a UIGamePad with its
+        /// hint, a ButtonSfx with its sounds), copied onto the Auga button that took the vanilla field.
+        /// </summary>
+        public static void CopyVanillaButtonBits(Component source, Component target)
+        {
+            CopyUIGamePad(source, target);
+            CopyButtonSfx(source, target);
+        }
+
+        public static void CopyButtonSfx(Component source, Component target)
+        {
+            if (source == null || target == null || target.GetComponent<ButtonSfx>() != null)
+                return;
+            var from = source.GetComponent<ButtonSfx>();
+            if (from == null)
+                return;
+            var sfx = target.gameObject.AddComponent<ButtonSfx>();
+            sfx.m_sfxPrefab = from.m_sfxPrefab;
+            sfx.m_sfxPrefabVibrationOnly = from.m_sfxPrefabVibrationOnly;
+            sfx.m_selectSfxPrefab = from.m_selectSfxPrefab;
+            sfx.m_selectSfxPrefabVibrationOnly = from.m_selectSfxPrefabVibrationOnly;
+            sfx.m_enterSfxPrefab = from.m_enterSfxPrefab;
+        }
+
+        /// <summary>
+        /// Gives the target the source's UIGamePad (key, blocking list, a copy of the hint), for mods that clone
+        /// the vanilla button and read the component. Nothing happens when the target already has one.
+        /// </summary>
+        public static void CopyUIGamePad(Component source, Component target)
+        {
+            if (source == null || target == null || target.GetComponent<UIGamePad>() != null)
+                return;
+            var from = source.GetComponent<UIGamePad>();
+            if (from == null)
+                return;
+            var pad = target.gameObject.AddComponent<UIGamePad>();
+            pad.m_keyCode = from.m_keyCode;
+            pad.m_zinputKey = from.m_zinputKey;
+            pad.m_blockingElements = from.m_blockingElements != null ? new List<GameObject>(from.m_blockingElements) : new List<GameObject>();
+            if (from.m_hint != null)
+            {
+                pad.m_hint = Object.Instantiate(from.m_hint, target.transform, false);
+                pad.m_hint.name = from.m_hint.name;
+                pad.m_hint.SetActive(false);
+            }
+        }
+
+        /// <summary>Adds an empty, inactive RectTransform child for every name the parent does not have yet.</summary>
+        public static void EnsureChildren(Transform parent, params string[] names)
+        {
+            if (parent == null)
+                return;
+            foreach (var name in names)
+            {
+                if (parent.Find(name) != null)
+                    continue;
+                var placeholder = new GameObject(name, typeof(RectTransform));
+                placeholder.transform.SetParent(parent, false);
+                placeholder.SetActive(false);
+            }
+        }
+
         /// <summary>
         /// Snapshot of the Canvas / CanvasScaler / GraphicRaycaster / GuiScaler set-up of a vanilla UI root.
         /// Valheim 1.x makes every UI screen (Menu, Chat, DamageText, EnemyHud, StoreGui, TextInput, TextViewer, ...)

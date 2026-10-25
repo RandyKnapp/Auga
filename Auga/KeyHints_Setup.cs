@@ -8,6 +8,72 @@ using Object = UnityEngine.Object;
 namespace Auga
 {
     /// <summary>
+    /// Sits on a converted key hint entry. Vanilla's children stay in the entry, hidden, and a mod that writes into
+    /// them by vanilla's names (a cloned row's label and keys) gets what it wrote shown: when their texts change, the
+    /// Auga row is built again from them.
+    /// </summary>
+    /// <summary>Marks an Auga key hint row with the vanilla entry it stands in for.</summary>
+    public class KeyHintRowTag : MonoBehaviour
+    {
+        public Transform Entry;
+    }
+
+    public class KeyHintEntryWatcher : MonoBehaviour
+    {
+        public GameObject Row;
+        public string Snapshot;
+        public bool Checked;
+        private float _nextCheck;
+
+        /// <summary>False for a copy of an entry, whose row reference still points at the original's row.</summary>
+        public bool OwnsRow()
+        {
+            if (Row == null)
+                return false;
+            var tag = Row.GetComponent<KeyHintRowTag>();
+            return tag != null && tag.Entry == transform;
+        }
+
+        // vanilla shows and hides the entries; the row next to each one follows
+        private void OnEnable()
+        {
+            if (OwnsRow()) Row.SetActive(true);
+        }
+
+        private void OnDisable()
+        {
+            if (OwnsRow()) Row.SetActive(false);
+        }
+
+        public static string SnapshotOf(Transform entry, GameObject row)
+        {
+            var builder = new System.Text.StringBuilder();
+            foreach (Transform child in entry)
+            {
+                if (row != null && child == row.transform)
+                    continue;
+                builder.Append(child.name).Append(child.gameObject.activeSelf ? '+' : '-');
+                foreach (var text in child.GetComponentsInChildren<TMP_Text>(true))
+                    builder.Append('|').Append(text.text);
+                builder.Append('\n');
+            }
+            return builder.ToString();
+        }
+
+        private void LateUpdate()
+        {
+            if (Time.unscaledTime < _nextCheck)
+                return;
+            _nextCheck = Time.unscaledTime + 0.25f;
+            var now = SnapshotOf(transform, Row);
+            if (now == Snapshot && (OwnsRow() || (Row == null && Checked)))
+                return;
+            Snapshot = now;
+            AugaKeyHints.Reconvert(this);
+        }
+    }
+
+    /// <summary>
     /// Rebuilds the vanilla key hint strip out of Auga's LabeledKeybind_HUD rows and stacks them vertically in the
     /// bottom-right corner of the HUD.
     ///
@@ -34,6 +100,21 @@ namespace Auga
             public int MouseButton = -1;
             public Image Icon;          // vanilla icon (mouse wheel, rotate) reused as the key visual
             public string Separator;    // text shown before this key ("+", "/")
+        }
+
+        /// <summary>Builds an entry's Auga row again from its (hidden) vanilla children, after another mod changed them.</summary>
+        public static void Reconvert(KeyHintEntryWatcher watcher)
+        {
+            if (watcher == null || Auga.Assets.Hud == null)
+                return;
+            var template = FindTemplate();
+            if (template == null)
+                return;
+            if (watcher.OwnsRow())
+                Object.DestroyImmediate(watcher.Row);
+            watcher.Row = null;
+            watcher.Checked = true;
+            ConvertEntry(watcher.transform, template, out _);
         }
 
         public static void Convert(Transform keyHints)
@@ -174,9 +255,13 @@ namespace Auga
             if (labels.Count == 0 && units.Count == 0)
                 return false;
 
-            var row = Object.Instantiate(template.gameObject, entry, false);
+            // the row goes next to the entry in the container, not into it: the entry keeps vanilla's children at
+            // vanilla's positions for the mods that reach into them by name and index
+            var row = Object.Instantiate(template.gameObject, entry.parent, false);
             row.name = "LabeledKeybind_HUD";
-            row.SetActive(true);
+            row.transform.SetSiblingIndex(entry.GetSiblingIndex() + 1);
+            row.SetActive(entry.gameObject.activeSelf);
+            row.AddComponent<KeyHintRowTag>().Entry = entry;
             Stretch((RectTransform)row.transform);
 
             var display = row.GetComponent<AugaBindingDisplay>();
@@ -238,22 +323,26 @@ namespace Auga
                 width += label.preferredWidth + 8f;
             }
 
-            foreach (var go in vanillaChildren)
-            {
-                if (go != null && go.transform.parent == entry)
-                {
-                    Object.Destroy(go);
-                }
-            }
-            var entryLayout = entry.GetComponent<HorizontalLayoutGroup>();
-            if (entryLayout != null) Object.DestroyImmediate(entryLayout);
-            var entryFitter = entry.GetComponent<ContentSizeFitter>();
-            if (entryFitter != null) Object.DestroyImmediate(entryFitter);
-            var element = entry.GetComponent<LayoutElement>() ?? entry.gameObject.AddComponent<LayoutElement>();
+            // the vanilla entry stays as it is, hidden and out of the layout, and the Auga row takes its place next
+            // to it. Other mods reach into the entries by vanilla's names and child positions (PlantEasily clones one
+            // and writes its keys into "key_bkg/Key" and its label into "Text" by index, AAABuildMenu looks for one
+            // with both to clone), and the watcher on the entry builds the row again whenever those texts change,
+            // so what they write is what the row shows.
+            var hiddenGroup = entry.GetComponent<CanvasGroup>() ?? entry.gameObject.AddComponent<CanvasGroup>();
+            hiddenGroup.alpha = 0f;
+            hiddenGroup.blocksRaycasts = false;
+            hiddenGroup.interactable = false;
+            var hiddenElement = entry.GetComponent<LayoutElement>() ?? entry.gameObject.AddComponent<LayoutElement>();
+            hiddenElement.ignoreLayout = true;
+            var element = row.GetComponent<LayoutElement>() ?? row.AddComponent<LayoutElement>();
             element.ignoreLayout = false;
             element.minHeight = RowHeight;
             element.preferredHeight = RowHeight;
             element.preferredWidth = width;
+            var watcher = entry.GetComponent<KeyHintEntryWatcher>() ?? entry.gameObject.AddComponent<KeyHintEntryWatcher>();
+            watcher.Row = row;
+            watcher.Snapshot = KeyHintEntryWatcher.SnapshotOf(entry, row);
+            watcher.Checked = true;
             return true;
         }
 
@@ -263,8 +352,14 @@ namespace Auga
             {
                 display.AutomaticKeyName = string.Empty;
                 SetKeyVisualsActive(display, false);
+                // a copy of vanilla's icon; the original stays in the entry for mods that look for it there
+                var image = Object.Instantiate(unit.Icon.gameObject, slot, false).GetComponent<Image>();
+                var hiddenGroup = image.GetComponent<CanvasGroup>();
+                if (hiddenGroup != null) Object.DestroyImmediate(hiddenGroup);
+                var hiddenLayout = image.GetComponent<LayoutElement>();
+                if (hiddenLayout != null) hiddenLayout.ignoreLayout = false;
+                unit.Icon = image;
                 var icon = unit.Icon.rectTransform;
-                icon.SetParent(slot, false);
                 icon.anchorMin = icon.anchorMax = new Vector2(0f, 1f);
                 icon.pivot = new Vector2(0.5f, 0.5f);
                 var sprite = unit.Icon.sprite;

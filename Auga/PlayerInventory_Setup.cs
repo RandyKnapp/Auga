@@ -292,6 +292,12 @@ namespace Auga
                 __instance.m_craftingStationIcon = CraftingPanel.WorkbenchIcon;
                 __instance.m_craftingStationLevelRoot = CraftingPanel.WorkbenchLevelRoot;
                 __instance.m_craftingStationLevel = CraftingPanel.WorkbenchLevel;
+                // mods that clone the craft buttons read vanilla's components on them (the gamepad hint, the sounds):
+                // Auga's buttons get a copy of vanilla's
+                SetupHelper.CopyVanillaButtonBits(__instance.m_craftButton, CraftingPanel.CraftButton);
+                SetupHelper.CopyVanillaButtonBits(__instance.m_craftCancelButton, CraftingPanel.CraftCancelButton);
+                SetupHelper.CopyVanillaButtonBits(__instance.m_tabCraft, CraftingPanel.DummyCraftTabButton);
+                SetupHelper.CopyVanillaButtonBits(__instance.m_tabUpgrade, CraftingPanel.DummyUpgradeTabButton);
                 __instance.m_craftButton = CraftingPanel.CraftButton;
                 __instance.m_craftButton.onClick.AddListener(__instance.OnCraftPressed);
                 __instance.m_craftCancelButton = CraftingPanel.CraftCancelButton;
@@ -396,16 +402,14 @@ namespace Auga
 
                     if (__instance.name == "PlayerGrid")
                     {
-                        if (element.Position.y == 0)
-                        {
-                            element.gameObject.transform.SetParent(TopRowInventory);
-                        }
-                        else
-                        {
-                            element.gameObject.transform.SetParent(MainRowsInventory);
-                            //Vector2 currentPosition = new Vector3(element.Position.x * (__instance.m_elementSpace), (element.Position.y * -__instance.m_elementSpace) - 26);
-                            //element.gameObject.RectTransform().anchoredPosition = startPos + currentPosition;
-                        }
+                        // a slot moves into the top row or the main grid once; a slot another mod has taken
+                        // somewhere else (Equipment and Quick Slots keeps its slots under its own root) stays there
+                        var current = element.gameObject.transform.parent;
+                        if (current != __instance.m_gridRoot && current != TopRowInventory && current != MainRowsInventory)
+                            continue;
+                        var target = element.Position.y == 0 ? TopRowInventory : MainRowsInventory;
+                        if (current != target)
+                            element.gameObject.transform.SetParent(target);
                     }
                 }
             }

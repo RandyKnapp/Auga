@@ -13,6 +13,80 @@ namespace Auga
     /// </summary>
     public static class Compendium_Setup
     {
+        /// <summary>
+        /// Mods that extend the compendium expect vanilla's layout on every TextsDialog: EpicLoot's pages look for
+        /// "Texts_frame" with a "Closebutton" and a "TextArea" (ScrollArea/Content) under it the moment the dialog
+        /// wakes up, and fail without them. The page content that holds the dialog's text area takes the frame's
+        /// name and gets a hidden close button placeholder; a dialog without a text area gets an inactive frame with
+        /// the expected pieces.
+        /// </summary>
+        public static void SetupTextsDialogs(AugaCompendiumController controller)
+        {
+            if (controller == null)
+                return;
+            foreach (var dialog in controller.GetComponentsInChildren<TextsDialog>(true))
+            {
+                try
+                {
+                    EnsureVanillaFrame(dialog);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[Auga] Compendium text dialog frame setup failed for {dialog.name}: {e}");
+                }
+            }
+        }
+
+        private static void EnsureVanillaFrame(TextsDialog dialog)
+        {
+            var root = dialog.transform;
+            var frame = root.Find("Texts_frame");
+            if (frame == null)
+            {
+                var textArea = dialog.m_textArea != null ? dialog.m_textArea.transform : null;
+                foreach (Transform child in root)
+                {
+                    if (textArea != null && textArea.IsChildOf(child) && child.Find("TextArea/ScrollArea/Content") != null)
+                    {
+                        frame = child;
+                        break;
+                    }
+                }
+                if (frame != null)
+                {
+                    frame.name = "Texts_frame";
+                }
+                else
+                {
+                    frame = NewStretchedRect("Texts_frame", root);
+                    var area = NewStretchedRect("TextArea", frame);
+                    var scrollArea = NewStretchedRect("ScrollArea", area);
+                    scrollArea.gameObject.AddComponent<ScrollRect>();
+                    var content = NewStretchedRect("Content", scrollArea);
+                    content.gameObject.AddComponent<VerticalLayoutGroup>();
+                    frame.gameObject.SetActive(false);
+                }
+            }
+            if (frame.Find("Closebutton") == null)
+            {
+                var close = NewStretchedRect("Closebutton", frame);
+                close.gameObject.AddComponent<Image>().enabled = false;
+                close.gameObject.AddComponent<Button>();
+                close.gameObject.SetActive(false);
+            }
+        }
+
+        private static Transform NewStretchedRect(string name, Transform parent)
+        {
+            var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            return rect;
+        }
+
         public static void SetupAchievements(AugaCompendiumController controller)
         {
             var page = controller != null ? controller.Achievements : null;

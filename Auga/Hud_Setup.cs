@@ -38,6 +38,10 @@ namespace Auga
             newExternalRoot.gameObject.AddComponent<MovableHudElement>().Init("Abilities and Other Statuses",TextAnchor.UpperRight, -160, 0);
             __instance.m_statusEffectTemplate = newTemplate.RectTransform();
             __instance.m_statusEffectListRoot = newExternalRoot.RectTransform();
+            // mods that restyle vanilla's status effect entries reach into them by vanilla's child names
+            // (MinimalStatusEffects places "Icon", "Name" and "TimeText" and spins "Cooldown"): the entry keeps every
+            // vanilla child, an empty inactive one where Auga has no use for it
+            SetupHelper.EnsureChildren(newTemplate, "Icon", "Name", "TimeText", "Cooldown", "TimeBar");
             
 
             __instance.m_saveIcon = __instance.Replace("hudroot/SaveIcon", Auga.Assets.Hud).gameObject;

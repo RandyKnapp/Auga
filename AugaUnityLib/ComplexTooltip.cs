@@ -136,6 +136,95 @@ namespace AugaUnity
         protected int _variant;
         protected string _originalTooltip;
 
+        // where the title, the subtitle, the description and the text box templates' texts live in the prefab. Mods
+        // that restyle vanilla's tooltip on hover reach into whatever tooltip is showing and move objects by name
+        // (EpicLoot's scroll view takes the first "Topic" and the first "Text" it finds, which here is a template's
+        // text, so every box cloned from it comes out empty). Whatever was moved is put back before the tooltip shows.
+        private readonly List<(Transform target, Transform home, int index)> _homes = new List<(Transform, Transform, int)>();
+
+        protected virtual void Awake()
+        {
+            RememberHome(Topic);
+            RememberHome(Subtitle);
+            RememberHome(DescriptionText);
+            foreach (var template in new[] { TwoColumnTextBoxPrefab, CenteredTextBoxPrefab, LeftAlignedTextBoxPrefab, UpgradeLabelsPrefab, UpgradeTwoColumnTextBoxPrefab, CheckBoxTextBoxPrefab })
+            {
+                if (template == null)
+                    continue;
+                RememberHome(template.Text);
+                RememberHome(template.RightColumnText);
+                RememberHome(template.ThirdColumnText);
+            }
+        }
+
+        private void RememberHome(Component part)
+        {
+            if (part != null && part.transform.parent != null)
+                _homes.Add((part.transform, part.transform.parent, part.transform.GetSiblingIndex()));
+        }
+
+        protected virtual void OnEnable()
+        {
+            if (RestoreLayout())
+                Regenerate();
+        }
+
+        /// <summary>
+        /// Puts back every part another mod moved out of its place and hides whatever it hung onto the tooltip root
+        /// (the root owns one child, the panel; a copy of the tooltip is left alone). True when anything was off.
+        /// </summary>
+        public bool RestoreLayout()
+        {
+            var restored = false;
+            foreach (var (target, home, index) in _homes)
+            {
+                if (target == null || home == null || target.parent == home)
+                    continue;
+                target.SetParent(home, false);
+                target.SetSiblingIndex(Mathf.Min(index, home.childCount - 1));
+                restored = true;
+            }
+            for (var i = 1; i < transform.childCount; i++)
+            {
+                var extra = transform.GetChild(i);
+                if (extra.gameObject.activeSelf && extra.GetComponent<ComplexTooltip>() == null)
+                {
+                    extra.gameObject.SetActive(false);
+                    restored = true;
+                }
+            }
+            return restored;
+        }
+
+        /// <summary>Builds the current content again, after its templates were restored.</summary>
+        private void Regenerate()
+        {
+            if (_item != null)
+            {
+                var item = _item;
+                _item = null;
+                SetItem(item, _quality, _variant);
+            }
+            else if (_food != null)
+            {
+                var food = _food;
+                _food = null;
+                SetFood(food);
+            }
+            else if (_statusEffect != null)
+            {
+                var effect = _statusEffect;
+                _statusEffect = null;
+                SetStatusEffect(effect);
+            }
+            else if (_skill != null)
+            {
+                var skill = _skill;
+                _skill = null;
+                SetSkill(skill);
+            }
+        }
+
         public virtual void Start()
         {
             TwoColumnTextBoxPrefab.gameObject.SetActive(false);
@@ -890,6 +979,8 @@ namespace AugaUnity
             foreach (var itemStatPreprocessor in _itemStatPreprocessors)
             {
                 result = itemStatPreprocessor(item, result.Item1, result.Item2);
+                if (result == null)
+                    return null;   // the line is hidden; the filters after this one are not asked
             }
 
             return result;

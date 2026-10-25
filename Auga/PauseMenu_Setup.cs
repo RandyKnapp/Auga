@@ -253,7 +253,9 @@ namespace Auga
                 var newMenu = Object.Instantiate(Auga.Assets.MenuPrefab, parent, false).GetComponent<Menu>();
                 newMenu.CurrentPlayersPrefab = AugaPlayerListPrefab.Create(playerPrefab);
                 WireNewMenuFields(newMenu, __instance);
-                Compendium_Setup.SetupAchievements(newMenu.GetComponentInChildren<AugaCompendiumController>(true));
+                var compendiumController = newMenu.GetComponentInChildren<AugaCompendiumController>(true);
+                Compendium_Setup.SetupAchievements(compendiumController);
+                Compendium_Setup.SetupTextsDialogs(compendiumController);
                 Object.Destroy(__instance.gameObject);
             }
 

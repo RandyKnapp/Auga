@@ -90,8 +90,17 @@ namespace Auga
             var originalMiniMapMaterial = minimap.m_mapImageSmall.material;
             var originalMiniMapMaterialLarge = minimap.m_mapImageLarge.material;
 
+            // whatever other mods added to vanilla's map roots before this runs (TargetPortal puts its favourites
+            // list under the large map in Minimap.Awake) moves over to the Auga maps instead of going down with
+            // the vanilla objects
+            var foreignSmall = SetupHelper.ForeignChildren(Hud.instance.transform.Find("hudroot/MiniMap/small"),
+                "MapClick", "map", "small_mapNamePin_root", "small_biome", "Key tip");
+            var foreignLarge = SetupHelper.ForeignChildren(Hud.instance.transform.Find("hudroot/MiniMap/large"),
+                "OutsideMapClick", "map", "large_mapNamePin_root", "Inventory tip", "SharedPanel", "PublicPanel", "IconPanel2",
+                "IconPingPanel", "IconPanel", "NameField", "large_biome", "GamepadCrosshair", "KeyHints");
             var newMiniMap = Hud.instance.Replace("hudroot/MiniMap/small", Auga.Assets.Hud);
             minimap.m_smallRoot = newMiniMap.gameObject;
+            SetupHelper.AdoptChildren(foreignSmall, newMiniMap);
             minimap.m_mapImageSmall = newMiniMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_root");
             minimap.m_pinNameRootSmall = (RectTransform)newMiniMap.Find("map/small_pin_name_root");
@@ -103,8 +112,19 @@ namespace Auga
 
             // the ping selector's art, as vanilla's Awake resolved it (platform variants), before the vanilla map goes
             var pingSprite = minimap.m_pingImageObject != null && minimap.m_pingImageObject.sprite != null ? minimap.m_pingImageObject.sprite : minimap.m_pingIcon;
+            var vanillaMapHints = Hud.instance.transform.Find("hudroot/MiniMap/large/KeyHints");
             var newMap = Hud.instance.Replace("hudroot/MiniMap/large", Auga.Assets.Hud);
             minimap.m_largeRoot = newMap.gameObject;
+            SetupHelper.AdoptChildren(foreignLarge, newMap);
+            // mods that add to the large map clone vanilla's key hint rows (TargetPortal copies
+            // KeyHints/keyboard_hints/AddPin for its favourites list): vanilla's hints stay under the new map,
+            // inactive and out of the list vanilla toggles when the map opens
+            if (vanillaMapHints != null)
+            {
+                vanillaMapHints.SetParent(newMap, false);
+                vanillaMapHints.gameObject.SetActive(false);
+                minimap.m_hints?.Remove(vanillaMapHints.gameObject);
+            }
             minimap.m_mapImageLarge = newMap.GetComponentInChildren<RawImage>();
             minimap.m_pinRootLarge = (RectTransform)newMap.Find("large_map/large_pin_root");
             minimap.m_pinNameRootLarge = (RectTransform)newMap.Find("large_map/large_pin_name_root");

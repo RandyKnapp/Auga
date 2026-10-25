@@ -84,6 +84,103 @@ namespace Auga
 #endif
         }
 
+        // TextMeshPro fonts (the game's text is TextMeshPro; the classic Font getters above are the old API)
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static TMP_FontAsset GetBoldFontAsset()
+        {
+#if ! API
+            return AugaPanelRestyler.BoldFont;
+#else
+            return null;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static TMP_FontAsset GetSemiBoldFontAsset()
+        {
+#if ! API
+            return AugaSettingsBuilder.SemiBoldFont;
+#else
+            return null;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static TMP_FontAsset GetRegularFontAsset()
+        {
+#if ! API
+            return AugaPanelRestyler.RegularFont;
+#else
+            return null;
+#endif
+        }
+
+        // Restyling: Auga's look on a mod's own panel and widgets
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Restyles a whole panel in place: the background becomes an Auga panel, vanilla buttons become Auga
+        /// buttons (listeners, labels and gamepad hints carried over), scrollbars, sliders and toggles get the Auga
+        /// widgets, texts get Auga's fonts and colours. Each part can be left out.
+        /// </summary>
+        [UsedImplicitly]
+        public static void Panel_Restyle(GameObject panel, bool replaceBackground = true, bool replaceButtons = true, bool replaceScrollbars = true, bool restyleTexts = true)
+        {
+#if ! API
+            if (panel == null)
+                return;
+            AugaPanelRestyler.Restyle(panel.transform, new RestyleOptions
+            {
+                ReplaceBackground = replaceBackground,
+                ReplaceButtons = replaceButtons,
+                ReplaceScrollbars = replaceScrollbars,
+                RestyleTexts = restyleTexts,
+            });
+#endif
+        }
+
+        /// <summary>Auga's font and colour on one text: bold or regular Source Sans Pro, and a colour when given (a hex string such as Brown1).</summary>
+        [UsedImplicitly]
+        public static void Text_Restyle(TMP_Text text, bool bold = false, string colorHex = null)
+        {
+#if ! API
+            if (text == null)
+                return;
+            var font = bold ? AugaPanelRestyler.BoldFont : AugaPanelRestyler.RegularFont;
+            if (font != null)
+                text.font = font;
+            if (!string.IsNullOrEmpty(colorHex) && ColorUtility.TryParseHtmlString(colorHex, out var color))
+                text.color = color;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Scrollbar_Restyle(Scrollbar scrollbar, bool vertical = true)
+        {
+#if ! API
+            if (scrollbar != null)
+                AugaPanelRestyler.RestyleScrollbarInPlace(scrollbar, vertical);
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Slider_Restyle(Slider slider)
+        {
+#if ! API
+            if (slider != null)
+                AugaPanelRestyler.RestyleSliderInPlace(slider);
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Toggle_Restyle(Toggle toggle)
+        {
+#if ! API
+            if (toggle != null)
+                AugaPanelRestyler.RestyleToggleInPlace(toggle);
+#endif
+        }
+
         // Panels & Buttons
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [UsedImplicitly]
@@ -595,7 +692,10 @@ namespace Auga
                 return;
             }
 
-            tooltipTextBox.AddLine(t, s, localize, overwrite);
+            // the old API handed out classic Text components; the boxes are TextMeshPro now, so a Text maps onto
+            // the TextMeshPro text on the same object, or the box's own text
+            var target = t != null ? t.GetComponent<TMP_Text>() : null;
+            tooltipTextBox.AddLine(target != null ? target : tooltipTextBox.Text, s, localize, overwrite);
 #endif
         }
 
