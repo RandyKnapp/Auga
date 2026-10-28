@@ -4,155 +4,45 @@
     Unity.Auga.dll: the MonoBehaviour widgets used by the Auga prefabs. It is compiled here (against the game
     assemblies), copied into the Unity project (AugaUnity\Assets\ExternalLibraries) so the prefabs can reference
     the scripts, and embedded into Auga.dll which loads it at runtime.
-    TargetFramework (netstandard2.1), LangVersion and the Valheim paths come from ..\Directory.Build.props
+    The game, Unity and BepInEx references come from the JotunnLib package, with the paths resolved in
+    ..\Directory.Build.props.
   -->
   <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>Unity.Auga</AssemblyName>
     <RootNamespace>AugaUnity</RootNamespace>
+    <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Auga.csproj embeds bin\<Configuration>\Unity.Auga.dll, so the path must not depend on the framework. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DefineConstants>$(DefineConstants);UNITY_5_6_OR_NEWER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="assembly_valheim_publicized">
-      <HintPath>$(ValheimRefs)\assembly_valheim_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_guiutils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_guiutils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_utils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_utils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="gui_framework_publicized">
-      <HintPath>$(ValheimRefs)\gui_framework_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_postprocessing_publicized">
-      <HintPath>$(ValheimRefs)\assembly_postprocessing_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_sunshafts_publicized">
-      <HintPath>$(ValheimRefs)\assembly_sunshafts_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <!-- Only for the game, Unity and BepInEx references JotunnLib's props wire up. Nothing here uses a Jotunn
+         type, so Jotunn.dll is neither referenced at runtime nor copied. -->
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="UnityEngine">
-      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.AudioModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.AudioModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.ImageConversionModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.InputLegacyModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.UIModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>$(ValheimManaged)\Unity.TextMeshPro.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <!-- An older copy of the Coffee.UIEffects scripts that has never been part of the build: the Unity project
+         carries the package itself, and only UIGradient\ is compiled here. -->
+    <Compile Remove="UIDissolve.cs;UIEffect.cs;UIFlip.cs;UIGradient.cs;UIHsvModifier.cs" />
+    <None Include="UIDissolve.cs;UIEffect.cs;UIFlip.cs;UIGradient.cs;UIHsvModifier.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="AddItemIconMaterial.cs" />
-    <Compile Include="AlwaysUpper.cs" />
-    <Compile Include="AugaBarberController.cs" />
-    <Compile Include="AugaBindingDisplay.cs" />
-    <Compile Include="SelectedIndicator.cs" />
-    <Compile Include="AugaCharacterSelect.cs" />
-    <Compile Include="AugaAchievementElement.cs" />
-    <Compile Include="AugaAchievementsPanel.cs" />
-    <Compile Include="AugaCompendiumController.cs" />
-    <Compile Include="AugaCraftingControls.cs" />
-    <Compile Include="AugaCraftingPanel.cs" />
-    <Compile Include="AugaGuardianPowerHUD.cs" />
-    <Compile Include="AugaHealthBar.cs" />
-    <Compile Include="AugaMessageLog.cs" />
-    <Compile Include="AugaMessageLogController.cs" />
-    <Compile Include="AugaStaggerBar.cs" />
-    <Compile Include="AugaStatusEffects.cs" />
-    <Compile Include="AugaTabController.cs" />
-    <Compile Include="AugaTeleportScreen.cs" />
-    <Compile Include="AugaTopLeftMessage.cs" />
-    <Compile Include="AugaTrasher.cs" />
-    <Compile Include="BetterDurabilityBar.cs" />
-    <Compile Include="BuildHudTabFixer.cs" />
-    <Compile Include="BuildMenuPaginationController.cs" />
-    <Compile Include="CharacterPortrait.cs" />
-    <Compile Include="ChatMonitor.cs" />
-    <Compile Include="ChatWindowController.cs" />
-    <Compile Include="ColorButtonText.cs" />
-    <Compile Include="ColoredItemBar.cs" />
-    <Compile Include="ComplexTooltip.cs" />
-    <Compile Include="CooldownController.cs" />
-    <Compile Include="CraftingRequirementsPanel.cs" />
-    <Compile Include="CraftingTabButton.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="GuiInputFieldSubmit.cs" />
-    <Compile Include="HideIfZeroEitr.cs" />
-    <Compile Include="HideTextIfEmpty.cs" />
-    <Compile Include="HideTheseIfThisIsHidden.cs" />
-    <Compile Include="HorizontalDividerFitter.cs" />
-    <Compile Include="InputFieldSubmitEvents.cs" />
-    <Compile Include="KeyBindDisplay.cs" />
-    <Compile Include="LetterSpacing.cs" />
-    <Compile Include="MatchColor.cs" />
-    <Compile Include="MessageLogElement.cs" />
-    <Compile Include="MimicVanillaCraftingTab.cs" />
-    <Compile Include="PlayerStatBlock.cs" />
-    <Compile Include="PvpToggle.cs" />
-    <Compile Include="QualityIndicator.cs" />
-    <Compile Include="FoodIndicator.cs" />
-    <Compile Include="PlayerNameText.cs" />
-    <Compile Include="PlayerPanelEffectController.cs" />
-    <Compile Include="PlayerPanelFoodController.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PvpTabButton.cs" />
-    <Compile Include="RandomLoadingImage.cs" />
-    <Compile Include="RecipeListItem.cs" />
-    <Compile Include="SelectedCharacterInfo.cs" />
-    <Compile Include="ShowIfSelected.cs" />
-    <Compile Include="SkillsPanelController.cs" />
-    <Compile Include="SkillsPanelSkillController.cs" />
-    <Compile Include="TabButton.cs" />
-    <Compile Include="TestScript.cs" />
-    <Compile Include="UIGradient\UIGradient.cs" />
-    <Compile Include="UIGradient\Vector2Extension.cs" />
-    <Compile Include="UpgradeRequirementsWireFrame.cs" />
-    <Compile Include="WorkbenchPanelController.cs" />
-  </ItemGroup>
+  <!-- Compile-only: the game and BepInEx assemblies are already loaded at runtime. -->
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
 
   <!-- Keep the copy inside the Unity project in sync so the prefabs keep their script references. -->
   <Target Name="CopyToUnityProject" AfterTargets="Build" Condition="Exists('$(MSBuildProjectDirectory)\..\AugaUnity\Assets\ExternalLibraries')">

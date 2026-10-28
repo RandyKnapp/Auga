@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1340
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Auga", "Auga\Auga.csproj", "{BCC7DD31-D943-4684-800E-176A97DDDB8F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AugaAPI", "AugaAPI\AugaAPI.csproj", "{6D3E1A52-7C4B-4F0E-9A8D-2B5C7E4F1A93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AugaUnityLib", "AugaUnityLib\AugaUnityLib.csproj", "{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}"
 EndProject
@@ -11,29 +13,37 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AugaApiExample", "AugaApiEx
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UiLibShim", "UiLibShim\UiLibShim.csproj", "{2F1C7E0B-8D3A-4B6E-9C21-5A7F3D9E1B44}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3E8C5F21-9B47-4D6A-8E1F-7C2A4B9D0E15}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		DoPrebuild.props = DoPrebuild.props
+		Environment.props.example = Environment.props.example
+		release.yml = release.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		API|Any CPU = API|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.API|Any CPU.ActiveCfg = API|Any CPU
-		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.API|Any CPU.Build.0 = API|Any CPU
 		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCC7DD31-D943-4684-800E-176A97DDDB8F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}.API|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D3E1A52-7C4B-4F0E-9A8D-2B5C7E4F1A93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D3E1A52-7C4B-4F0E-9A8D-2B5C7E4F1A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D3E1A52-7C4B-4F0E-9A8D-2B5C7E4F1A93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D3E1A52-7C4B-4F0E-9A8D-2B5C7E4F1A93}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A97BC6C7-E833-4553-B375-9F13AA0E5017}.API|Any CPU.ActiveCfg = Debug|Any CPU
 		{A97BC6C7-E833-4553-B375-9F13AA0E5017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A97BC6C7-E833-4553-B375-9F13AA0E5017}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A97BC6C7-E833-4553-B375-9F13AA0E5017}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A97BC6C7-E833-4553-B375-9F13AA0E5017}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F1C7E0B-8D3A-4B6E-9C21-5A7F3D9E1B44}.API|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F1C7E0B-8D3A-4B6E-9C21-5A7F3D9E1B44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F1C7E0B-8D3A-4B6E-9C21-5A7F3D9E1B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F1C7E0B-8D3A-4B6E-9C21-5A7F3D9E1B44}.Release|Any CPU.ActiveCfg = Release|Any CPU

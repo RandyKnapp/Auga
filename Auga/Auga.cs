@@ -1,137 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading;
 using Auga.Compat;
-using AugaUnity;
 using BepInEx;
 using BepInEx.Bootstrap;
-using BepInEx.Configuration;
-using BepInEx.Logging;
-using fastJSON;
 using HarmonyLib;
 using JetBrains.Annotations;
+using Jotunn.Utils;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Auga
 {
-    public class AugaAssets
-    {
-        public GameObject AugaLogo;
-        public GameObject InventoryScreen;
-        public GameObject Hud;
-        public Texture2D Cursor;
-        public GameObject MenuPrefab;
-        public GameObject TextViewerPrefab;
-        public GameObject MainMenuPrefab;
-        public GameObject SelectCharacterPrefab;
-        public GameObject NewCharacterPanelPrefab;
-        public GameObject StartGamePrefab;
-        public Sprite ServerStatusOnline;
-        public Sprite ServerStatusOffline;
-        public Sprite ServerStatusRefresh;
-        public Sprite ServerStatusUnknown;
-        public GameObject BuildHudElement;
-        public GameObject SettingsPrefab;
-        public GameObject MessageHud;
-        public GameObject TextInput;
-        public GameObject AugaBarber;
-        public GameObject AugaChat;
-        public GameObject DamageText;
-        public GameObject EnemyHud;
-        public GameObject StoreGui;
-        public GameObject WorldListElement;
-        public GameObject ServerListElement;
-        public GameObject PasswordDialog;
-        public GameObject ConnectingDialog;
-        public GameObject LabeledDropdown;
-        public GameObject LabeledCheckbox;
-        public GameObject LabeledSliderWithValue;
-        public GameObject LabeledKeybind;
-        public GameObject LanguageTooltip;
-        public GameObject MenuButtonSmall;
-        public GameObject ChangeLogPrefab;
-        public GameObject AugaLogoSmall;
-        public GameObject ScrollBar;
-        public GameObject PanelBase;
-        public GameObject ButtonSmall;
-        public GameObject ButtonMedium;
-        public GameObject ButtonFancy;
-        public GameObject ButtonToggle;
-        public GameObject ButtonSettings;
-        public GameObject DiamondButton;
-        public Font SourceSansProBold;
-        public Font SourceSansProSemiBold;
-        public Font SourceSansProRegular;
-        public Sprite ItemBackgroundSprite;
-        public Sprite ContainerDiamond;
-        public GameObject InventoryTooltip;
-        public GameObject SimpleTooltip;
-        public GameObject DividerSmall;
-        public GameObject DividerMedium;
-        public GameObject DividerLarge;
-        public GameObject ConfirmDialog;
-        public Sprite RecyclingPanelIcon;
-        public GameObject BuildHud;
-        public GameObject LeftWristMountUI;
-    }
-
-    public class AugaColors
-    {
-        public string BrightestGold = "#FFBF1B";
-        public string Topic = "#EAA800";
-        public string Emphasis = "#1AACEF";
-        public Color Healing = new Color(0.5f, 1.0f, 0.5f, 0.7f);
-        public Color PlayerDamage = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-        public Color PlayerNoDamage = new Color(0.5f, 0.5f, 0.5f, 1f);
-        public Color NormalDamage = new Color(1f, 1f, 1f, 1f);
-        public Color ResistDamage = new Color(0.6f, 0.6f, 0.6f, 1f);
-        public Color WeakDamage = new Color(1f, 1f, 0.0f, 1f);
-        public Color ImmuneDamage = new Color(0.6f, 0.6f, 0.6f, 1f);
-        public Color TooHard = new Color(0.8f, 0.7f, 0.7f, 1f);
-    }
-
-    [BepInPlugin(PluginID, "Project Auga", Version)]
+    [BepInPlugin(PluginID, PluginName, Version)]
+    [BepInDependency(Jotunn.Main.ModGuid)]
     [BepInDependency("Menthus.bepinex.plugins.BetterTrader", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("maximods.valheim.multicraft", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("redseiko.valheim.chatter", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("redseiko.valheim.searscatalog", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.github.abearcodes.valheim.simplerecycling", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("org.bepinex.plugins.jewelcrafting", BepInDependency.DependencyFlags.SoftDependency)]
-    public class Auga : BaseUnityPlugin
+    // Full UI replacements that redraw the same screens: BepInEx skips Auga when one of them is installed and says
+    // so in the log, instead of two mods fighting over the HUD. Reasons and candidates: Docs/Compatibility.md.
+    // Never list a mod that already declares Auga incompatible on its side (ExtraSlots, AzuEPI, MyLittleUI, Almanac).
+    [BepInIncompatibility("seneaL.valheim.ui")]          // SeneaL UI
+    [BepInIncompatibility("MK_BetterUI")]                // BetterUI Reforged
+    [BepInIncompatibility("zenox.betterui")]             // BetterUI (Zenox, the 1.0 rewrite)
+    [BepInIncompatibility("Azumatt.MinimalUI")]          // Minimal UI
+    [BepInIncompatibility("ZenDragon.AugaLite")]         // AugaLite, a trimmed copy of Auga 1.3.11
+    // A UI mod: a server or client without Auga is fine either way. With Auga on both, the server's settings
+    // (ValConfig.BindServerConfig) are synced to the client.
+    [NetworkCompatibility(CompatibilityLevel.NotEnforced, VersionStrictness.None)]
+    public partial class Auga : BaseUnityPlugin
     {
         public const string PluginID = "randyknapp.mods.auga";
-        public const string Version = "1.3.12";
-
-        public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
-        public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
-
-        private static ConfigEntry<bool> _loggingEnabled;
-        private static ConfigEntry<LogLevel> _logLevel;
-        public static ConfigEntry<bool> UseAugaTrash;
-
-        public static ConfigEntry<bool> HealthBarShow;
-        public static ConfigEntry<int> HealthBarFixedSize;
-        public static ConfigEntry<StatBarTextDisplayMode> HealthBarTextDisplay;
-        public static ConfigEntry<StatBarTextPosition> HealthBarTextPosition;
-        public static ConfigEntry<bool> HealthBarShowTicks;
-
-        public static ConfigEntry<bool> StaminaBarShow;
-        public static ConfigEntry<int> StaminaBarFixedSize;
-        public static ConfigEntry<StatBarTextDisplayMode> StaminaBarTextDisplay;
-        public static ConfigEntry<StatBarTextPosition> StaminaBarTextPosition;
-        public static ConfigEntry<bool> StaminaBarShowTicks;
-
-        public static ConfigEntry<bool> EitrBarShow;
-        public static ConfigEntry<int> EitrBarFixedSize;
-        public static ConfigEntry<StatBarTextDisplayMode> EitrBarTextDisplay;
-        public static ConfigEntry<StatBarTextPosition> EitrBarTextPosition;
-        public static ConfigEntry<bool> EitrBarShowTicks;
-        
-        public static ConfigEntry<bool> AugaChatShow;
+        public const string PluginName = "Project Auga";
+        public const string Version = "1.3.13";
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -145,10 +47,7 @@ namespace Auga
 
         private static Auga _instance;
         private Harmony _harmony;
-        private static Type _multiCraftUiType;
-        private static Type _recyclingContainerButtonHolderType;
-        private static Type _recyclingStationButtonHolderType;
-        private static WorkbenchTabData _recyclingTabData;
+        internal ValConfig cfg;
 
         public static Auga instance => _instance;
 
@@ -174,17 +73,19 @@ namespace Auga
                         Debug.LogError($">>>>>>>>> GAME VERSION MISMATCH - EXITING <<<<<<<<");
                         Debug.LogWarning($"==============================================================================");
                         Thread.Sleep(10000);
-                        
+
                         Destroy(this);
                         return;
                     }
                 }
             }
 
+            cfg = new ValConfig(Config);
+            // All startup hooks go after the config, which the logging reads.
+
             LoadDependencies();
             APIManager.Patcher.Patch();
             LoadTranslations();
-            LoadConfig();
             LoadAssets();
 
             ApplyCursor();
@@ -198,587 +99,38 @@ namespace Auga
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
+            // Soft-dependency compatibility, patched by reflection and only when that mod is installed.
             if (HasChatter)
-            {
-                Chatter.ChatterType = Assembly.LoadFile(chatterPlugin.Location);
-                Chatter.ToggleCell = Chatter.ChatterType.GetType("Chatter.ToggleCell");
-                var createChildCellMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildCell");
-                var createChildLabelMethod = AccessTools.Method(Chatter.ToggleCell, "CreateChildLabel");
-                var onToggleValueChangedMethod = AccessTools.Method(Chatter.ToggleCell, "OnToggleValueChanged");
-
-                if (Chatter.ToggleCell != null)
-                {
-                    _harmony.Patch(createChildCellMethod, new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildCell_Patch)));
-                    _harmony.Patch(createChildLabelMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.CreateChildLabel_Transpiler)));
-                    _harmony.Patch(onToggleValueChangedMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(Chatter.OnToggleValueChanged_Transpiler)));
-                }
-            }
-            
+                Chatter.Apply(_harmony, chatterPlugin);
             if (HasSearsCatalog)
-            {
-                SearsCatalog.SearsCatalogType = Assembly.LoadFile(searsPlugin.Location);
-                SearsCatalog.HudPatch = SearsCatalog.SearsCatalogType.GetType("SearsCatalog.HudPatch");
-                
-                var awakePostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
-
-                if (SearsCatalog.HudPatch != null)
-                {
-                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(SearsCatalog), nameof(SearsCatalog.AwakePostfix_Patch)));
-                }
-            }
-            
+                SearsCatalog.Apply(_harmony, searsPlugin);
             if (HasJewelcrafting)
-            {
-                Jewelcrafting.ModAssembly = Assembly.LoadFile(jewelcraftingPlugin.Location);
-                Jewelcrafting.Synergy = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.Synergy");
-                Jewelcrafting.SocketsBackground = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.SocketsBackground");
-                Jewelcrafting.FusionBoxSetup = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.FusionBoxSetup");
-                Jewelcrafting.AddSealButton = Jewelcrafting.FusionBoxSetup.GetNestedType("AddSealButton");
-                Jewelcrafting.AddSynergyIcon = Jewelcrafting.Synergy.GetNestedType("AddSynergyIcon",BindingFlags.NonPublic | BindingFlags.Static);
-                Jewelcrafting.DisplaySynergyView = Jewelcrafting.Synergy.GetNestedType("DisplaySynergyView");
-                Jewelcrafting.GemCursor = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemCursor");
-                Jewelcrafting.CacheVanillaCursor = Jewelcrafting.GemCursor.GetNestedType("CacheVanillaCursor",BindingFlags.NonPublic | BindingFlags.Static);
-                Jewelcrafting.GemStones = Jewelcrafting.ModAssembly.GetType("Jewelcrafting.GemStones");
-                Jewelcrafting.OpenFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("OpenFakeSocketsContainer");
-                Jewelcrafting.CloseFakeSocketsContainer = Jewelcrafting.GemStones.GetNestedType("CloseFakeSocketsContainer",BindingFlags.NonPublic | BindingFlags.Static);
-
-                var compatibilityFailure = false;
-                
-                if (Jewelcrafting.DisplaySynergyView != null)
-                {
-                    var awakeMethod = AccessTools.Method(Jewelcrafting.DisplaySynergyView, "Awake");
-                    var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
-                    
-                    _harmony.Patch(awakeMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.DisplaySynergyView_Awake_Transpiler)));
-                    _harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.IvnentoryGui_Awake_Postfix)));
-                }
-                else
-                    compatibilityFailure = true;
-
-                if (Jewelcrafting.SocketsBackground != null)
-                {
-                    var hudPostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
-                    _harmony.Patch(hudPostfixMethod, prefix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.Hud_Awake_Prefix)));
-                }
-                else
-                    compatibilityFailure = true;
-                
-                if (Jewelcrafting.AddSealButton != null)
-                {
-                    var sealPostfixMethod = Jewelcrafting.AddSealButton.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
-
-                    if (sealPostfixMethod == null)
-                    {
-                        compatibilityFailure = true;
-                        Debug.LogWarning($"sealPostfixMethod ==  null: {sealPostfixMethod == null}");
-                    }
-                    
-                    _harmony.Patch(sealPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.FusionBoxSetup_AddSealButton_Postfix_Transpiler)));
-                }
-                else
-                    compatibilityFailure = true;
-                
-                if (Jewelcrafting.CacheVanillaCursor != null)
-                {
-                    var cursorPostfixMethod = Jewelcrafting.CacheVanillaCursor.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
-
-                    if (cursorPostfixMethod == null)
-                    {
-                        compatibilityFailure = true;
-                        Debug.LogWarning($"cursorPostfixMethod ==  null: {cursorPostfixMethod ==  null}");
-                    }
-                    _harmony.Patch(cursorPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemCursor_CacheVanillaCursor_Postfix_Transpiler)));
-                }
-                else
-                    compatibilityFailure = true;
-
-                if (Jewelcrafting.OpenFakeSocketsContainer != null)
-                {
-                    var openSocketsMethod = Jewelcrafting.OpenFakeSocketsContainer.GetMethod("Open", BindingFlags.Public | BindingFlags.Static);
-                    if (openSocketsMethod == null)
-                    {
-                        compatibilityFailure = true;
-                        Debug.LogWarning($"openSocketsMethod ==  null: {openSocketsMethod ==  null}");
-                    }
-                    _harmony.Patch(openSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_OpenFakeSocketsContainer_Open_Transpiler)));
-                }
-                else
-                    compatibilityFailure = true;
-
-                if (Jewelcrafting.CloseFakeSocketsContainer != null)
-                {
-                    var closeSocketsMethod = Jewelcrafting.CloseFakeSocketsContainer.GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
-                    if (closeSocketsMethod == null)
-                    {
-                        compatibilityFailure = true;
-                        Debug.LogWarning($"closeSocketsMethod ==  null: {closeSocketsMethod ==  null}");
-                    }
-                    _harmony.Patch(closeSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(Jewelcrafting.GemStones_CloseFakeSocketsContainer_Prefix_Transpiler)));
-                }
-                else
-                    compatibilityFailure = true;
-
-                if (compatibilityFailure)
-                {
-                    Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.Synergy ==  null: {Jewelcrafting.Synergy ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.SocketsBackground ==  null: {Jewelcrafting.SocketsBackground ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {Jewelcrafting.DisplaySynergyView ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.AddSynergyIcon ==  null: {Jewelcrafting.AddSynergyIcon ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.FusionBoxSetup ==  null: {Jewelcrafting.FusionBoxSetup ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.AddSealButton ==  null: {Jewelcrafting.AddSealButton ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.GemCursor ==  null: {Jewelcrafting.GemCursor ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.CacheVanillaCursor ==  null: {Jewelcrafting.CacheVanillaCursor ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.GemStones ==  null: {Jewelcrafting.GemStones ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.OpenFakeSocketsContainer ==  null: {Jewelcrafting.OpenFakeSocketsContainer ==  null}");
-                    Debug.LogWarning($"Jewelcrafting.CloseFakeSocketsContainer ==  null: {Jewelcrafting.CloseFakeSocketsContainer ==  null}");
-                    Debug.LogError("Jewelcrafting Compatibility Failed - Contact Vapok with the above information");
-                    Thread.Sleep(15000);
-                }
-            }
-            
+                Jewelcrafting.Apply(_harmony, jewelcraftingPlugin);
             if (HasMultiCraft)
-            {
-                var multiCraftPluginType = Assembly.LoadFile(multiCraftPlugin.Location);
-                _multiCraftUiType = multiCraftPluginType.GetType("MultiCraft.MultiCraft_UI");
-                var multicraftLogicType = multiCraftPluginType.GetType("MultiCraft.MultiCraft_Logic");
-                var createCraftButtonSpaceMethod = AccessTools.Method(_multiCraftUiType, "CreateSpaceFromCraftButton");
-                var isCraftingMethod = AccessTools.Method(multicraftLogicType, "IsCrafting");
-                if (createCraftButtonSpaceMethod != null)
-                {
-                    _harmony.Patch(createCraftButtonSpaceMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_UI_CreateSpaceFromCraftButton_Patch)));
-                    _harmony.Patch(isCraftingMethod, new HarmonyMethod(typeof(Auga), nameof(MultiCraft_Logic_IsCrafting_Patch)));
-                }
-            }
-
-            // Patch Simple Recycling
-
+                MultiCraft.Apply(_harmony, multiCraftPlugin);
             if (HasSimpleRecycling)
-            {
-                var pluginType = Assembly.LoadFile(recyclingPlugin.Location);
-                _recyclingContainerButtonHolderType = pluginType.GetType("ABearCodes.Valheim.SimpleRecycling.UI.ContainerRecyclingButtonHolder");
-                _recyclingStationButtonHolderType = pluginType.GetType("ABearCodes.Valheim.SimpleRecycling.UI.StationRecyclingTabHolder");
-                var containerButtonMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "SetupButton");
-                var tabButtonMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetupTabButton");
-                var setActiveMethod = AccessTools.Method(_recyclingStationButtonHolderType, "SetActive");
-                var inRecycleTabMethod = AccessTools.Method(_recyclingStationButtonHolderType, "InRecycleTab");
-                if (containerButtonMethod != null)
-                    _harmony.Patch(containerButtonMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_ContainerRecyclingButtonHolder_SetupButton_Patch)));
-                if (tabButtonMethod != null)
-                    _harmony.Patch(tabButtonMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_SetupTabButton_Patch)));
-                if (setActiveMethod != null)
-                    _harmony.Patch(setActiveMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_SetActive_Patch)));
-                if (inRecycleTabMethod != null)
-                    _harmony.Patch(inRecycleTabMethod, new HarmonyMethod(typeof(Auga), nameof(SimpleRecycling_StationRecyclingTabHolder_InRecycleTab_Patch)));
-            }
-        }
+                SimpleRecycling.Apply(_harmony, recyclingPlugin);
 
+            // The config watcher, after ValConfig registered the file it watches.
+            ConfigFileWatcher.Initialize();
 
-        public static bool MultiCraft_UI_CreateSpaceFromCraftButton_Patch(InventoryGui instance)
-        {
-            API.GetCraftingControls().Multicraft.SetActive(true);
-            var multiCraftUiInstance = AccessTools.Method(_multiCraftUiType, "get_instance").Invoke(null, BindingFlags.Public | BindingFlags.Static | BindingFlags.GetProperty, null, new object[] { }, CultureInfo.InvariantCulture);
-
-            var plusButton = API.GetCraftingControls().PlusButton; 
-            var plusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnPlusButtonPressed");
-            plusButton.GetComponent<Button>().onClick.AddListener(() => plusButtonMethod.Invoke(multiCraftUiInstance, new object[]{}));
-
-            var minusButton = API.GetCraftingControls().MinusButton;
-            var minusButtonMethod = AccessTools.Method(_multiCraftUiType, "OnMinusButtonPressed");
-            minusButton.GetComponent<Button>().onClick.AddListener(() => minusButtonMethod.Invoke(multiCraftUiInstance, new object[] { }));
-
-            return false;
-        }
-
-        public static bool MultiCraft_Logic_IsCrafting_Patch(ref bool __result)
-        {
-            __result = InventoryGui.instance.m_craftTimer >= 0;
-            return false;
-        }
-
-        public static bool SimpleRecycling_ContainerRecyclingButtonHolder_SetupButton_Patch()
-        {
-            var recycleAllButtonGO = InventoryGui.instance.m_container.Find("RecycleAll").gameObject;
-
-            var onRecycleAllPressedMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "OnRecycleAllPressed");
-            var setButtonStateMethod = AccessTools.Method(_recyclingContainerButtonHolderType, "SetButtonState");
-            var recycleAllButtonFieldRef = AccessTools.FieldRefAccess<Button>(_recyclingContainerButtonHolderType, "_recycleAllButton");
-            var textComponentFieldRef = AccessTools.FieldRefAccess<Text>(_recyclingContainerButtonHolderType, "_textComponent");
-            var imageComponentFieldRef = AccessTools.FieldRefAccess<Image>(_recyclingContainerButtonHolderType, "_imageComponent");
-
-            var component = _instance.gameObject.GetComponent("ContainerRecyclingButtonHolder");
-            var recycleAllButton = recycleAllButtonGO.GetComponent<Button>();
-            recycleAllButtonFieldRef(component) = recycleAllButton;
-            recycleAllButton.onClick.RemoveAllListeners();
-            recycleAllButton.onClick.AddListener(() => { onRecycleAllPressedMethod.Invoke(component, new object[]{}); });
-
-            textComponentFieldRef(component) = recycleAllButton.GetComponentInChildren<Text>();
-            imageComponentFieldRef(component) = recycleAllButton.GetComponentInChildren<Image>();
-            setButtonStateMethod.Invoke(component, new object[] { false });
-
-            return false;
-        }
-
-        public static bool SimpleRecycling_StationRecyclingTabHolder_SetupTabButton_Patch()
-        {
-            var recyclingTabButtonFieldRef = AccessTools.FieldRefAccess<Button>(_recyclingStationButtonHolderType, "_recyclingTabButtonComponent");
-            var recyclingTabButtonGOFieldRef = AccessTools.FieldRefAccess<GameObject>(_recyclingStationButtonHolderType, "_recyclingTabButtonGameObject");
-            var updateCraftingPanelMethod = AccessTools.Method(_recyclingStationButtonHolderType, "UpdateCraftingPanel");
-            var component = _instance.gameObject.GetComponent("StationRecyclingTabHolder");
-
-            _recyclingTabData = API.Workbench_AddVanillaWorkbenchTab("RECYCLE", Assets.RecyclingPanelIcon, "Recycle", (_) =>
-            {
-                updateCraftingPanelMethod.Invoke(component, new object[] { });
-            });
-            recyclingTabButtonFieldRef(component) = _recyclingTabData.TabButtonGO.GetComponent<Button>();
-            recyclingTabButtonGOFieldRef(component) = _recyclingTabData.TabButtonGO;
-
-            return false;
-        }
-
-        public static bool SimpleRecycling_StationRecyclingTabHolder_SetActive_Patch()
-        {
-            return false;
-        }
-
-        public static bool SimpleRecycling_StationRecyclingTabHolder_InRecycleTab_Patch(ref bool __result)
-        {
-            __result = WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActiveById("RECYCLE");
-            return false;
+            // Configs are not written until after they are all wired up, they exist in memory before this. Later
+            // changes are written in batches rather than one full rewrite per value (see ValConfig.EnableDeferredSave).
+            ValConfig.Save();
+            ValConfig.EnableDeferredSave();
         }
 
         public void OnDestroy()
         {
+            // A config write still waiting on its delay would otherwise be lost when the game closes.
+            ValConfig.SavePending();
             _instance = null;
-        }
-
-        private void LoadDependencies()
-        {
-            // Auga's own assembly, named explicitly: GetCallingAssembly() answered with whatever called Awake, and
-            // when Awake is detoured (a Harmony or MonoMod hook from another mod) that is a dynamic assembly, so the
-            // embedded resources ("Auga.<file>") were looked up under the wrong name and never found
-            var assembly = typeof(Auga).Assembly;
-            LoadEmbeddedAssembly(assembly, "ui_lib.dll"); // Fishlabs.GuiInputField shim for the prefabs (see UiLibShim)
-            LoadEmbeddedAssembly(assembly, "fastJSON.dll");
-            LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
-        }
-
-        private static void LoadEmbeddedAssembly(Assembly assembly, string assemblyName)
-        {
-            var resourceName = $"{assembly.GetName().Name}.{assemblyName}";
-            var stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream == null)
-            {
-                LogError($"Could not load embedded assembly ({assemblyName}): no resource '{resourceName}' in {assembly.GetName().Name}. Resources: {string.Join(", ", assembly.GetManifestResourceNames())}");
-                return;
-            }
-
-            using (stream)
-            {
-                var data = new byte[stream.Length];
-                stream.Read(data, 0, data.Length);
-                Assembly.Load(data);
-            }
-        }
-
-        private static void LoadTranslations()
-        {
-            var translationsJsonText = LoadJsonText("translations.json");
-            if (string.IsNullOrEmpty(translationsJsonText))
-            {
-                return;
-            }
-
-            var translations = (IDictionary<string, object>)JSON.Parse(translationsJsonText);
-            foreach (var translation in translations)
-            {
-                if (!string.IsNullOrEmpty(translation.Key) && !string.IsNullOrEmpty(translation.Value.ToString()))
-                {
-                    Localization.instance.AddWord(translation.Key, translation.Value.ToString());
-                }
-            }
-        }
-
-        private void LoadConfig()
-        {
-            _loggingEnabled = Config.Bind("Logging", "LoggingEnabled", false, "Enable logging");
-            _logLevel = Config.Bind("Logging", "LogLevel", LogLevel.Info, "Only log messages of the selected level or higher");
-            UseAugaTrash = Config.Bind("Options", "UseAugaTrash", false, "Enable Auga's built in trash button. Click on the button while holding an item or part of a stack with the mouse.");
-            
-            HealthBarShow = Config.Bind("StatBars", "HealthBarShow", true, "If false, hides the health bar completely.");
-            HealthBarFixedSize = Config.Bind("StatBars", "HealthBarFixedSize", 0, "If greater than 0, forces the health bar to be that many pixels long, regardless of the player's max health.");
-            HealthBarTextDisplay = Config.Bind("StatBars", "HealthBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the health bar is displayed.");
-            HealthBarTextPosition = Config.Bind("StatBars", "HealthBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the health bar is displayed.");
-            HealthBarShowTicks = Config.Bind("StatBars", "HealthBarShowTicks", true, "Show a faint line on the bar every 25 units");
-
-            StaminaBarShow = Config.Bind("StatBars", "StaminaBarShow", true, "If false, hides the stamina bar completely.");
-            StaminaBarFixedSize = Config.Bind("StatBars", "StaminaBarFixedSize", 0, "If greater than 0, forces the stamina bar to be that many pixels long, regardless of the player's max stamina.");
-            StaminaBarTextDisplay = Config.Bind("StatBars", "StaminaBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the stamina bar is displayed.");
-            StaminaBarTextPosition = Config.Bind("StatBars", "StaminaBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the stamina bar is displayed.");
-            StaminaBarShowTicks = Config.Bind("StatBars", "StaminaBarShowTicks", true, "Show a faint line on the bar every 25 units");
-
-            EitrBarShow = Config.Bind("StatBars", "EitrBarShow", true, "If false, hides the eitr bar completely.");
-            EitrBarFixedSize = Config.Bind("StatBars", "EitrBarFixedSize", 0, "If greater than 0, forces the eitr bar to be that many pixels long, regardless of the player's max eitr. Eitr bar still hides if max eitr is zero.");
-            EitrBarTextDisplay = Config.Bind("StatBars", "EitrBarTextDisplay", StatBarTextDisplayMode.JustValue, "Changes how the label of the eitr bar is displayed.");
-            EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
-            EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
-            
-            AugaChatShow = Config.Bind("AugaChat", "Show Auga Chat. Disable to use other mods. (Requires Restart)", true, "If false, disables the Auga Chat window display");
-        }
-
-        private static void LoadAssets()
-        {
-            var assetBundle = LoadAssetBundle("augaassets");
-            Assets.AugaLogo = assetBundle.LoadAsset<GameObject>("AugaLogo");
-            Assets.InventoryScreen = assetBundle.LoadAsset<GameObject>("Inventory_screen");
-            Assets.Cursor = assetBundle.LoadAsset<Texture2D>("Cursor2");
-            Assets.MenuPrefab = assetBundle.LoadAsset<GameObject>("AugaMenu");
-            Assets.TextViewerPrefab = assetBundle.LoadAsset<GameObject>("AugaTextViewer");
-            Assets.Hud = assetBundle.LoadAsset<GameObject>("HUD");
-            Assets.MainMenuPrefab = assetBundle.LoadAsset<GameObject>("MainMenu");
-            Assets.SelectCharacterPrefab = assetBundle.LoadAsset<GameObject>("SelectCharacter");
-            Assets.NewCharacterPanelPrefab = assetBundle.LoadAsset<GameObject>("NewCharacterPanel");
-            Assets.StartGamePrefab = assetBundle.LoadAsset<GameObject>("StartGame");
-            Assets.ServerStatusOnline = assetBundle.LoadAsset<Sprite>("status");
-            Assets.ServerStatusOffline = assetBundle.LoadAsset<Sprite>("status_no");
-            Assets.ServerStatusRefresh = assetBundle.LoadAsset<Sprite>("status_refresh");
-            Assets.ServerStatusUnknown = assetBundle.LoadAsset<Sprite>("status_unknown");
-            Assets.BuildHudElement = assetBundle.LoadAsset<GameObject>("BuildHudElement");
-            Assets.SettingsPrefab = assetBundle.LoadAsset<GameObject>("AugaSettings");
-            Assets.MessageHud = assetBundle.LoadAsset<GameObject>("AugaMessageHud");
-            Assets.TextInput = assetBundle.LoadAsset<GameObject>("AugaTextInput");
-            Assets.AugaBarber = assetBundle.LoadAsset<GameObject>("AugaBarber");
-            Assets.AugaChat = assetBundle.LoadAsset<GameObject>("AugaChat");
-            Assets.DamageText = assetBundle.LoadAsset<GameObject>("AugaDamageText");
-            Assets.EnemyHud = assetBundle.LoadAsset<GameObject>("AugaEnemyHud");
-            Assets.StoreGui = assetBundle.LoadAsset<GameObject>("AugaStoreScreen");
-            Assets.WorldListElement = assetBundle.LoadAsset<GameObject>("WorldListElement");
-            Assets.ServerListElement = assetBundle.LoadAsset<GameObject>("ServerListElement");
-            Assets.PasswordDialog = assetBundle.LoadAsset<GameObject>("AugaPassword");
-            Assets.ConnectingDialog = assetBundle.LoadAsset<GameObject>("AugaConnecting");
-            Assets.LabeledDropdown = assetBundle.LoadAsset<GameObject>("LabeledDropdown");
-            Assets.LabeledCheckbox = assetBundle.LoadAsset<GameObject>("LabeledCheckbox");
-            Assets.LabeledSliderWithValue = assetBundle.LoadAsset<GameObject>("LabeledSliderWithValue");
-            Assets.LabeledKeybind = assetBundle.LoadAsset<GameObject>("LabeledKeybind");
-            Assets.LanguageTooltip = assetBundle.LoadAsset<GameObject>("LanguageTooltip");
-            Assets.MenuButtonSmall = assetBundle.LoadAsset<GameObject>("MenuButtonSmall");
-            Assets.ChangeLogPrefab = assetBundle.LoadAsset<GameObject>("ChangeLog");
-            Assets.AugaLogoSmall = assetBundle.LoadAsset<GameObject>("AugaLogoSmall");
-            Assets.ScrollBar = assetBundle.LoadAsset<GameObject>("ScrollBar");
-            Assets.PanelBase = assetBundle.LoadAsset<GameObject>("AugaPanelBase");
-            Assets.ButtonSmall = assetBundle.LoadAsset<GameObject>("ButtonSmall");
-            Assets.ButtonMedium = assetBundle.LoadAsset<GameObject>("ButtonMedium");
-            Assets.ButtonFancy = assetBundle.LoadAsset<GameObject>("ButtonFancy");
-            Assets.ButtonToggle = assetBundle.LoadAsset<GameObject>("ButtonToggle");
-            Assets.ButtonSettings = assetBundle.LoadAsset<GameObject>("ButtonSettings");
-            Assets.DiamondButton = assetBundle.LoadAsset<GameObject>("DiamondButton");
-            Assets.SourceSansProBold = assetBundle.LoadAsset<Font>("SourceSansPro-Bold");
-            Assets.SourceSansProSemiBold = assetBundle.LoadAsset<Font>("SourceSansPro-SemiBold");
-            Assets.SourceSansProRegular = assetBundle.LoadAsset<Font>("SourceSansPro-Regular");
-            Assets.ItemBackgroundSprite = assetBundle.LoadAsset<Sprite>("Container_Square_A");
-            Assets.ContainerDiamond = assetBundle.LoadAsset<Sprite>("Container_Diamond");
-            Assets.InventoryTooltip = assetBundle.LoadAsset<GameObject>("InventoryTooltip");
-            Assets.SimpleTooltip = assetBundle.LoadAsset<GameObject>("SimpleTooltip");
-            Assets.DividerSmall = assetBundle.LoadAsset<GameObject>("DividerSmall");
-            Assets.DividerMedium = assetBundle.LoadAsset<GameObject>("DividerMedium");
-            Assets.DividerLarge = assetBundle.LoadAsset<GameObject>("DividerLarge");
-            Assets.ConfirmDialog = assetBundle.LoadAsset<GameObject>("ConfirmDialog");
-            Assets.RecyclingPanelIcon = assetBundle.LoadAsset<Sprite>("RecyclingPanel");
-            Assets.LeftWristMountUI = assetBundle.LoadAsset<GameObject>("LeftWristMountUI");
-            Assets.BuildHud = assetBundle.LoadAsset<GameObject>("BuildHud");
-
-            // The Auga buttons carry a click sfx and a "select" sfx. ButtonSfx now plays the select sfx from
-            // OnSelect, which a mouse triggers on pointer down, so every click sounded twice (down and up).
-            // Strip the select sfx from every prefab asset in the bundle (the tab buttons are stand-alone
-            // prefabs instantiated by the tab controllers); every instance made from them inherits that.
-            var prefabs = assetBundle.LoadAllAssets<GameObject>();
-            RemoveSelectSfx(prefabs);
-            WarnAboutClassicTexts(prefabs);
-        }
-
-        /// <summary>
-        /// Auga is TextMeshPro only: every bundled prefab that still carries a classic UnityEngine.UI.Text is reported
-        /// (to the Unity log, so it shows regardless of Auga's own logging setting) so it can be fixed in Unity.
-        /// </summary>
-        private static void WarnAboutClassicTexts(params GameObject[] prefabs)
-        {
-            var offenders = 0;
-            foreach (var prefab in prefabs)
-            {
-                if (prefab == null || prefab.transform.parent != null)
-                    continue;
-                var texts = prefab.GetComponentsInChildren<Text>(true);
-                if (texts.Length == 0)
-                    continue;
-                offenders++;
-                var paths = new List<string>();
-                foreach (var text in texts)
-                {
-                    if (paths.Count >= 8) { paths.Add("..."); break; }
-                    var path = text.name;
-                    for (var t = text.transform.parent; t != null && t != prefab.transform; t = t.parent)
-                        path = t.name + "/" + path;
-                    paths.Add(path);
-                }
-                Debug.LogWarning($"[Auga] Prefab '{prefab.name}' uses classic UI Text on {texts.Length} object(s); convert them to TextMeshPro: {string.Join(", ", paths)}");
-            }
-            if (offenders > 0)
-                Debug.LogWarning($"[Auga] {offenders} bundled prefab(s) still use classic UI Text (see the warnings above).");
-        }
-
-        private static void RemoveSelectSfx(params GameObject[] prefabs)
-        {
-            foreach (var prefab in prefabs)
-            {
-                if (prefab == null)
-                    continue;
-                foreach (var sfx in prefab.GetComponentsInChildren<ButtonSfx>(true))
-                {
-                    sfx.m_selectSfxPrefab = null;
-                    sfx.m_selectSfxPrefabVibrationOnly = null;
-                }
-            }
-        }
-
-        private static void ApplyCursor()
-        {
-            Cursor.SetCursor(Assets.Cursor, new Vector2(6, 5), CursorMode.Auto);
-        }
-
-        public static AssetBundle LoadAssetBundle(string filename)
-        {
-            // Optionally load asset bundle from path, if it exists
-            var assetBundlePath = GetAssetPath(filename);
-            if (!string.IsNullOrEmpty(assetBundlePath))
-            {
-                return AssetBundle.LoadFromFile(assetBundlePath);
-            }
-
-            var assembly = typeof(Auga).Assembly;   // not GetCallingAssembly(): see LoadDependencies
-            var stream = assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{filename}");
-            if (stream == null)
-            {
-                LogError($"Could not load the embedded asset bundle ({filename}); no such resource in {assembly.GetName().Name}.");
-                return null;
-            }
-            var assetBundle = AssetBundle.LoadFromStream(stream);
-
-            return assetBundle;
-        }
-
-        public static string LoadJsonText(string filename)
-        {
-            var jsonFileName = GetAssetPath(filename);
-            return !string.IsNullOrEmpty(jsonFileName) ? File.ReadAllText(jsonFileName) : null;
-        }
-
-        public static string GetAssetPath(string assetName)
-        {
-            var assetFileName = Path.Combine(Paths.PluginPath, "Auga", assetName);
-            if (!File.Exists(assetFileName))
-            {
-                var assembly = typeof(Auga).Assembly;
-                assetFileName = Path.Combine(Path.GetDirectoryName(assembly.Location) ?? string.Empty, assetName);
-                if (!File.Exists(assetFileName))
-                {
-                    LogError($"Could not find asset ({assetName})");
-                    return null;
-                }
-            }
-
-            return assetFileName;
-        }
-
-        /// <summary>
-        /// Whether a message of this level goes out. Before the config is loaded (the dependency loading in Awake
-        /// runs first) warnings and errors always do; a failure there used to throw inside the logger itself and
-        /// hide the real problem.
-        /// </summary>
-        private static bool ShouldLog(LogLevel level)
-        {
-            if (_loggingEnabled == null || _logLevel == null)
-                return level == LogLevel.Warning || level == LogLevel.Error;
-            return _loggingEnabled.Value && _logLevel.Value <= level;
-        }
-
-        public static void Log(string message)
-        {
-            if (!ShouldLog(LogLevel.Info)) return;
-            if (_instance != null && _instance.Logger != null) _instance.Logger.LogInfo(message);
-            else Debug.Log($"[Auga] {message}");
-        }
-
-        public static void LogWarning(string message)
-        {
-            if (!ShouldLog(LogLevel.Warning)) return;
-            if (_instance != null && _instance.Logger != null) _instance.Logger.LogWarning(message);
-            else Debug.LogWarning($"[Auga] {message}");
-        }
-
-        public static void LogError(string message)
-        {
-            if (!ShouldLog(LogLevel.Error)) return;
-            if (_instance != null && _instance.Logger != null) _instance.Logger.LogError(message);
-            else Debug.LogError($"[Auga] {message}");
         }
 
         [UsedImplicitly]
         public void Update()
         {
-            UpdateStatBars();
-        }
-
-        public static void UpdateStatBars()
-        {
-            if (Hud.instance != null)
-            {
-                var newHealthPanel = Hud.instance.transform.Find("hudroot/HealthBar");
-                var newStaminaPanel = Hud.instance.transform.Find("hudroot/StaminaBar");
-                var newEitrPanel = Hud.instance.transform.Find("hudroot/EitrBar");
-
-                if (newHealthPanel != null && newHealthPanel.GetComponent<AugaHealthBar>() is AugaHealthBar healthBar)
-                {
-                    healthBar.Hide = !HealthBarShow.Value;
-                    healthBar.FixedLength = Auga.HealthBarFixedSize.Value;
-                    healthBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.HealthBarTextDisplay.Value;
-                    healthBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.HealthBarTextPosition.Value;
-                    healthBar.ShowTicks = HealthBarShowTicks.Value;
-                }
-
-                if (newStaminaPanel != null && newStaminaPanel.GetComponent<AugaHealthBar>() is AugaHealthBar staminaBar)
-                {
-                    staminaBar.Hide = !StaminaBarShow.Value;
-                    staminaBar.FixedLength = Auga.StaminaBarFixedSize.Value;
-                    staminaBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.StaminaBarTextDisplay.Value;
-                    staminaBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.StaminaBarTextPosition.Value;
-                    staminaBar.ShowTicks = StaminaBarShowTicks.Value;
-                }
-
-                if (newEitrPanel != null && newEitrPanel.GetComponent<AugaHealthBar>() is AugaHealthBar eitrBar)
-                {
-                    eitrBar.Hide = !EitrBarShow.Value;
-                    eitrBar.FixedLength = Auga.EitrBarFixedSize.Value;
-                    eitrBar.TextDisplay = (AugaHealthBar.TextDisplayMode)Auga.EitrBarTextDisplay.Value;
-                    eitrBar.DisplayTextPosition = (AugaHealthBar.TextPosition)Auga.EitrBarTextPosition.Value;
-                    eitrBar.ShowTicks = EitrBarShowTicks.Value;
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Terminal), nameof(Terminal.InitTerminal))]
-    public static class Terminal_InitTerminal_Patch
-    {
-        public static void Postfix()
-        {
-            new Terminal.ConsoleCommand("resetbiomes", "", args =>
-            {
-                var t = typeof(Player).GetField(nameof(Player.m_knownBiome),
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                t.SetValue(Player.m_localPlayer,new HashSet<Heightmap.Biome>());
-            });
+            StatBars.Apply();
         }
     }
 }
-
-

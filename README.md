@@ -14,14 +14,19 @@ Basically everything:
   * Overhauled Loading Screens
   * Auga-Style EVERYTHING
 
-SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Auga/Screenshots
+SEE SCREENSHOTS HERE: [Docs/Screenshots](Docs/Screenshots)
 
 ## How to Install
 
   1. Install [BepInEx for Valheim﻿](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/)
   1. Download the zip file from here on Thunderstore
-  1. Install with your mod manager
-  1. OR - Extract the contents of the `files` folder inside the zip file to <Your Valheim Installation Directory>\BepInEx\plugins\Auga
+  1. Install with your mod manager, which also installs [Jötunn](https://valheim.thunderstore.io/package/ValheimModding/Jotunn/) and [Json.NET](https://valheim.thunderstore.io/package/ValheimModding/JsonDotNET/)
+  1. OR - Extract the contents of the `plugins` folder inside the zip file to <Your Valheim Installation Directory>\BepInEx\plugins\Auga, and install Jötunn and Json.NET as well
+
+Auga is not required on servers or by other players. When the server runs Auga, its server settings (for now,
+whether the trash button is available) apply to everyone who joins.
+
+Building from source: see [BUILDING.md](BUILDING.md).
 
 ## Mod Compatibility
 
@@ -29,6 +34,8 @@ Does it work with...
 
   * EpicLoot: **YES**
   * Equipment & Quick Slots: **YES**
+  * SeneaL UI, BetterUI Reforged, BetterUI (Zenox), Minimal UI, AugaLite: **NO** - these replace the same screens,
+    so Auga does not load while one of them is installed (BepInEx says so in its log)
   * _Message me if your mod is compatible, I'll add it to this list! - RandyKnapp_
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.

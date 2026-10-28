@@ -1,14 +1,18 @@
-// Compiled into every assembly in this solution (see Directory.Build.props).
+// Compiled into every assembly in this solution that uses the game assemblies, AugaAPI excepted (see
+// Directory.Build.targets).
 //
-// The mod compiles against *publicized* copies of the game assemblies (References\Valheim) so it can reach
-// private members. At runtime the real, non-publicized assemblies are loaded and Unity's Mono JIT verifies
+// The mod compiles against *publicized* copies of the game assemblies (JotunnLib's build task writes them to
+// <Valheim>\valheim_Data\Managed\publicized_assemblies) so it can reach private members. At runtime the real, non-publicized assemblies are loaded and Unity's Mono JIT verifies
 // member accessibility, throwing FieldAccessException / MethodAccessException, unless the calling assembly
 // asks to skip verification. Two mechanisms are declared so both Mono flavours are covered:
 //
 //   * SecurityPermission(SkipVerification) + UnverifiableCode: Mono skips IL verification (including
 //     visibility checks) for assemblies that request it (mini_assembly_can_skip_verification).
 //   * IgnoresAccessChecksTo: honoured by runtimes that implement the .NET Core attribute; the type is not
-//     part of the BCL, so it is declared here by its well-known name.
+//     part of the BCL, so it is declared here by its well-known name. MonoMod.Utils (a BepInEx core reference)
+//     declares one too; the local copy wins (CS0436), which keeps Auga from depending on MonoMod for an attribute.
+
+#pragma warning disable CS0436 // IgnoresAccessChecksToAttribute is also defined in MonoMod.Utils; this one is meant.
 
 using System;
 using System.Runtime.CompilerServices;

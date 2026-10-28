@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    AugaAPI.dll: the stub other mods reference and merge into their own assembly. It compiles the same API.cs and
+    API.Common.cs the mod does, from ..\Auga\API, with the API constant defined, so every method body is the stub
+    branch of its #if. When Auga is installed, APIManager redirects those calls to the real Auga.dll.
+  -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>Auga</RootNamespace>
+    <AssemblyName>AugaAPI</AssemblyName>
+    <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);API</DefineConstants>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <!-- Reaches nothing non-public, and a consumer merges it: see ..\Directory.Build.targets. -->
+    <AugaSkipAccessChecks>true</AugaSkipAccessChecks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Auga\API\API.cs" Link="API.cs" />
+    <Compile Include="..\Auga\API\API.Common.cs" Link="API.Common.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Only for the game, Unity and BepInEx references JotunnLib's props wire up. The stub uses no Jotunn type. -->
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <!-- Compile-only: the output folder holds the stub and nothing a consumer could mistake for something to ship. -->
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+</Project>

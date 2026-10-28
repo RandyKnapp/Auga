@@ -4,85 +4,46 @@
     Development-only BepInEx plugin that drives an automated in-game smoke test of Auga:
     main menu -> settings -> character select -> world -> HUD -> inventory -> map -> pause menu -> in-game settings
     -> chat -> damage text, taking a screenshot of every step, then quits. See BUILDING.md ("Testing in game").
-    Not part of Auga.sln and never shipped; it deploys into the test profile (AugaTestProfile in
-    ..\..\Directory.Build.props, the Gale profile "AugaAuto") when DeployToValheim is on, never into the main profile.
-    Paths (ValheimManaged, BepInExCore, ValheimRefs, BepInExPlugins) come from ..\..\Directory.Build.props.
+    Not part of Auga.sln and never shipped. With -p:DeployToValheim=true it deploys into the test profile only
+    (AugaTestProfile below, the Gale profile "AugaAuto" by default), never into a profile you play in.
+    The game, Unity and BepInEx references come from the JotunnLib package, with the paths resolved in
+    ..\..\Directory.Build.props.
   -->
   <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>AugaAutoStart</AssemblyName>
     <RootNamespace>AugaAutoStart</RootNamespace>
-    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Version>0.1.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- The BepInEx install the helper lives in: a profile that has BepInEx, Auga and whatever mods are under test.
+         Override with -p:AugaTestProfile=<folder that contains BepInEx\>. -->
+    <AugaTestProfile Condition="'$(AugaTestProfile)' == ''">$(AppData)\com.kesomannen.gale\valheim\profiles\AugaAuto</AugaTestProfile>
+    <DeployToValheim Condition="'$(DeployToValheim)' == ''">false</DeployToValheim>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="BepInEx">
-      <HintPath>$(BepInExCore)\BepInEx.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>$(BepInExCore)\0Harmony.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_valheim_publicized">
-      <HintPath>$(ValheimRefs)\assembly_valheim_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_guiutils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_guiutils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_utils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_utils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="gui_framework_publicized">
-      <HintPath>$(ValheimRefs)\gui_framework_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>$(ValheimManaged)\Unity.TextMeshPro.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ScreenCaptureModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.ScreenCaptureModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.ImageConversionModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.UIModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.InputSystem">
-      <HintPath>$(ValheimManaged)\Unity.InputSystem.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <!-- Only for the game, Unity and BepInEx references JotunnLib's props wire up. -->
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
 
-  <Target Name="DeployToValheim" AfterTargets="Build" Condition="'$(DeployToValheim)' == 'true'">
-    <Error Condition="'$(BepInExExtraPlugins)' == ''" Text="No test profile with BepInEx found at $(AugaTestProfile); the helper only deploys there (pass -p:AugaTestProfile=...)." />
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExExtraPlugins)\AugaAutoStart\" />
-    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExExtraPlugins)\AugaAutoStart\" />
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+  <Target Name="DeployToTestProfile" AfterTargets="Build" Condition="'$(DeployToValheim)' == 'true'">
+    <Error Condition="!Exists('$(AugaTestProfile)\BepInEx\core\BepInEx.dll')" Text="No BepInEx install at $(AugaTestProfile); the helper only deploys into the test profile (pass -p:AugaTestProfile=...)." />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AugaTestProfile)\BepInEx\plugins\AugaAutoStart\" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(AugaTestProfile)\BepInEx\plugins\AugaAutoStart\" />
   </Target>
 
 </Project>

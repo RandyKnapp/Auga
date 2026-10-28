@@ -24,6 +24,116 @@ public static class Jewelcrafting
     public static Type GemStones;
     public static Type OpenFakeSocketsContainer;
     public static Type CloseFakeSocketsContainer;
+
+    internal static void Apply(Harmony harmony, BepInEx.PluginInfo plugin)
+    {
+        ModAssembly = Assembly.LoadFile(plugin.Location);
+        Synergy = ModAssembly.GetType("Jewelcrafting.Synergy");
+        SocketsBackground = ModAssembly.GetType("Jewelcrafting.SocketsBackground");
+        FusionBoxSetup = ModAssembly.GetType("Jewelcrafting.FusionBoxSetup");
+        AddSealButton = FusionBoxSetup.GetNestedType("AddSealButton");
+        AddSynergyIcon = Synergy.GetNestedType("AddSynergyIcon",BindingFlags.NonPublic | BindingFlags.Static);
+        DisplaySynergyView = Synergy.GetNestedType("DisplaySynergyView");
+        GemCursor = ModAssembly.GetType("Jewelcrafting.GemCursor");
+        CacheVanillaCursor = GemCursor.GetNestedType("CacheVanillaCursor",BindingFlags.NonPublic | BindingFlags.Static);
+        GemStones = ModAssembly.GetType("Jewelcrafting.GemStones");
+        OpenFakeSocketsContainer = GemStones.GetNestedType("OpenFakeSocketsContainer");
+        CloseFakeSocketsContainer = GemStones.GetNestedType("CloseFakeSocketsContainer",BindingFlags.NonPublic | BindingFlags.Static);
+
+        var compatibilityFailure = false;
+
+        if (DisplaySynergyView != null)
+        {
+            var awakeMethod = AccessTools.Method(DisplaySynergyView, "Awake");
+            var awakePostfixMethod = AccessTools.Method(typeof(InventoryGui), nameof(InventoryGui.Awake));
+
+            harmony.Patch(awakeMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(DisplaySynergyView_Awake_Transpiler)));
+            harmony.Patch(awakePostfixMethod, postfix:new HarmonyMethod(typeof(Jewelcrafting), nameof(IvnentoryGui_Awake_Postfix)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (SocketsBackground != null)
+        {
+            var hudPostfixMethod = AccessTools.Method(typeof(Hud), nameof(Hud.Awake));
+            harmony.Patch(hudPostfixMethod, prefix:new HarmonyMethod(typeof(Jewelcrafting), nameof(Hud_Awake_Prefix)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (AddSealButton != null)
+        {
+            var sealPostfixMethod = AddSealButton.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (sealPostfixMethod == null)
+            {
+                compatibilityFailure = true;
+                Debug.LogWarning($"sealPostfixMethod ==  null: {sealPostfixMethod == null}");
+            }
+
+            harmony.Patch(sealPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(FusionBoxSetup_AddSealButton_Postfix_Transpiler)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (CacheVanillaCursor != null)
+        {
+            var cursorPostfixMethod = CacheVanillaCursor.GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (cursorPostfixMethod == null)
+            {
+                compatibilityFailure = true;
+                Debug.LogWarning($"cursorPostfixMethod ==  null: {cursorPostfixMethod ==  null}");
+            }
+            harmony.Patch(cursorPostfixMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(GemCursor_CacheVanillaCursor_Postfix_Transpiler)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (OpenFakeSocketsContainer != null)
+        {
+            var openSocketsMethod = OpenFakeSocketsContainer.GetMethod("Open", BindingFlags.Public | BindingFlags.Static);
+            if (openSocketsMethod == null)
+            {
+                compatibilityFailure = true;
+                Debug.LogWarning($"openSocketsMethod ==  null: {openSocketsMethod ==  null}");
+            }
+            harmony.Patch(openSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(GemStones_OpenFakeSocketsContainer_Open_Transpiler)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (CloseFakeSocketsContainer != null)
+        {
+            var closeSocketsMethod = CloseFakeSocketsContainer.GetMethod("Prefix", BindingFlags.NonPublic | BindingFlags.Static);
+            if (closeSocketsMethod == null)
+            {
+                compatibilityFailure = true;
+                Debug.LogWarning($"closeSocketsMethod ==  null: {closeSocketsMethod ==  null}");
+            }
+            harmony.Patch(closeSocketsMethod, transpiler:new HarmonyMethod(typeof(Jewelcrafting), nameof(GemStones_CloseFakeSocketsContainer_Prefix_Transpiler)));
+        }
+        else
+            compatibilityFailure = true;
+
+        if (compatibilityFailure)
+        {
+            Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {DisplaySynergyView ==  null}");
+            Debug.LogWarning($"Jewelcrafting.Synergy ==  null: {Synergy ==  null}");
+            Debug.LogWarning($"Jewelcrafting.SocketsBackground ==  null: {SocketsBackground ==  null}");
+            Debug.LogWarning($"Jewelcrafting.DisplaySynergyView ==  null: {DisplaySynergyView ==  null}");
+            Debug.LogWarning($"Jewelcrafting.AddSynergyIcon ==  null: {AddSynergyIcon ==  null}");
+            Debug.LogWarning($"Jewelcrafting.FusionBoxSetup ==  null: {FusionBoxSetup ==  null}");
+            Debug.LogWarning($"Jewelcrafting.AddSealButton ==  null: {AddSealButton ==  null}");
+            Debug.LogWarning($"Jewelcrafting.GemCursor ==  null: {GemCursor ==  null}");
+            Debug.LogWarning($"Jewelcrafting.CacheVanillaCursor ==  null: {CacheVanillaCursor ==  null}");
+            Debug.LogWarning($"Jewelcrafting.GemStones ==  null: {GemStones ==  null}");
+            Debug.LogWarning($"Jewelcrafting.OpenFakeSocketsContainer ==  null: {OpenFakeSocketsContainer ==  null}");
+            Debug.LogWarning($"Jewelcrafting.CloseFakeSocketsContainer ==  null: {CloseFakeSocketsContainer ==  null}");
+            Debug.LogError("Jewelcrafting Compatibility Failed - Contact Vapok with the above information");
+            System.Threading.Thread.Sleep(15000);
+        }
+    }
     
     [HarmonyBefore(new []{"org.bepinex.plugins.jewelcrafting"})]
     public static void Hud_Awake_Prefix(Hud __instance)

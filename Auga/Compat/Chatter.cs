@@ -17,6 +17,22 @@ public static class Chatter
     public static Assembly ChatterType;
     public static Type ToggleCell;
 
+    internal static void Apply(Harmony harmony, BepInEx.PluginInfo plugin)
+    {
+        ChatterType = Assembly.LoadFile(plugin.Location);
+        ToggleCell = ChatterType.GetType("Chatter.ToggleCell");
+        var createChildCellMethod = AccessTools.Method(ToggleCell, "CreateChildCell");
+        var createChildLabelMethod = AccessTools.Method(ToggleCell, "CreateChildLabel");
+        var onToggleValueChangedMethod = AccessTools.Method(ToggleCell, "OnToggleValueChanged");
+
+        if (ToggleCell != null)
+        {
+            harmony.Patch(createChildCellMethod, new HarmonyMethod(typeof(Chatter), nameof(CreateChildCell_Patch)));
+            harmony.Patch(createChildLabelMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(CreateChildLabel_Transpiler)));
+            harmony.Patch(onToggleValueChangedMethod, transpiler:new HarmonyMethod(typeof(Chatter), nameof(OnToggleValueChanged_Transpiler)));
+        }
+    }
+
 
     public static bool CreateChildCell_Patch(Transform parentTransform, ref GameObject __result)
     {

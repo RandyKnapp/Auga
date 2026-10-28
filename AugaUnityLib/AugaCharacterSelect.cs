@@ -204,7 +204,9 @@ namespace AugaUnity
             _index = index;
             CharacterName.text = profile.m_playerName;
             Button.onClick.AddListener(() => FejdStartup.instance.SetSelectedProfile(_profile.m_filename));
-            StatsText.text = $"{profile.GetStat(PlayerStatType.Deaths)}\n{profile.GetStat(PlayerStatType.Builds)}\n{profile.GetStat(PlayerStatType.Crafts)}";
+            // RawStats is the all-play bucket, filled whether or not the play could earn achievements
+            const DifficultyRequirement allPlay = DifficultyRequirement.RawStats;
+            StatsText.text = $"{profile.GetStat(PlayerStatType.Deaths, allPlay)}\n{profile.GetStat(PlayerStatType.Builds, allPlay)}\n{profile.GetStat(PlayerStatType.Crafts, allPlay)}";
 
             var outputFilePath = AugaCharacterSelectPhotoBooth.GetOutputFilePathForProfile(profile);
             if (File.Exists(outputFilePath))

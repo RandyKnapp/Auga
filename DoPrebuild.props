@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Whether JotunnLib's build task publicizes the Valheim assemblies before compiling.
+
+  Leave this on: the build then produces
+  <Valheim>/valheim_Data/Managed/publicized_assemblies/*_publicized.dll itself, which is
+  what the vanilla <Reference>s point at. Turning it off makes the build depend on those
+  files already being there, so a fresh clone - or the first build after a game update -
+  compiles against stale assemblies or fails outright.
+
+  Imported by Directory.Build.props (JotunnLib's own import of this file only fires when
+  $(SolutionDir) is defined, which it is not for a direct `dotnet build` of the .csproj).
+-->
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ExecutePrebuild>true</ExecutePrebuild>
+  </PropertyGroup>
+</Project>

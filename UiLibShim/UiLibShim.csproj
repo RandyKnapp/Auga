@@ -11,34 +11,28 @@
     resolve the MonoScript references.
   -->
   <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>ui_lib</AssemblyName>
     <RootNamespace>Fishlabs</RootNamespace>
-    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <Version>1.0.0</Version>
+    <!-- Auga.csproj embeds bin\<Configuration>\ui_lib.dll, so the path must not depend on the framework. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="gui_framework">
-      <HintPath>$(ValheimManaged)\gui_framework.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>$(ValheimManaged)\Unity.TextMeshPro.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <!-- Only for the game and Unity references JotunnLib's props wire up. -->
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
 
 </Project>

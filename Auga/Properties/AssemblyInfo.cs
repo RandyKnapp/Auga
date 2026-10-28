@@ -4,11 +4,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-#if API
-[assembly: AssemblyTitle("AugaAPI")]
-#else
 [assembly: AssemblyTitle("Auga")]
-#endif
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
@@ -35,10 +31,7 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-#if API
-[assembly: AssemblyVersion("1.6.0")]
-[assembly: AssemblyFileVersion("1.6.0")]
-#else
-[assembly: AssemblyVersion("1.3.12.0")]
-[assembly: AssemblyFileVersion("1.3.12.0")]
-#endif
+// Keep the fourth component at 0: a non-zero one marks a PTB build (see Auga.Awake).
+// The API stub has its own version, in AugaAPI\Properties\AssemblyInfo.cs.
+[assembly: AssemblyVersion("1.3.13.0")]
+[assembly: AssemblyFileVersion("1.3.13.0")]

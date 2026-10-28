@@ -1,77 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Example mod that consumes the Auga API. Build Auga with -p:Configuration=API first, which publishes
-    AugaAPI.dll to ..\Auga\bin\API and References\AugaAPI.
-    TargetFramework (netstandard2.1), LangVersion and the Valheim paths come from ..\Directory.Build.props
+    Example mod that consumes the Auga API the way a third-party mod would: it compiles the API stub into its own
+    assembly (the same API.cs and API.Common.cs the AugaAPI project builds, with the API constant defined) and
+    soft-depends on Auga, so APIManager redirects the stub's calls to the real Auga.dll when Auga is installed.
   -->
   <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>AugaApiExample</AssemblyName>
     <RootNamespace>AugaApiExample</RootNamespace>
+    <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <!-- Selects the stub branch of every method in API.cs. -->
+    <DefineConstants>$(DefineConstants);API</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="BepInEx">
-      <HintPath>$(BepInExCore)\BepInEx.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>$(BepInExCore)\0Harmony.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <!-- Merged into AugaApiExample.dll by ILRepack (see ILRepack.targets), so it is copied to the output folder. -->
-    <Reference Include="AugaAPI">
-      <HintPath>..\Auga\bin\API\AugaAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="assembly_valheim_publicized">
-      <HintPath>$(ValheimRefs)\assembly_valheim_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_guiutils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_guiutils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_utils_publicized">
-      <HintPath>$(ValheimRefs)\assembly_utils_publicized.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>$(ValheimManaged)\UnityEngine.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ValheimManaged)\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>$(ValheimManaged)\UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <!-- Only for the game, Unity and BepInEx references JotunnLib's props wire up. -->
+    <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+  </ItemDefinitionGroup>
 
   <ItemGroup>
-    <Compile Include="AugaApiExample.cs" />
-    <Compile Include="InventoryGui_Patch.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Auga\API\API.cs" Link="AugaAPI\API.cs" />
+    <Compile Include="..\Auga\API\API.Common.cs" Link="AugaAPI\API.Common.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="..\Auga\bin\API\AugaAPI.dll" Link="AugaAPI.dll" LogicalName="$(RootNamespace).AugaAPI.dll" />
-  </ItemGroup>
-
-  <!-- ILRepackTargetsFile must be set explicitly: $(ProjectDir) is not defined yet at this point of an SDK-style project. -->
-  <PropertyGroup>
-    <ILRepackTargetsFile>$(MSBuildProjectDirectory)\ILRepack.targets</ILRepackTargetsFile>
-  </PropertyGroup>
-  <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
-  <Target Name="EnsureILRepackPackage" BeforeTargets="PrepareForBuild">
-    <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="Missing ..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2 (it is part of the repository)." />
-  </Target>
-
-  <!-- Copy the built plugin into the BepInEx plugins folder (see DeployToValheim / BepInExDir in ..\Directory.Build.props). -->
-  <Target Name="DeployToValheim" AfterTargets="ILRepacker" Condition="'$(DeployToValheim)' == 'true'">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExPlugins)\$(ProjectName)\" />
-    <Message Importance="high" Text="Deployed $(TargetFileName) to $(BepInExPlugins)\$(ProjectName)\" />
-  </Target>
 
 </Project>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auga-specific build wiring shared by every project that compiles against the game.
+
+  Directory.Build.props is the shared template file (the same in every mod repo) and resolves the paths. This
+  file is imported after each .csproj body instead, which is what makes it the place for items keyed off what a
+  project and its packages have declared: the items below apply only to projects that pull the JotunnLib
+  package, since that is what turns VALHEIM_MANAGED and BEPINEX_PATH into game references. The Unity-generated
+  projects under AugaUnity\ never do. (An item list can only be tested in an item condition, never in a
+  property one, which is why the conditions sit on the ItemGroups.)
+-->
+<Project>
+
+  <!-- ==================== the game's class libraries ====================
+       Valheim 1.x runs on Unity 6 with Mono, and its engine modules are built against netstandard 2.1 and the
+       game's own mscorlib, which has Span<T> and friends. The .NET Framework 4.8 reference assemblies a net48
+       project normally compiles against have neither: any use of such a module fails with CS1705 ("uses
+       netstandard 2.1.0.0, which has a higher version than referenced netstandard 2.0.0.0"), and a call that
+       has to rule out a Span overload, Texture2D.LoadImage(byte[]) for one, fails with CS0518 ("Predefined type
+       'System.ReadOnlySpan`1' is not defined"). So the framework references are swapped for the class
+       libraries in valheim_Data\Managed, which is exactly what everything resolves against at runtime.
+
+       DisableImplicitFrameworkReferences drops the SDK's own framework references, NoStdLib its explicit
+       mscorlib, and the facade switches stop it adding a netstandard 2.0 facade back. -->
+  <PropertyGroup>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <NoStdLib>true</NoStdLib>
+    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
+    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
+  </PropertyGroup>
+  <ItemGroup Condition="'@(PackageReference->AnyHaveMetadataValue('Identity', 'JotunnLib'))' == 'true'">
+    <_AugaGameClassLibrary Include="mscorlib;netstandard;System;System.Core;System.Runtime;System.Xml;System.Xml.Linq;System.Data" />
+    <Reference Include="@(_AugaGameClassLibrary)">
+      <HintPath>$(VALHEIM_MANAGED)/%(Identity).dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ==================== stale JotunnLib references ====================
+       JotunnLib's reference list still carries assemblies that Valheim's Unity version dropped. Nothing here uses
+       them, and leaving them in warns MSB3245 on every build. -->
+  <ItemGroup>
+    <Reference Remove="UnityEngine.ProfilerModule" Condition="!Exists('$(VALHEIM_MANAGED)/UnityEngine.ProfilerModule.dll')" />
+  </ItemGroup>
+
+  <!-- ==================== access checks ====================
+       Compiled into every assembly that touches non-public game members (see the file). AugaAPI opts out: it is a
+       public stub other mods merge into their own assembly, and it reaches nothing private. -->
+  <ItemGroup Condition="'@(PackageReference->AnyHaveMetadataValue('Identity', 'JotunnLib'))' == 'true' And '$(AugaSkipAccessChecks)' != 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)Build\IgnoresAccessChecksTo.cs" Link="Properties\IgnoresAccessChecksTo.cs" />
+  </ItemGroup>
+
+</Project>
