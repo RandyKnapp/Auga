@@ -4,6 +4,7 @@
 * Updated for Valheim 1.0.21, which broke the character select screen.
 * Auga now needs Jötunn and Json.NET installed.
 * A server running Auga now decides whether players get the trash button.
+* A mod that adds the same Auga tab twice no longer causes an error.
 
 
 <details>

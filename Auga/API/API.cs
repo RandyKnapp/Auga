@@ -524,6 +524,12 @@ namespace Auga
                 var data = new PlayerPanelTabData();
 
                 WorkbenchPanelController.instance.AddPlayerPanelTab(tabID, tabIcon, tabTitleText, onTabSelected, out data.TabTitle, out var tabButton, out data.ContentGO);
+                // a tab with this ID already exists: nothing was added
+                if (tabButton == null)
+                {
+                    return null;
+                }
+
                 data.Index = WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count - 1;
                 data.TabButtonGO = tabButton.gameObject;
 
@@ -581,6 +587,12 @@ namespace Auga
                 var data = new WorkbenchTabData();
 
                 WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, false, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                // a tab with this ID already exists: nothing was added
+                if (tabButtonX == null)
+                {
+                    return null;
+                }
+
                 data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
                 data.TabButtonGO = tabButtonX.gameObject;
                 data.RequirementsPanelGO = requirementsPanelX.gameObject;
@@ -604,6 +616,12 @@ namespace Auga
                 var data = new WorkbenchTabData();
 
                 WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, true, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                // a tab with this ID already exists: nothing was added
+                if (tabButtonX == null)
+                {
+                    return null;
+                }
+
                 data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
                 data.TabButtonGO = tabButtonX.gameObject;
                 data.RequirementsPanelGO = requirementsPanelX.gameObject;

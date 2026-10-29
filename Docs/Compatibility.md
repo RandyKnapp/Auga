@@ -29,7 +29,7 @@ Better Archery.
 Valheim Admin Tool reaches `Auga.AugaPanelRestyler` and `Auga.RestyleOptions` by reflection, not through the
 API. Those two names stay public and stable; `API.Panel_Restyle` is the supported entry for new code.
 
-**What Auga does to keep other mods' patches working** (most of it from commit `2ecd57e`):
+**What Auga does to keep other mods' patches working** (most of it from commit `844c8a0`):
 
 - `UiAwakeGuards`: Harmony finalizers on `InventoryGui.Awake`, `Hud.Awake`, `KeyHints.Start`,
   `Minimap.Awake/Start`, `TextsDialog.Awake`, `StoreGui.Awake` and `Menu.Start` log an exception thrown by another
@@ -73,7 +73,7 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 | PlantEasily | `advize.PlantEasily` | HUD text | tested 2026-10-25 |
 | Jewelcrafting | `org.bepinex.plugins.jewelcrafting` | `Auga/Compat/Jewelcrafting.cs` transpiles JC's nested patch types; hotkey bar left to JC | untested; a failed lookup sleeps 15 s at startup |
 | Chatter | `redseiko.valheim.chatter` | `Auga/Compat/Chatter.cs` swaps `ToggleCell` for Auga toggles | untested |
-| Sears Catalog | `redseiko.valheim.searscatalog` | `Auga/Compat/SearsCatalog.cs` nudges `m_pieceListRoot` 3 px | probably obsolete since the build menu moved to `BuildUIV2` (`583706f`) |
+| Sears Catalog | `redseiko.valheim.searscatalog` | `Auga/Compat/SearsCatalog.cs` nudges `m_pieceListRoot` 3 px | probably obsolete since the build menu moved to `BuildUIV2` (`4e6f966`) |
 | MultiCraft | `maximods.valheim.multicraft` | `Auga/Compat/MultiCraft.cs` patches `MultiCraft_UI` and `MultiCraft_Logic` | untested; issues #141, #220 |
 | SimpleRecycling | `com.github.abearcodes.valheim.simplerecycling` | `Auga/Compat/SimpleRecycling.cs`, a vanilla workbench tab | untested; the mod is abandoned, Recycle N Reclaim replaced it |
 | BetterTrader | `Menthus.bepinex.plugins.BetterTrader` | branch in `Store_Setup.cs` | untested |
@@ -99,7 +99,7 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 
 1. **Refresh the API mirror.** `EpicLoot/src/integrations/AugaAPI.cs` and `AugaAPI.Common.cs` were copied on
    2026-09-24. Since then `API.cs` gained `GetBoldFontAsset`, `GetSemiBoldFontAsset`, `GetRegularFontAsset`,
-   `Panel_Restyle`, `Text_Restyle`, `Scrollbar_Restyle`, `Slider_Restyle` and `Toggle_Restyle` (`2ecd57e`), and the
+   `Panel_Restyle`, `Text_Restyle`, `Scrollbar_Restyle`, `Slider_Restyle` and `Toggle_Restyle` (`844c8a0`), and the
    mirror never had `GetCraftingControls` or the `CraftingControls` class from 1.6.0. First bump the API version
    (still 1.6.0 in `AugaAPI/Properties/AssemblyInfo.cs`, no CHANGELOG entry yet), rebuild `AugaAPI.dll`, then copy the
    signatures over. `EpicLootAuga.FixFonts` only restyles legacy `Text`; the TMP labels on the enchanting table,
@@ -119,7 +119,7 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 6. **Smoke test flag.** `AUGA_TEST_EPICLOOT_HASAUGA` forces `EpicLoot.HasAuga`; its comment says EpicLoot never
    sets the flag, which is no longer true (`EpicLoot.InitializeAuga` sets it from `IsLoaded()`). Keep the flag as a
    fallback for a failed APIManager rewrite and fix the comment.
-7. EpicLoot's stat preprocessor never returns `null` because the old Auga threw on it. Since `2ecd57e` a `null`
+7. EpicLoot's stat preprocessor never returns `null` because the old Auga threw on it. Since `844c8a0` a `null`
    hides the line, so EpicLoot may use it.
 
 ### Equipment and Quick Slots

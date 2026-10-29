@@ -40,11 +40,11 @@ Does it work with...
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.
 
-Please report bugs and mod conflicts on the [GitHub Issues Page](https://github.com/RandyKnapp/Auga/issues)﻿!
+Please report bugs and mod conflicts on the [GitHub Issues Page](https://github.com/MidnightsFX/Auga/issues)﻿!
 
 ## For Modders
 
 Project Auga comes with an API that allows other mods to easily access its features and create UI elements in the Auga style. It's also open-source on GitHub.
 
-Auga API: https://github.com/RandyKnapp/Auga/wiki/Auga-API
-Source: https://github.com/RandyKnapp/Auga
+Auga API: [Docs/AugaAPI.md](Docs/AugaAPI.md)
+Source: https://github.com/MidnightsFX/Auga

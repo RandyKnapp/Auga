@@ -1,5 +1,5 @@
 # Project Auga
-##### by RandyKnapp / n4 / Vapok
+##### by RandyKnapp / n4 / Vapok / MidnightsFX
 
 Project Auga is a completely re-imagined, modder-friendly UI-overhaul for Valheim. Every last piece of UI was considered and reworked from the ground-up to create a more helpful and immersive player experience, all while remaining familiar to Valheim veterans.
 
@@ -15,7 +15,7 @@ Basically everything:
   * Improved Crafting Panels
     
 
-SEE SCREENSHOTS HERE: https://github.com/RandyKnapp/Auga/tree/main/Docs/Screenshots
+SEE SCREENSHOTS HERE: https://github.com/MidnightsFX/Auga/tree/main/Docs/Screenshots
 
 ## How to Install
 
@@ -56,11 +56,15 @@ Does it work with...
 
 Project Auga drastically changes many parts of the Valheim UI. It will most likely not be compatible with other mods that modify the UI.
 
-Please report bugs and mod conflicts on the [GitHub Issues Page](https://github.com/RandyKnapp/Auga/issues)﻿!
+Please report bugs and mod conflicts on the [GitHub Issues Page](https://github.com/MidnightsFX/Auga/issues)﻿!
+
+### AI Policy
+We accept AI-assisted changes. All code, assets etc. Must be reviewed and tested before it will be merged or released.
+
 
 ## For Modders
 
 Project Auga comes with an API that allows other mods to easily access its features and create UI elements in the Auga style. It's also open-source on GitHub.
 
-Auga API: https://github.com/RandyKnapp/Auga/wiki/Auga-API
-Source: https://github.com/RandyKnapp/Auga
+Auga API: https://github.com/MidnightsFX/Auga/blob/main/Docs/AugaAPI.md
+Source: https://github.com/MidnightsFX/Auga
