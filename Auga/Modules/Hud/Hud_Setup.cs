@@ -499,118 +499,17 @@ namespace Auga
         }
     }
 
+    // The crosshair turns gold while it points at something. (Auga once also rebuilt vanilla's hover text into its
+    // own "AugaHoverText" lines with key boxes; that was switched off long ago and has been removed.)
     [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateCrosshair))]
     public static class Hud_UpdateCrosshair_Patch
     {
-        public static Transform AugaHoverText;
-        public static TextMeshProUGUI HoverTextPrefab;
-        public static GameObject HoverTextWithButtonPrefab;
-        public static GameObject HoverTextWithButtonRangePrefab;
-
-        private static string _lastHoverText;
-        private static readonly Dictionary<string, string> _cachedKeyNames = new Dictionary<string, string>();
+        private static readonly Color Pointing = AugaPanelRestyler.Hex(Auga.Colors.BrightestGold);
+        private static readonly Color Idle = new Color(1f, 1f, 1f, 0.5f);
 
         public static void Postfix(Hud __instance)
         {
-            if (HoverTextPrefab == null)
-            {
-                AugaHoverText = __instance.m_crosshair.transform.parent.Find("AugaHoverText");
-                HoverTextPrefab = __instance.m_hoverName;
-                HoverTextWithButtonPrefab = __instance.m_crosshair.transform.parent.Find("Dummy/HoverNameWithButton").gameObject;
-                HoverTextWithButtonRangePrefab = __instance.m_crosshair.transform.parent.Find("Dummy/HoverNameWithButtonRange").gameObject;
-            }
-
-            if (!string.IsNullOrEmpty(__instance.m_hoverName.text))
-            {
-                ColorUtility.TryParseHtmlString(Auga.Colors.BrightestGold, out var brightestGold);
-                __instance.m_crosshair.color = brightestGold;
-            }
-            else
-            {
-                __instance.m_crosshair.color = new Color(1f, 1f, 1f, 0.5f);
-            }
-            AdjustText();
-            return;
-
-            void AdjustText(bool show = false)
-            {
-                if (!show)
-                    return;
-                
-                AugaHoverText.gameObject.SetActive(__instance.m_hoverName.gameObject.activeSelf);
-
-                if (_lastHoverText != __instance.m_hoverName.text)
-                {
-                    _lastHoverText = __instance.m_hoverName.text;
-                    foreach (Transform child in AugaHoverText)
-                    {
-                        Object.Destroy(child.gameObject);
-                    }
-
-                    var parts = _lastHoverText.Split('\n');
-                    foreach (var part in parts)
-                    {
-                        if (part.StartsWith("["))
-                        {
-                            var closingBracketIndex = part.IndexOf(']');
-                            if (closingBracketIndex > 0)
-                            {
-                                var textInBracket = part.Substring(1, closingBracketIndex - 1);
-                                textInBracket = textInBracket.Replace("<color=yellow>", "").Replace("<b>", "").Replace("</b>", "").Replace("</color>", "").Trim();
-                                var otherText = part.Substring(closingBracketIndex + 1).Trim();
-
-                                if (textInBracket == "1-8")
-                                {
-                                    var lineWithRange = Object.Instantiate(HoverTextWithButtonRangePrefab, AugaHoverText, false);
-                                    lineWithRange.SetActive(true);
-                                    var bindings = lineWithRange.GetComponentsInChildren<AugaBindingDisplay>();
-                                    bindings[0].SetText("1");
-                                    bindings[1].SetText("8");
-                                    var text = lineWithRange.transform.Find("Text").GetComponent<TextMeshProUGUI>();
-                                    text.text = otherText;
-                                    continue;
-                                }
-
-                                if (_cachedKeyNames.Count == 0)
-                                {
-                                    foreach (var buttonEntry in ZInput.instance.m_buttons)
-                                    {
-                                        var bindingDisplay = Localization.instance.GetBoundKeyString(buttonEntry.Key);
-                                        if (!_cachedKeyNames.ContainsKey(bindingDisplay))
-                                        {
-                                            _cachedKeyNames.Add(bindingDisplay, buttonEntry.Key);
-                                        }
-                                    }
-                                }
-
-                                if (_cachedKeyNames.TryGetValue(textInBracket, out var keyName))
-                                {
-                                    var lineWithBinding = Object.Instantiate(HoverTextWithButtonPrefab, AugaHoverText, false);
-                                    lineWithBinding.SetActive(true);
-                                    var binding = lineWithBinding.GetComponentInChildren<AugaBindingDisplay>();
-                                    binding.SetBinding(keyName);
-                                    var text = lineWithBinding.transform.Find("Text").GetComponent<TextMeshProUGUI>();
-                                    text.text = otherText;
-                                    continue;
-                                }
-                            }
-                        }
-
-                        var line = Object.Instantiate(HoverTextPrefab, AugaHoverText, false);
-                        line.gameObject.SetActive(true);
-                        line.text = part;
-                    }
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(ZInput), nameof(ZInput.Save))]
-        public static class ZInput_Save_Patch
-        {
-            public static void Postfix()
-            {
-                _cachedKeyNames.Clear();
-            }
+            __instance.m_crosshair.color = string.IsNullOrEmpty(__instance.m_hoverName.text) ? Idle : Pointing;
         }
     }
 

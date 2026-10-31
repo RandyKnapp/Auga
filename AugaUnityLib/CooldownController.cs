@@ -44,8 +44,16 @@ namespace AugaUnity
                 return false;
             }
 
-            statusEffect = statusEffects.Find(x => x.m_category == category);
-            return statusEffect != null;
+            // a loop rather than Find with a lambda, which would be allocated anew for every slot every frame
+            foreach (var effect in statusEffects)
+            {
+                if (effect.m_category == category)
+                {
+                    statusEffect = effect;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

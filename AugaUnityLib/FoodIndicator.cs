@@ -30,8 +30,21 @@ namespace AugaUnity
                 return;
             }
 
+            Image.enabled = IsEaten(player, _itemTooltip.Item.m_shared.m_name);
+        }
+
+        // a loop rather than a lambda, which would be allocated anew for every slot every frame
+        private static bool IsEaten(Player player, string name)
+        {
             var foods = player.GetFoods();
-            Image.enabled = foods?.Exists(x => x.m_item.m_shared.m_name == _itemTooltip.Item.m_shared.m_name) ?? false;
+            if (foods == null)
+                return false;
+            foreach (var food in foods)
+            {
+                if (food.m_item.m_shared.m_name == name)
+                    return true;
+            }
+            return false;
         }
     }
 }

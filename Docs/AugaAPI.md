@@ -1,9 +1,9 @@
 # Auga API
 
 Auga's API lets another mod check whether Auga is installed, build widgets in Auga's style, add to Auga's tooltips,
-add tabs to the player panel and the workbench, and give its own panels the Auga look. Everything is static on
-`Auga.API`, in [`Auga/API/API.cs`](../Auga/API/API.cs); the types it hands out are in
-[`Auga/API/API.Common.cs`](../Auga/API/API.Common.cs). The API version is 1.6.0.
+add tabs and links to the player panel, add tabs to the workbench, and give its own panels the Auga look. Everything
+is static on `Auga.API`, in [`Auga/API/API.cs`](../Auga/API/API.cs); the types it hands out are in
+[`Auga/API/API.Common.cs`](../Auga/API/API.Common.cs). The API version is 1.7.0.
 
 ## Setting up your mod
 
@@ -199,6 +199,42 @@ returns `null`. Auga 1.3.12 and older throw instead, so check `PlayerPanel_HasTa
 The title is localized; a `null` icon keeps the default one. `onTabSelected` receives the
 tab's index each time the tab is selected. Put your UI under `ContentGO`, an empty 564 × 780 object that is shown
 while the tab is selected.
+
+## Player panel links
+
+Vanilla's inventory has a row of round buttons (compendium, trophies, skills, PvP) that many mods add their own
+button to. Auga replaces that row with the row of diamond buttons under the player name, the player panel's tab row.
+A link is a button in that row that calls your action when clicked instead of opening a tab, such as Clans' button
+that opens its window. (API 1.7.0)
+
+| Method | What it does |
+| --- | --- |
+| `PlayerPanel_AddLink(string linkID, Sprite icon, string tooltip, Action onClick)` | Adds a link, or updates the icon, tooltip and action of the link with that ID. Returns `false` only for an empty ID, and on the stub. |
+| `PlayerPanel_HasLink(string linkID)` | Whether a link with that ID is registered |
+| `PlayerPanel_SetLinkVisible(string linkID, bool visible)` | Shows or hides the link. Returns `false` when there is no such link. |
+| `PlayerPanel_RemoveLink(string linkID)` | Removes the link |
+| `PlayerPanel_GetLink(string linkID)` | The link's button in the current inventory screen, or `null` before that screen exists. Use it to place a popup next to the link. |
+
+Auga keeps your links and builds them into every inventory screen (the game makes a new one for each world), so
+register once, at any time after Auga has loaded: in your plugin's `Awake` or in an `InventoryGui.Awake` postfix.
+Adding an ID again only updates it and keeps its visibility, so registering from each `InventoryGui.Awake` is
+harmless. A new link is visible. Links always come after the tabs, in the order they were first added.
+
+The icon is fitted inside the diamond and tinted with the tab icons' colours, so a light glyph on a transparent
+background looks best; a `null` icon keeps the default one. The tooltip is localized when it is shown. Like the tabs, the row is hidden
+while the player stands at a crafting station. A link that throws is logged with its ID.
+
+```csharp
+[BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
+public class MyMod : BaseUnityPlugin
+{
+    private void Awake()
+    {
+        if (Auga.API.IsLoaded())
+            Auga.API.PlayerPanel_AddLink("MyMod_Window", myIcon, "$mymod_open_window", MyWindow.Toggle);
+    }
+}
+```
 
 ## Workbench tabs
 

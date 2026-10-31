@@ -45,6 +45,8 @@ namespace Auga
 
         public static ConfigEntry<bool> AugaChatShow;
 
+        public static ConfigEntry<bool> EnemyHudStarsBelowBar;
+
         // Server synced config entries
         public static ConfigEntry<bool> UseAugaTrash;
         public static ConfigEntry<float> ConfigPollIntervalSeconds;
@@ -150,8 +152,17 @@ namespace Auga
             EitrBarTextPosition = Config.Bind("StatBars", "EitrBarTextPosition", StatBarTextPosition.Center, "Changes where the label of the eitr bar is displayed.");
             // The key has always been "Eitr", not "EitrBarShowTicks"; renaming it would reset players' setting.
             EitrBarShowTicks = Config.Bind("StatBars", "Eitr", true, "Show a faint line on the bar every 25 units");
+            // the bars take these when the HUD is built and again whenever one changes (a file reload raises it too)
+            Config.SettingChanged += (_, e) =>
+            {
+                if (e.ChangedSetting.Definition.Section == "StatBars")
+                    StatBars.Apply();
+            };
 
             AugaChatShow = Config.Bind("AugaChat", "Show Auga Chat. Disable to use other mods. (Requires Restart)", true, "If false, disables the Auga Chat window display");
+
+            EnemyHudStarsBelowBar = Config.Bind("EnemyHud", "StarsBelowHealthBar", true, "Show an enemy's level stars just below its health bar. If false, they are drawn on the bar, which leaves room for mods that write text below it.");
+            EnemyHudStarsBelowBar.SettingChanged += (_, _) => EnemyHudBars.ApplyStarSetting();
 
             // Server synced. The trash button deletes items outright, which is a server's call rather than a display
             // preference.

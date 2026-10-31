@@ -4,7 +4,6 @@ using Auga.Compat;
 using BepInEx;
 using BepInEx.Bootstrap;
 using HarmonyLib;
-using JetBrains.Annotations;
 using Jotunn.Utils;
 using UnityEngine;
 
@@ -33,7 +32,7 @@ namespace Auga
     {
         public const string PluginID = "randyknapp.mods.auga";
         public const string PluginName = "Project Auga";
-        public const string Version = "1.3.13";
+        public const string Version = "1.4.0";
 
         public static readonly AugaAssets Assets = new AugaAssets();
         public static readonly AugaColors Colors = new AugaColors();
@@ -44,6 +43,8 @@ namespace Auga
         public static bool HasChatter;
         public static bool HasSearsCatalog;
         public static bool HasJewelcrafting;
+        // Creature Level Control or StarLevelSystem, which draw the stars of creatures above level 3 themselves
+        public static bool HasLevelStarMod;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -96,6 +97,7 @@ namespace Auga
             HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
             HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
             HasJewelcrafting = Chainloader.PluginInfos.TryGetValue("org.bepinex.plugins.jewelcrafting", out var jewelcraftingPlugin);
+            HasLevelStarMod = Chainloader.PluginInfos.ContainsKey("org.bepinex.plugins.creaturelevelcontrol") || Chainloader.PluginInfos.ContainsKey("MidnightsFX.StarLevelSystem");
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
@@ -125,12 +127,6 @@ namespace Auga
             // A config write still waiting on its delay would otherwise be lost when the game closes.
             ValConfig.SavePending();
             _instance = null;
-        }
-
-        [UsedImplicitly]
-        public void Update()
-        {
-            StatBars.Apply();
         }
     }
 }

@@ -5,8 +5,8 @@ namespace Auga
     public enum StatBarTextDisplayMode { JustValue, ValueAndMax, ValueMaxPercent, JustPercent }
     public enum StatBarTextPosition { Off = -1, Above, Below, Center, Start, End };
 
-    // Applies the [StatBars] settings to the health, stamina and eitr bars. Runs every frame (Auga.Update), so a
-    // change in the Configuration Manager shows at once.
+    // Applies the [StatBars] settings to the health, stamina and eitr bars: when the HUD is built (Hud_Setup) and
+    // whenever one of them changes (ValConfig), so a change in the Configuration Manager shows at once.
     public static class StatBars
     {
         public static void Apply()

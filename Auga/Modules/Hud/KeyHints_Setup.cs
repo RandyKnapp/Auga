@@ -374,7 +374,7 @@ namespace Auga
 
             if (!string.IsNullOrEmpty(unit.Binding) && ZInput.instance != null && ZInput.instance.m_buttons.ContainsKey(unit.Binding))
             {
-                // AugaBindingDisplay re-reads the binding every frame, so rebinding in the settings is reflected
+                // AugaBindingDisplay shows the binding again whenever it changes, so rebinding in the settings is reflected
                 display.AutomaticKeyName = unit.Binding;
                 display.SetBinding(unit.Binding);
                 return;

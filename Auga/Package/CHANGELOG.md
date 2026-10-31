@@ -1,3 +1,27 @@
+### 1.4.0
+*Mod Compatibility*
+
+* Enemy health bars show again when StarLevelSystem or another mod that changes the enemy HUD is installed.
+* Enemy health bars no longer disappear while you ride a mount.
+* Tooltips too tall for the screen, such as EpicLoot items with many effects, now scroll with the mouse wheel or right stick instead of flickering.
+* The Active Effects list on the character panel now shrinks and then scrolls when there are more effects than fit.
+* Character portraits are only retaken for characters played since the last visit, so the character select no longer flashes through every character.
+* Characters saved only to the cloud now get portraits too, and one portrait that fails no longer stops the others.
+* Save notices and text that other mods add to the character select now show whenever there is something to show, including with cloud saves on.
+* Mods that add to the inventory and crafting screens can now find the weight icons and crafting label they look for.
+* Errors from other mods' patches on Auga's screens are now always written to the log.
+* Item Favorite Framework's favorite, trash and wishlist lines now show in food and mead tooltips, and a tooltip updates as soon as its item is marked.
+* Enemy health bars are thinner and show their level stars just below the bar, with a setting to keep them on it.
+* The boss health bar now has the slanted look and colour of the player's health bar, with a mark at each quarter and flourishes beside the boss's name.
+* Other mods can now add their own buttons to the row under your character's name, such as Clans' Clan button.
+* Creatures above level 3 now show their level stars, unless Creature Level Control or StarLevelSystem draws its own.
+* With a fixed bar length set, the marks on the health, stamina and eitr bars now stay in the right places as food is eaten and wears off.
+* The HUD, inventory, tooltips and key hints do much less work every frame, which means less stutter with many status effects or items.
+
+
+<details>
+<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
+
 ### 1.3.13
 *Valheim 1.0.21*
 
@@ -5,10 +29,6 @@
 * Auga now needs Jötunn and Json.NET installed.
 * A server running Auga now decides whether players get the trash button.
 * A mod that adds the same Auga tab twice no longer causes an error.
-
-
-<details>
-<summary><b>Changelog History</b> (<i>click to expand</i>)</summary>
 
 ### 1.3.12
 *Hud Improvements*

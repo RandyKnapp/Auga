@@ -51,33 +51,49 @@ dependencies in `Auga\Package\manifest.json` (`ValheimModding-Jotunn`, `ValheimM
 
 ## Testing in game
 
-`Tools\AugaAutoStart` is a development-only BepInEx plugin that runs an automated smoke test: it loads a character
-and world, opens the HUD, inventory, map, pause menu, in-game settings and chat, deals damage, takes a screenshot of
-every step and quits. It lives in the test profile only (`AugaTestProfile`, the Gale profile `AugaAuto` by default),
-so a profile you play in is never hijacked. Auga itself has to be in that profile too: copy
-`Auga\bin\Debug\net48\Auga.dll` there, or add the profile to mod-tools' `config.yml` and enable deploy. Build and
-deploy the helper (it is not part of `Auga.sln`):
+The in-game test runs on ValheimAutoTest, the test harness shared by all the Valheim mod projects, in
+`..\ValheimAutoTest` next to this repo (its README is the full reference). The harness starts the game, loads a
+character and world, runs the test steps, writes `summary.txt` and quits; `Tools\AugaAutoStart` is Auga's set of
+steps on top of it: the HUD, inventory, map, pause menu, in-game settings and chat, damage text, a screenshot of every
+step. Both are development-only BepInEx plugins that take over every launch of the profile they are in, so they live
+in the test profile only (the Gale profile `AugaAuto`, which has a `valheim-autotest.txt` marker), never in a profile
+you play in. Build Auga and the helper (it is not part of `Auga.sln`, and builds the harness with it), then run the
+harness's launcher, which copies the harness and both dlls into the profile, starts the game (Steam must be running,
+Valheim must not be), waits for it to quit and prints the result:
 
 ```powershell
-msbuild Tools\AugaAutoStart\AugaAutoStart.csproj -restore -p:Configuration=Debug -p:DeployToValheim=true
+msbuild Tools\AugaAutoStart\AugaAutoStart.csproj -restore -p:Configuration=Debug
+..\ValheimAutoTest\Start-ValheimTest.ps1 -TestProfile AugaAuto -Plugin Auga\bin\Debug\net48\Auga.dll, Tools\AugaAutoStart\bin\Debug\net48\AugaAutoStart.dll -Variables @{ AUGA_TEST_DUMP = '1' }
 ```
 
-Then launch the game directly with the test profile (Steam must be running; the same arguments Gale uses) with the
-test settings in the environment, and read `%APPDATA%\..\LocalLow\IronGate\Valheim\Player.log` afterwards:
+It exits with 0 when the run passed, 1 when it failed and 2 when it did not finish. The screenshots, the hierarchy
+dumps, `summary.txt` and the run's own `Player.log` go to a new folder under `%TEMP%\ValheimAutoTest\AugaAuto\`.
+Auga's own settings go in `-Variables`; the harness's (`-Character`, `-World`, `-Quit`, ...) are launcher parameters.
+
+Without the launcher, `-p:DeployToValheim=true` on the build deploys the helper and the harness into `AugaAuto`
+(`-p:AugaTestProfile=` for another); copy `Auga.dll` there yourself, set the settings in the environment, and start
+the game with the test profile, as Gale does:
 
 ```powershell
-$env:AUGA_TEST_CHARACTER = "auga test"   # profile file name (default "auga test")
-$env:AUGA_TEST_WORLD     = "AugaAutoTest" # world name (default "AugaTest"); a missing world is created as a local world
+$env:AUGA_TEST_CHARACTER = "auga test"   # profile file name (default "auga test"); a missing one is created as a local character
+$env:AUGA_TEST_WORLD     = "AugaAutoTest" # world name (default "AugaAutoTest"); a missing world is created as a local world
 $env:AUGA_TEST_SHOTS     = "C:\temp\augashots"
 $env:AUGA_TEST_QUIT      = "12"          # seconds after the last step, 0 = keep running
+# the four above are Auga's names for the harness's VALHEIM_TEST_CHARACTER, _WORLD, _SHOTS and _QUIT, which win when set
 $env:AUGA_TEST_DUMP      = "1"           # also dump every vanilla UI hierarchy before Auga replaces it
 $env:AUGA_TEST_ROWS      = "6"           # also screenshot the inventory with this many player rows
+$env:AUGA_TEST_EFFECTS   = "11,24"       # also screenshot the player panel's Active Effects with this many status effects
 $env:AUGA_TEST_SETTINGS  = "1"           # only screenshot every settings tab from the main menu, then quit
 $env:AUGA_TEST_CHARSELECT = "1"          # only screenshot the character selection, new character, manage saves and the remove dialog, then quit
 $env:AUGA_TEST_STARTGAME = "1"           # only screenshot the world list, new world, server list and add server dialogs, then quit
 $env:AUGA_TEST_CROSSPLAY = "1"           # host the test world as a password-protected crossplay server and log the join code overlay
+$env:AUGA_TEST_FAVORITES = "1"           # mark test items with Item Favorite Framework and screenshot the inventory and their tooltips
+$env:AUGA_TEST_ENEMIES   = "1"           # spawn creatures of several levels and a boss and screenshot their health bars; "only" runs just that step
+$env:AUGA_TEST_STATBARS  = "1"           # fix the health bar's length, eat and lose food, and check where its ticks sit; "only" runs just that step
 & "C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim.exe" --doorstop-enabled true --doorstop-target-assembly "$env:APPDATA\com.kesomannen.gale\valheim\profiles\AugaAuto\BepInEx\core\BepInEx.Preloader.dll"
 ```
+
+Read `%USERPROFILE%\AppData\LocalLow\IronGate\Valheim\Player.log` and `summary.txt` in the shots folder afterwards.
 
 ## Target framework and class libraries
 

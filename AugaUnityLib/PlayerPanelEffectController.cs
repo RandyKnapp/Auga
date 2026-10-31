@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace AugaUnity
 {
+    // One status effect icon of an AugaStatusEffects list, which hands it its effect every frame.
     public class PlayerPanelEffectController : MonoBehaviour
     {
+        // its place in the list
         public int Index = -1;
         public Image Icon;
         public Image CountdownBG;
@@ -20,41 +21,47 @@ namespace AugaUnity
         /// </summary>
         [CanBeNull] public TMP_Text TimeText;
 
-        protected readonly List<StatusEffect> _playerStatusEffects = new List<StatusEffect>();
         protected StatusTooltip _statusTooltip;
+
+        // the last texts given and what they localized to, so that unchanged texts are not localized every frame
+        private string _rawName;
+        private string _name;
+        private string _rawInfo;
+        private string _info;
 
         public virtual void Awake()
         {
             _statusTooltip = GetComponent<StatusTooltip>();
-            Update();
+            Localization.OnLanguageChange += ForgetTexts;
         }
 
-        public virtual void Update()
+        public virtual void OnDestroy()
         {
-            if (Index < 0)
+            Localization.OnLanguageChange -= ForgetTexts;
+        }
+
+        private void ForgetTexts()
+        {
+            _name = null;
+            _info = null;
+        }
+
+        /// <summary>Shows the effect, or hides the icon for null.</summary>
+        public virtual void Show([CanBeNull] StatusEffect statusEffect)
+        {
+            var shown = statusEffect != null;
+            if (gameObject.activeSelf != shown)
             {
-                return;
+                gameObject.SetActive(shown);
             }
 
-            var player = Player.m_localPlayer;
-            if (player == null)
+            if (shown)
             {
-                return;
-            }
-
-            _playerStatusEffects.Clear();
-            player.GetSEMan().GetHUDStatusEffects(_playerStatusEffects);
-            if (Index < _playerStatusEffects.Count)
-            {
-                var statusEffect = _playerStatusEffects[Index];
                 UpdateStatusEffect(statusEffect);
             }
-            else
+            else if (_statusTooltip != null)
             {
-                if (_statusTooltip != null)
-                {
-                    _statusTooltip.StatusEffect = null;
-                }
+                _statusTooltip.StatusEffect = null;
             }
         }
 
@@ -66,8 +73,8 @@ namespace AugaUnity
             }
 
             Icon.sprite = statusEffect.m_icon;
-            var name = Localization.instance.Localize(statusEffect.m_name);
-            var info = Localization.instance.Localize(statusEffect.GetIconText());
+            var name = Localize(statusEffect.m_name, ref _rawName, ref _name);
+            var info = Localize(statusEffect.GetIconText(), ref _rawInfo, ref _info);
             if (NameText != null && TimeText != null)
             {
                 var hasInfo = !string.IsNullOrEmpty(info);
@@ -99,13 +106,14 @@ namespace AugaUnity
             // TODO: "new effect" flash?
         }
 
-        public virtual void SetActive(bool active)
+        private static string Localize(string text, ref string lastText, ref string localized)
         {
-            gameObject.SetActive(active);
-            if (active)
+            if (localized == null || text != lastText)
             {
-                Update();
+                lastText = text;
+                localized = Localization.instance.Localize(text);
             }
+            return localized;
         }
     }
 }

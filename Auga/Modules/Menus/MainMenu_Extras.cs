@@ -71,15 +71,24 @@ namespace Auga
         }
     }
 
-    /// <summary>The Auga portrait list follows every vanilla refresh of the character list.</summary>
+    /// <summary>
+    /// The Auga portrait list follows every vanilla refresh of the character list. It runs first, and rewrites the
+    /// source info text even while the panel is hidden (vanilla refreshes it at startup), so mods that patch the same
+    /// method to write into m_csSourceInfo (MyLittleUI's character stats) have the last word.
+    /// </summary>
     [HarmonyPatch(typeof(FejdStartup), "UpdateCharacterList")]
     public static class FejdStartup_UpdateCharacterList_Patch
     {
+        [HarmonyPriority(Priority.First)]
         public static void Postfix(FejdStartup __instance)
         {
             var select = __instance.m_selectCharacterPanel != null ? __instance.m_selectCharacterPanel.GetComponentInChildren<AugaCharacterSelect>(true) : null;
-            if (select != null && select.gameObject.activeInHierarchy)
+            if (select == null)
+                return;
+            if (select.gameObject.activeInHierarchy)
                 select.UpdateCharacterList();
+            else
+                select.UpdateSourceInfo();
         }
     }
 
@@ -99,24 +108,7 @@ namespace Auga
             if (startup.m_profileIndex < 0 || startup.m_profiles == null || startup.m_profileIndex >= startup.m_profiles.Count)
                 yield break;
             yield return booth.TakePhoto(startup.m_profileIndex);
-            startup.UpdateCharacterList();
-        }
-    }
-
-    /// <summary>While the booth photographs the profiles the preview swap must not play the change effect.</summary>
-    [HarmonyPatch(typeof(FejdStartup), "ClearCharacterPreview")]
-    public static class FejdStartup_ClearCharacterPreview_Patch
-    {
-        public static bool Prefix(FejdStartup __instance)
-        {
-            if (!AugaCharacterSelectPhotoBooth.TakingPhotos)
-                return true;
-            if (__instance.m_playerInstance != null)
-            {
-                Object.Destroy(__instance.m_playerInstance);
-                __instance.m_playerInstance = null;
-            }
-            return false;
+            AugaCharacterSelectPhotoBooth.RefreshPortraits();
         }
     }
 

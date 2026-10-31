@@ -4,6 +4,16 @@ using UnityEngine;
 
 namespace Auga
 {
+    // the tooltip vanilla is about to make comes from the copy of its prefab that already has the scroll view
+    [HarmonyPatch(typeof(UITooltip), nameof(UITooltip.OnHoverStart))]
+    public static class UITooltip_OnHoverStart_Patch
+    {
+        public static void Prefix(UITooltip __instance)
+        {
+            __instance.m_tooltipPrefab = TooltipScroll.WithScrollView(__instance.m_tooltipPrefab);
+        }
+    }
+
     [HarmonyPatch(typeof(UITooltip), nameof(UITooltip.UpdateTextElements))]
     public static class UITooltip_UpdateTextElements_Patch
     {
@@ -14,6 +24,9 @@ namespace Auga
                 var customTooltip = UITooltip.m_tooltip.GetComponent<ComplexTooltip>();
                 if (customTooltip != null)
                 {
+                    // already there unless the tooltip came from somewhere other than OnHoverStart
+                    TooltipScroll.Ensure(customTooltip);
+
                     var itemTooltip = __instance.GetComponent<ItemTooltip>();
                     if (itemTooltip != null && itemTooltip.Item != null)
                     {
@@ -47,6 +60,22 @@ namespace Auga
             }
 
             return true;
+        }
+    }
+
+    // after vanilla has moved the tooltip to the pointer: a tooltip taller than the screen scrolls instead
+    [HarmonyPatch(typeof(UITooltip), nameof(UITooltip.LateUpdate))]
+    public static class UITooltip_LateUpdate_Patch
+    {
+        public static void Postfix(UITooltip __instance)
+        {
+            var tooltip = UITooltip.m_tooltip;
+            if (UITooltip.m_current != __instance || tooltip == null || !tooltip.activeInHierarchy)
+                return;
+
+            var scroll = tooltip.GetComponentInChildren<TooltipScroll>();
+            if (scroll != null)
+                scroll.FitToScreen();
         }
     }
 }

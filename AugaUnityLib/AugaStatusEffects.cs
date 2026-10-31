@@ -22,6 +22,8 @@ namespace AugaUnity
             UpdateStatusEffects(player);
         }
 
+        // The effects are looked up once a frame here and each icon is handed its own, rather than every icon
+        // looking the whole list up again for itself.
         public virtual void UpdateStatusEffects(Player player)
         {
             _playerStatusEffects.Clear();
@@ -36,7 +38,7 @@ namespace AugaUnity
 
             foreach (var effect in _statusEffects)
             {
-                effect.SetActive(effect.Index < _playerStatusEffects.Count);
+                effect.Show(effect.Index < _playerStatusEffects.Count ? _playerStatusEffects[effect.Index] : null);
             }
         }
     }

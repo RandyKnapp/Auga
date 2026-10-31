@@ -213,6 +213,57 @@ namespace Auga
             return image;
         }
 
+        // Vanilla names the icon beside the weight text "weight_icon", and mods find it by that name: MyLittleUI clones
+        // it for its HUD weight block (and throws in Hud.Awake without it), Path of Valheiman treats it as a drop target.
+        private static void UseVanillaWeightIconName(Transform inventoryPanel)
+        {
+            var icon = inventoryPanel.Find("Weight/Icon");
+            if (icon != null)
+                icon.name = "weight_icon";
+        }
+
+        // Mods find vanilla's "Crafting..." label at m_craftProgressPanel/Text (MyLittleUI counts queued crafts in it).
+        // Auga's is the label of CraftProgressButton, so it moves up beside the button, over the same rect, under that
+        // name. The button is the craft cancel button, so the label must let clicks through to it. Its text is set
+        // here because the prefab's override of it points at a component ButtonFancy no longer has.
+        private static void ExposeCraftProgressText(Transform craftProgress)
+        {
+            if (craftProgress == null || craftProgress.Find("Text") != null)
+                return;
+            var button = craftProgress.Find("CraftProgressButton") as RectTransform;
+            var label = button != null ? button.Find("Label") as RectTransform : null;
+            var text = label != null ? label.GetComponent<TMP_Text>() : null;
+            if (text == null)
+                return;
+
+            // The label stretches over the button, inset by its sizeDelta; with the button's anchors, pivot and
+            // position the same inset gives the same rect one level up.
+            var inset = label.sizeDelta;
+            label.SetParent(craftProgress, false);
+            label.SetSiblingIndex(button.GetSiblingIndex() + 1);
+            label.name = "Text";
+            label.anchorMin = button.anchorMin;
+            label.anchorMax = button.anchorMax;
+            label.pivot = button.pivot;
+            label.anchoredPosition = button.anchoredPosition;
+            label.sizeDelta = button.sizeDelta + inset;
+            text.raycastTarget = false;
+            text.text = "$inventory_craftingprog";
+        }
+
+        // The player panel's Active Effects grid holds five rows as authored, and more effects ran off the bottom of
+        // the panel. It now shrinks to fit, then scrolls. The HUD's status effect list is a vertical layout, not a grid.
+        private static void FitActiveEffects(Transform rightPanel)
+        {
+            foreach (var statusEffects in rightPanel.GetComponentsInChildren<AugaStatusEffects>(true))
+            {
+                var grid = statusEffects.EffectsContainer != null ? statusEffects.EffectsContainer.GetComponent<GridLayoutGroup>() : null;
+                if (grid == null || grid.GetComponent<ShrinkToFitGrid>() != null)
+                    continue;
+                grid.gameObject.AddComponent<ShrinkToFitGrid>().Setup(AugaPanelRestyler.CreateScrollbar(grid.transform.parent, "Scrollbar"));
+            }
+        }
+
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class InventoryGui_Awake_Patch
         {
@@ -247,6 +298,7 @@ namespace Auga
                 __instance.m_playerGrid.m_onRightClick += __instance.OnRightClickItem;
                 __instance.m_weight = playerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
                 __instance.m_armor = playerInventory.Find("Armor/Text").GetComponent<TMP_Text>();
+                UseVanillaWeightIconName(playerInventory);
 
                 var containerInventory = __instance.Replace("root/Container", Auga.Assets.InventoryScreen, "root/Container");
                 __instance.m_container = containerInventory.RectTransform();
@@ -274,6 +326,7 @@ namespace Auga
                 EnsureGridReferences(__instance.m_containerGrid, containerInventory);
                 SetupExpandingPlayerGrid(__instance, playerInventory);
                 __instance.m_containerWeight = containerInventory.Find("Weight/Text").GetComponent<TMP_Text>();
+                UseVanillaWeightIconName(containerInventory);
                 __instance.m_takeAllButton = containerInventory.Find("TakeAll").GetComponent<ColorButtonText>();
                 __instance.m_takeAllButton.onClick.AddListener(__instance.OnTakeAll);
                 __instance.m_stackAllButton = containerInventory.Find("StackAll").GetComponent<ColorButtonText>();
@@ -300,6 +353,9 @@ namespace Auga
                 rightPanel.SetSiblingIndex(craftingPanelSiblingIndex);
                 CraftingPanel = rightPanel.GetComponentInChildren<AugaCraftingPanel>(true);
                 CraftingPanel.SetMultiCraftEnabled(Auga.HasMultiCraft);
+                FitActiveEffects(rightPanel);
+                // other mods' links in the tab row under the player name, where vanilla's round buttons were
+                PlayerPanelLinks.Build(rightPanel.GetComponent<WorkbenchPanelController>());
                 __instance.m_playerName = rightPanel.Find("DefaultContent/TitleContainer/PlayerPanelTitle").GetComponent<TMP_Text>();
                 __instance.m_pvp = rightPanel.Find("TabContent/TabContent_PVP/Dummy/PVPToggle").GetComponent<Toggle>();
                 __instance.m_recipeElementPrefab = CraftingPanel.RecipeItemPrefab;
@@ -322,6 +378,7 @@ namespace Auga
                 __instance.m_craftCancelButton = CraftingPanel.CraftCancelButton;
                 __instance.m_craftCancelButton.onClick.AddListener(__instance.OnCraftCancelPressed);
                 __instance.m_craftProgressPanel = CraftingPanel.CraftProgressPanel;
+                ExposeCraftProgressText(__instance.m_craftProgressPanel);
                 __instance.m_variantButton = CraftingPanel.VariantButton;
                 __instance.m_variantButton.onClick.AddListener(__instance.OnShowVariantSelection);
                 __instance.m_variantDialog = CraftingPanel.VariantDialog;
@@ -388,35 +445,37 @@ namespace Auga
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.UpdateGui))]
         public static class InventoryGrid_UpdateGui_Patch
         {
+            // runs every frame for every open grid
             public static void Postfix(InventoryGrid __instance)
             {
-                if (__instance.name == "PlayerGrid")
+                var isPlayerGrid = InventoryGui.instance != null && __instance == InventoryGui.instance.m_playerGrid;
+                if (isPlayerGrid && TopRowInventory == null)
                 {
-                    if (TopRowInventory == null)
-                    {
-                        TopRowInventory = __instance.transform.Find("Top");
-                        MainRowsInventory = __instance.transform.Find("Main/Grid");
-                    }
+                    TopRowInventory = __instance.transform.Find("Top");
+                    MainRowsInventory = __instance.transform.Find("Main/Grid");
                 }
 
-                //Vector2 startPos = new Vector2(__instance.RectTransform().rect.width / 2f, 0.0f) - new Vector2(__instance.GetWidgetSize().x, 0.0f) * 0.5f;
+                // each slot's tooltip shows the item vanilla just drew there, found by going through the items once
+                // rather than asking the inventory for every slot's item
+                var width = __instance.m_inventory.GetWidth();
+                foreach (var item in __instance.m_inventory.GetAllItems())
+                {
+                    var itemElement = __instance.GetElement(item.m_gridPos.x, item.m_gridPos.y, width);
+                    var itemTooltip = itemElement != null ? itemElement.GetComponent<ItemTooltip>() : null;
+                    if (itemTooltip != null)
+                        itemTooltip.Item = item;
+                }
+
                 foreach (var element in __instance.m_elements)
                 {
-                    var itemTooltip = element.gameObject.GetComponent<ItemTooltip>();
-                    
-                    var item = __instance.m_inventory.GetItemAt(element.Position.x, element.Position.y);
-                    
-                    if (itemTooltip != null && !element.m_used)
+                    if (!element.m_used)
                     {
-                        itemTooltip.Item = null;
+                        var itemTooltip = element.GetComponent<ItemTooltip>();
+                        if (itemTooltip != null)
+                            itemTooltip.Item = null;
                     }
 
-                    if (element.m_used && itemTooltip != null)
-                    {
-                        itemTooltip.Item = item;
-                    }
-
-                    if (__instance.name == "PlayerGrid")
+                    if (isPlayerGrid)
                     {
                         // a slot moves into the top row or the main grid once; a slot another mod has taken
                         // somewhere else (Equipment and Quick Slots keeps its slots under its own root) stays there

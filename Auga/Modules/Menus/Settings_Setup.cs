@@ -20,11 +20,14 @@ namespace Auga
             foreach (var key in __instance.m_keys)
             {
                 // Auga's settings prefab renders bindings with AugaBindingDisplay; on the vanilla prefab there is
-                // none, so fall through and set the button text exactly like the game does.
+                // none, so fall through and set the button text exactly like the game does. (The button's first
+                // text in Auga's row is the key box's own, which the game's string would overwrite: an unbound key's
+                // "-" became an empty box.)
                 var bindingDisplay = key.m_keyTransform.GetComponent<AugaBindingDisplay>();
                 if (bindingDisplay)
                 {
                     bindingDisplay.SetBinding(key.m_keyName);
+                    continue;
                 }
 
                 var keyButton = key.m_keyTransform.GetComponentInChildren<Button>();

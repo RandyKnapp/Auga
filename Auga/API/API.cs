@@ -532,6 +532,8 @@ namespace Auga
 
                 data.Index = WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count - 1;
                 data.TabButtonGO = tabButton.gameObject;
+                // the links stay after the tabs
+                PlayerPanelLinks.KeepLast();
 
                 return data;
             }
@@ -561,6 +563,60 @@ namespace Auga
                 return WorkbenchPanelController.instance.DefaultTabController.TabButtons[index].Button;
             }
             return null;
+#else
+            return null;
+#endif
+        }
+
+        // Player Panel Links
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Buttons in the player panel's tab row that call your action instead of opening a tab. Auga keeps them and
+        // builds them into every inventory screen, so register once, at any time after Auga has loaded.
+        [UsedImplicitly]
+        public static bool PlayerPanel_AddLink(string linkID, Sprite icon, string tooltip, Action onClick)
+        {
+#if ! API
+            return PlayerPanelLinks.Add(linkID, icon, tooltip, onClick);
+#else
+            return false;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_HasLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Has(linkID);
+#else
+            return false;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_SetLinkVisible(string linkID, bool visible)
+        {
+#if ! API
+            return PlayerPanelLinks.SetVisible(linkID, visible);
+#else
+            return false;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_RemoveLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Remove(linkID);
+#else
+            return false;
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject PlayerPanel_GetLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Get(linkID);
 #else
             return null;
 #endif

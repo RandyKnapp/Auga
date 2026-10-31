@@ -139,11 +139,22 @@ namespace AugaUnity
         // where the title, the subtitle, the description and the text box templates' texts live in the prefab. Mods
         // that restyle vanilla's tooltip on hover reach into whatever tooltip is showing and move objects by name
         // (EpicLoot's scroll view takes the first "Topic" and the first "Text" it finds, which here is a template's
-        // text, so every box cloned from it comes out empty). Whatever was moved is put back before the tooltip shows.
+        // text, so every box cloned from it comes out empty, unless the tooltip already has a "Scroll View"). Whatever
+        // was moved is put back before the tooltip shows.
         private readonly List<(Transform target, Transform home, int index)> _homes = new List<(Transform, Transform, int)>();
 
         protected virtual void Awake()
         {
+            RememberLayout();
+        }
+
+        /// <summary>
+        /// Records where the parts other mods move live now, for <see cref="RestoreLayout"/>. Called again by whoever
+        /// rearranges the tooltip itself (Auga's scroll view moves the description).
+        /// </summary>
+        public void RememberLayout()
+        {
+            _homes.Clear();
             RememberHome(Topic);
             RememberHome(Subtitle);
             RememberHome(DescriptionText);
@@ -337,9 +348,19 @@ namespace AugaUnity
             SetDescription(Localization.instance.Localize(item.m_shared.m_description));
         }
 
+        /// <summary>
+        /// True when the tooltip already shows this item as it is now. Mods add lines to the vanilla tooltip text that
+        /// change while the item is hovered (Item Favorite Framework's favorite and trash marks), so the same item is
+        /// built again once its text differs.
+        /// </summary>
+        protected bool IsShowing(ItemDrop.ItemData item, int quality, int variant)
+        {
+            return _item == item && _quality == quality && _variant == variant && (item == null || _originalTooltip == item.GetTooltip());
+        }
+
         public virtual void SetItem(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
-            if (_item == item && _quality == quality && _variant == variant)
+            if (IsShowing(item, quality, variant))
                 return;
 
             SetItemBaseData(item, quality, variant);
@@ -351,7 +372,7 @@ namespace AugaUnity
 
         public virtual void SetItemNoTextBoxes(ItemDrop.ItemData item, int quality = -1, int variant = -1)
         {
-            if (_item == item && _quality == quality && _variant == variant)
+            if (IsShowing(item, quality, variant))
                 return;
 
             SetItemBaseData(item, quality, variant);
@@ -461,20 +482,20 @@ namespace AugaUnity
 
             var skillLevel = Player.m_localPlayer.GetSkillLevel(item.m_shared.m_skillType);
             var statusEffectTooltip = item.GetStatusEffectTooltip(quality, skillLevel);
-            var showExtraText = true;
+            // the part of the vanilla text a box above already shows, left out of the extra text at the bottom
+            string shownAbove = null;
             switch (item.m_shared.m_itemType)
             {
                 case ItemDrop.ItemData.ItemType.Consumable:
                     if (item.m_shared.m_food > 0)
                     {
                         AddFoodTextBox(item);
-                        showExtraText = false;
                     }
                     else if (!string.IsNullOrEmpty(statusEffectTooltip))
                     {
                         var textBox = AddTextBox(CenteredTextBoxPrefab);
                         textBox.AddLine(statusEffectTooltip);
-                        showExtraText = false;
+                        shownAbove = statusEffectTooltip;
                     }
                     break;
 
@@ -578,8 +599,10 @@ namespace AugaUnity
                 TextBoxAddPreprocessedLine(textBox, item, "", setStatusEffect);
             }
 
-            var extraText = GetExtraTextFromTooltip();
-            if (!string.IsNullOrEmpty(extraText) && showExtraText)
+            // what the vanilla text has beyond Auga's boxes, including the lines mods add to it (Item Favorite
+            // Framework's marks), for every item type: food's own stat lines are skipped like the other $item_ lines
+            var extraText = GetExtraTextFromTooltip(shownAbove);
+            if (!string.IsNullOrEmpty(extraText))
             {
                 if (LeftAlignedTextBoxPrefab != null)
                 {
@@ -590,11 +613,12 @@ namespace AugaUnity
             }
         }
 
-        private string GetExtraTextFromTooltip()
+        private string GetExtraTextFromTooltip(string shownAbove)
         {
             var outputString = new StringBuilder();
+            var tooltip = string.IsNullOrEmpty(shownAbove) ? _originalTooltip : _originalTooltip.Replace(shownAbove, "");
 
-            using (StringReader reader = new StringReader(_originalTooltip))
+            using (StringReader reader = new StringReader(tooltip))
             {
                 string line;
                 bool foundWeight = false;

@@ -32,12 +32,17 @@ API. Those two names stay public and stable; `API.Panel_Restyle` is the supporte
 **What Auga does to keep other mods' patches working** (most of it from commit `844c8a0`):
 
 - `UiAwakeGuards`: Harmony finalizers on `InventoryGui.Awake`, `Hud.Awake`, `KeyHints.Start`,
-  `Minimap.Awake/Start`, `TextsDialog.Awake`, `StoreGui.Awake` and `Menu.Start` log an exception thrown by another
-  mod's patch and swallow it, so Unity does not disable the screen.
+  `Minimap.Awake/Start`, `TextsDialog.Awake`, `StoreGui.Awake`, `Menu.Start` and `EnemyHud.Awake` log an exception
+  thrown by another mod's patch (always, whatever Auga's logging settings) and swallow it, so Unity does not disable
+  the screen. An exception from a postfix on the vanilla `EnemyHud` that Auga's prefix already destroyed is swallowed
+  without a log line.
 - Auga's `Awake` postfixes run at `Priority.First`, so every other mod's postfix sees the Auga hierarchy.
 - Replaced vanilla objects keep vanilla's child names: the status effect template (`Icon`, `Name`, `TimeText`,
   `Cooldown`, `TimeBar`), every compendium `TextsDialog` (`Texts_frame`, `TextArea`, `Closebutton`), the key hint
-  entries (vanilla children stay, hidden; a watcher rebuilds the Auga row when another mod writes into them).
+  entries (vanilla children stay, hidden; a watcher rebuilds the Auga row when another mod writes into them), the
+  inventory panels' `weight_icon`, the crafting progress label `CraftProgress/Text`, the enemy HUD's stars (the lit
+  star is `star (1)` inside a `star` that carries a disabled `Image`) and the mount HUD's `Stamina/stamina_fast`,
+  `Stamina/StaminaText` and `Health/HealthText`.
 - `SetupHelper.ForeignChildren` / `AdoptChildren` move objects other mods hung on a vanilla root (TargetPortal's
   favourites on the map) to the Auga replacement. `CopyVanillaButtonBits` gives the craft, cancel and tab buttons
   vanilla's `UIGamePad` and `ButtonSfx` for mods that clone them.
@@ -46,6 +51,18 @@ API. Those two names stay public and stable; `API.Panel_Restyle` is the supporte
 - `ComplexTooltip` puts back the parts a mod moved out of the tooltip on hover (EpicLoot's scroll view takes the
   first Topic and Text) and a stat preprocessor that returns `null` hides the line instead of breaking the next
   mod's preprocessor.
+- `ComplexTooltip` builds an item's tooltip again when the item's vanilla tooltip text changes while it is shown,
+  and shows the lines mods append to that text (as the extra text at the bottom) for every item type, food and
+  meads included; only the status effect text a mead's own box already shows is left out of it.
+- The hover tooltip scrolls its body itself once it would be taller than the screen (`TooltipScroll`). Its scroll
+  view is named `Scroll View`, the name EpicLoot looks for before building its own scroll view into a tooltip, so
+  EpicLoot leaves Auga's tooltip alone and does not size or place it. The scroll view is built once into a copy of
+  each Auga tooltip prefab (under the inactive `Auga Tooltip Templates` object), and `UITooltip.OnHoverStart` points
+  the `UITooltip`'s `m_tooltipPrefab` at that copy, so a mod that reads `m_tooltipPrefab` from a slot gets the copy.
+  Each tooltip is still named after the prefab (`InventoryTooltip(Clone)`).
+- A creature above level 3 gets Auga's own star row (`level_4` to `level_6`, then `level_X` with a count) only when
+  neither Creature Level Control nor StarLevelSystem is installed (`Auga.HasLevelStarMod`): both draw those stars
+  themselves, and Auga's would sit on top of theirs.
 
 **What still breaks other mods, by design:**
 
@@ -58,6 +75,10 @@ API. Those two names stay public and stable; `API.Panel_Restyle` is the supporte
 - Only TextMeshPro: a mod that adds `UnityEngine.UI.Text` under an Auga panel renders with the default font, and a
   mod that reads an Auga label as `Text` gets `null`. `TooltipTextBox_AddLine(GameObject, Text, ...)` still works
   because it writes into the box's TMP text.
+- Vanilla's row of round inventory buttons (`root/Info`: compendium, trophies, skills) is destroyed. Mods that clone
+  one of those buttons or place theirs next to them (Clans before 1.1.0, Path of Valheim Night's loot filter,
+  TalentForge, Praetoris' server guide) find nothing. `API.PlayerPanel_AddLink` is the supported replacement: the
+  mod's button goes in the tab row under the player name.
 
 ## Status by mod
 
@@ -71,6 +92,8 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 | AAA Build Menu | `Azumatt.AAABuildMenu` | patches the build menu Auga restyles in place | tested 2026-10-25 |
 | TargetPortal | `org.bepinex.plugins.targetportal` | favourites list on the map, cloned key hints | tested 2026-10-25 (`Minimap_Setup`) |
 | PlantEasily | `advize.PlantEasily` | HUD text | tested 2026-10-25 |
+| Item Favorite Framework | `MidnightsFX.ItemFavoriteFramework` | an `InventoryGrid.UpdateGui` postfix hangs its frames, trash veil, mark icon and wishlist heart on each `InventoryElement`; postfixes on `ItemData.GetTooltip` add its tooltip lines | tested 2026-10-29 (`AUGA_TEST_FAVORITES`): marks draw on Auga's player and container slots; their tooltip lines needed the two `ComplexTooltip` fixes above; a custom mark's icon covers the hotbar number, as in vanilla |
+| Clans | `MidnightsFX.Clans` | API mirror (`Compat/AugaAPI.cs`): registers its Clan and activity tracker buttons with `PlayerPanel_AddLink`; leaves Auga's PvP toggle in the PvP tab | tested 2026-10-30 (`AUGA_TEST_LINKS=Clans_Button`): the Clan button sits in the tab row, shows its tooltip and opens the Clans window above Auga's panels; the tracker button stays hidden with no activity under way (its menu was not opened) |
 | Jewelcrafting | `org.bepinex.plugins.jewelcrafting` | `Auga/Compat/Jewelcrafting.cs` transpiles JC's nested patch types; hotkey bar left to JC | untested; a failed lookup sleeps 15 s at startup |
 | Chatter | `redseiko.valheim.chatter` | `Auga/Compat/Chatter.cs` swaps `ToggleCell` for Auga toggles | untested |
 | Sears Catalog | `redseiko.valheim.searscatalog` | `Auga/Compat/SearsCatalog.cs` nudges `m_pieceListRoot` 3 px | probably obsolete since the build menu moved to `BuildUIV2` (`4e6f966`) |
@@ -86,12 +109,14 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 | TradersExtended | `shudnal.TradersExtended` | references Auga's GUID | untested; issue #210 (cursor stuck) |
 | Path of Valheiman | `treextr.pathofvalheiman` | lists Auga as a UI mod and warns; writes `Player.m_inventory.m_height` itself | untested |
 | Valheim Admin Tool | `com.icecub.valheimadmintool` | reflection on `AugaPanelRestyler` and `RestyleOptions` | works while those names stay |
+| StarLevelSystem | `MidnightsFX.StarLevelSystem` | clones the enemy HUD's `level_2/star` for its star rows, restacks boss bars, transpiles `EnemyHud.UpdateHuds` | its `EnemyHud.Awake` postfix threw on Auga's star and left no enemy health bars (Player.log, 2026-10-29); vanilla star names fixed the same day, built, not yet run in game. Since the 1.4.0 bar restyle (`EnemyHudBars.cs`) SLS's boss bar sizing (`SetBossBarWidth`: the `bar` sizes, `bkg`/`darken` moved into `Background`) breaks the slanted boss bar; SLS is being changed to leave the enemy HUD to Auga and expose an API, see below |
 | MinimalStatusEffects | `randyknapp.mods.minimalstatuseffects` | postfix on `Hud.UpdateStatusEffects`, lays out vanilla's entries | inert under Auga: the prefix skips vanilla, Auga's own list is drawn by `AugaStatusEffects` |
 | Cheb's Necromancy / Mercenaries | | clone key hint rows | untested; issue #204, the key hint watcher was built for this |
 | Groups / Guilds | `org.bepinex.plugins.groups` | chat | untested; issue #226 (chat error) |
 | VNEI | `com.maxsch.valheim.vnei` | panel beside the inventory | untested |
 | Valheim Plus | `org.bepinex.plugins.valheim_plus` | HUD and inventory options | untested; issue #159 (main menu) |
-| AzuExtendedPlayerInventory, ExtraSlots, MyLittleUI, Almanac | `Azumatt.AzuExtendedPlayerInventory`, `shudnal.ExtraSlots`, `shudnal.MyLittleUI` | declare Auga incompatible on their side | BepInEx skips them when Auga is installed (issues #223, #228 are moot) |
+| MyLittleUI | `shudnal.MyLittleUI` | declares Auga incompatible on its side (still in 1.2.33) | BepInEx skips it; 1.2.33 read against the port without the tag on 2026-10-29, plan below |
+| AzuExtendedPlayerInventory, ExtraSlots, Almanac | `Azumatt.AzuExtendedPlayerInventory`, `shudnal.ExtraSlots` | declare Auga incompatible on their side | BepInEx skips them when Auga is installed (issues #223, #228 are moot) |
 
 ## Improvements to make
 
@@ -100,9 +125,9 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
 1. **Refresh the API mirror.** `EpicLoot/src/integrations/AugaAPI.cs` and `AugaAPI.Common.cs` were copied on
    2026-09-24. Since then `API.cs` gained `GetBoldFontAsset`, `GetSemiBoldFontAsset`, `GetRegularFontAsset`,
    `Panel_Restyle`, `Text_Restyle`, `Scrollbar_Restyle`, `Slider_Restyle` and `Toggle_Restyle` (`844c8a0`), and the
-   mirror never had `GetCraftingControls` or the `CraftingControls` class from 1.6.0. First bump the API version
-   (still 1.6.0 in `AugaAPI/Properties/AssemblyInfo.cs`, no CHANGELOG entry yet), rebuild `AugaAPI.dll`, then copy the
-   signatures over. `EpicLootAuga.FixFonts` only restyles legacy `Text`; the TMP labels on the enchanting table,
+   mirror never had `GetCraftingControls` or the `CraftingControls` class from 1.6.0. The API version is now 1.7.0
+   (`AugaAPI/Properties/AssemblyInfo.cs`), which also added the `PlayerPanel_*Link` methods; rebuild `AugaAPI.dll`,
+   then copy the signatures over. `EpicLootAuga.FixFonts` only restyles legacy `Text`; the TMP labels on the enchanting table,
    temper panel and tabs can use the font asset getters or `Text_Restyle` once the mirror has them.
 2. **Run the new tooltip code under Auga.** EpicLoot's item tooltip was rebuilt on 2026-10-24 (gather, edit,
    draw) and has not been seen with Auga's `ComplexTooltip` since. Check with `AUGA_TEST_MAGIC`: rarity
@@ -139,6 +164,60 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
    ExtraSlots and ComfyQuickSlots. Those also fight Auga's inventory layout, but they need no tag here: the first
    three already tag Auga, and the EAQS tag covers the usual pairing.
 
+### MyLittleUI
+
+MyLittleUI has tagged Auga incompatible since its first week (March 2024), and 1.2.33 still does, so BepInEx skips
+it and its players lose all of it with one line in the log. Only its author, shudnal, can drop the tag. MyLittleUI
+already meets ZenUI and AAA Crafting with `Chainloader.PluginInfos` flags that switch off its overlapping features
+(`CraftFilter.cs:31`, `MultiCraft.cs:52`), which is the model to propose for Auga.
+
+1.2.33 was read against this port on 2026-10-29 as if the tag were gone; nothing was run. Most of it would work next
+to Auga: the station, plant and creature hover timers, chest names and contents, the clock, ammo and bait icons on
+the hotbar, the radial menu hints, hold to repair and hold to fuel, item links in chat, available amounts on
+requirements and the "new" recipe mark. The rest:
+
+- **One exception.** The HUD weight and free-slots block clones the `weight_icon` beside `InventoryGui.m_weight`
+  (`InventoryPanel.cs:98`). Auga's player panel calls it `Weight/Icon`, so `Instantiate(null)` throws in `Hud.Awake`.
+  `UiAwakeGuards` swallows it, but every `Hud.Awake` postfix ordered after it is skipped: MyLittleUI's hover text
+  width, Auga's SearsCatalog postfix and any other mod's.
+- **Misplaced.** The craft filter field and the sort panels are parented the vanilla way (the recipe scroll's
+  grandparent, `m_repairPanel`), which under Auga is the whole right panel and the `DefaultContent` a station hides.
+  The queued multicraft clones the craft button into Auga's `BottomBar` layout group, which collapses its +/-
+  buttons, and its count looks for a `CraftProgress/Text` that Auga does not have. The weather and wind forecasts
+  sit over the bottom of Auga's minimap and lose their background. The armor and weight tooltips anchor to the
+  container grid, so they only show while a container is open. Quality stars spill over Auga's quality badge. The
+  character-select stats go into `m_csSourceInfo`, whose panel Auga hides when cloud saves are on.
+- **Inert, and harmless.** The status effect layout and sailing indicator (Auga prefixes `Hud.UpdateStatusEffects`
+  out and places both itself), tooltip reordering (ComplexTooltip builds its own sections) and durability colours
+  (BetterDurabilityBar repaints the visible bar every frame).
+
+On Auga's side, each of these also helps other mods. Steps 1 to 3 are done (2026-10-29, built, not yet run in game):
+
+1. **Vanilla names.** Done in `PlayerInventory_Setup`: both inventory panels call their weight icon `weight_icon`,
+   and the "Crafting..." label moves out of `CraftProgressButton` to `CraftProgress/Text`, over the same rect and
+   letting clicks through to the cancel button. Its `$inventory_craftingprog` text is now set in code, because the
+   prefab's override of it points at a component `ButtonFancy` no longer has; until now it probably read "Label".
+2. **Log what the guards swallow.** Done: `UiAwakeGuards` writes a `[Auga]` warning with the exception through
+   `Debug.LogWarning`, whatever the logging settings, so a mod that fails in `Hud.Awake` is no longer silent.
+3. **Character select.** Done: the source info panel shows whenever its text is not empty (checked in
+   `AugaCharacterSelect.LateUpdate`), Auga's `FejdStartup.UpdateCharacterList` postfix runs at `Priority.First` and
+   writes the save notices even while the panel is hidden, and showing the panel no longer clears that text. A
+   legacy save's notice now shows with cloud saves on too, as in vanilla.
+4. **Test before asking.** Build MyLittleUI from `../OtherModders/MyLittleUI` (public domain) with the tag removed,
+   put it in a test profile next to Auga, and run the smoke test plus the crafting tab and character select by hand.
+   Check Player.log for the `Hud.Awake` exception and the screenshots for the top right of the HUD and the crafting
+   tab.
+
+On MyLittleUI's side, to propose to shudnal with those results:
+
+5. Replace the tag with an `Auga` flag beside `ZenUI` and `AAA_Crafting` that turns off what Auga draws itself: the
+   status effect layout and sailing indicator, tooltip reordering, durability colours and quality symbols.
+6. Under Auga, drive Auga's own +/- buttons and amount through `Auga.API.GetCraftingControls()` (API 1.6.0), as
+   Auga's compat for maximods MultiCraft does (`Auga/Compat/MultiCraft.cs`), instead of cloning the craft button.
+7. Under Auga, parent the craft filter and sort panels inside the crafting tab (`m_recipeListRoot.parent` is its left
+   column), anchor the stats tooltips to the player grid, place the forecasts below the minimap and null-check the
+   `weight_icon` lookup. Item link tooltips can use `Auga.API.Tooltip_MakeItemTooltip` for Auga's item layout.
+
 ### Other mods
 
 - **Jewelcrafting:** the compat reflects JC's nested patch types by name and sleeps 15 s on any miss. Replace the
@@ -154,8 +233,15 @@ means the compatibility code exists but nobody has run it on 1.x since the port.
   the two should simply not load together (it is our own mod, so a tag is the cheap answer).
 - **Valheim Admin Tool:** keep `AugaPanelRestyler` and `RestyleOptions` public; point its author at
   `API.Panel_Restyle`.
-- **README:** the Thunderstore page's compatibility list names the tagged mods now; add the tested rows to it as
-  they are confirmed on 1.x.
+- **StarLevelSystem:** under Auga, SLS should leave the enemy HUD's layout alone (no boss bar sizing or stacking,
+  no per-frame bar rect edits) and offer an API from which Auga draws its levels, modifier icons and evolve bar
+  (started 2026-10-29 in the SLS repository); Auga then reads it from a class in `Auga/Compat/`. Auga's stars sit
+  below the bar by default (`[EnemyHud] StarsBelowHealthBar`), and SLS's own star rows should do the same.
+- **Star rows above level 3 with SLS:** Auga leaves those stars to SLS and Creature Level Control. Once the SLS API
+  exists, decide whether Auga draws SLS's levels in its own rows instead.
+- **README:** the Thunderstore page's compatibility list predates the port and names none of the mods that refuse to
+  load next to Auga (MyLittleUI, ExtraSlots, AzuExtendedPlayerInventory, Almanac, and the ones Auga tags). Add them,
+  and the tested rows as they are confirmed on 1.x.
 
 ## Incompatibility tags
 

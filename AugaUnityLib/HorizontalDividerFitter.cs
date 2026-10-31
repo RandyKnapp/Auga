@@ -26,8 +26,9 @@ namespace AugaUnity
                 var width = rect.width;
                 var xOffset = Content.anchoredPosition.x;
                 var dividerSize = (width - Spacing * 2 - Content.rect.width) / 2;
-                DividerLeft.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dividerSize + xOffset);
-                DividerRight.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dividerSize - xOffset);
+                // content wider than the row (a tab row full of other mods' links) leaves no room for the lines
+                DividerLeft.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(0, dividerSize + xOffset));
+                DividerRight.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(0, dividerSize - xOffset));
             }
         }
     }

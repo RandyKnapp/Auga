@@ -9,18 +9,24 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
 using TMPro;
+using ValheimAutoTest;
 
 namespace AugaAutoStart
 {
-    // Test-only helper. Controlled by environment variables:
-    //   AUGA_TEST_CHARACTER  profile filename (default "auga test")
-    //   AUGA_TEST_WORLD      world name       (default "AugaAutoTest")
-    //   AUGA_TEST_SHOTS      folder for screenshots + hierarchy dumps (default %TEMP%\augashots)
-    //   AUGA_TEST_QUIT       seconds after the UI exercise to quit the game (default 0 = never)
+    // Test-only helper: Auga's steps on top of the shared ValheimAutoTest harness (..\..\..\ValheimAutoTest), which
+    // starts the game, loads the character and world, runs these steps, writes summary.txt and quits. The harness's
+    // own settings are VALHEIM_TEST_*; the four below are Auga's older names for them, still read, and supply Auga's
+    // defaults when neither is set. Controlled by environment variables:
+    //   AUGA_TEST_CHARACTER  profile filename (default "auga test")                      = VALHEIM_TEST_CHARACTER
+    //   AUGA_TEST_WORLD      world name       (default "AugaAutoTest")                   = VALHEIM_TEST_WORLD
+    //   AUGA_TEST_SHOTS      folder for screenshots + hierarchy dumps (default %TEMP%\augashots) = VALHEIM_TEST_SHOTS
+    //   AUGA_TEST_QUIT       seconds after the UI exercise to quit the game (default 0 = never)  = VALHEIM_TEST_QUIT
     //   AUGA_TEST_DUMP       "1" to dump the vanilla UI hierarchies (before any Awake patch runs)
     //   AUGA_TEST_ROWS       also screenshot the inventory with this many player rows and the container panel shown
+    //   AUGA_TEST_EFFECTS    also screenshot the player panel's Active Effects with this many status effects ("11", or "11,24" for several), and check every status effect list showing has one icon per effect
     //   AUGA_TEST_SETTINGS   "1": screenshot every settings tab from the main menu and quit without starting a level
     //   AUGA_TEST_CHARSELECT "1": screenshot the character selection, the new character screen, the manage saves dialog and the remove dialog, then quit
     //   AUGA_TEST_STARTGAME  "1": screenshot the world list, the new world dialog, the server list and the add server dialog, then quit
@@ -29,22 +35,45 @@ namespace AugaAutoStart
     //   AUGA_TEST_MENUTOUR   "1": also open the changelog, user agreement, credits, settings and cinematics from the main menu (default: only start the game)
     //   AUGA_TEST_MAGIC      "1": spawn EpicLoot magic items of every rarity (magicitem console command), pick them up and screenshot each one's inventory tooltip; or "Rarity:Item;Set:SetID;..." to choose them
     //   AUGA_TEST_CROSSPLAY  "1": host the test world as a password-protected crossplay server (it gets a join code) and log the join code overlay's timeline
-    [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.1.0")]
+    //   AUGA_TEST_ENEMIES    "1": spawn creatures of several levels and a boss, screenshot their health bars full, hurt and nearly empty (after the damage step); "only": just that, right after the first HUD screenshot
+    //   AUGA_TEST_STATBARS   "1": give the health bar a fixed length, eat three foods and let two wear off, screenshot each and check the ticks' positions (at the end); "only": just that (with AUGA_TEST_ENEMIES=only as well, both)
+    //   AUGA_TEST_FAVORITES  "1": mark test items with Item Favorite Framework (favorite, trash, favorite slots, a custom mark, the wishlist) and screenshot the inventory and their tooltips
+    //   AUGA_TEST_LINKS      other mods' links in the tab row under the player name, by link ID ("AugaExample_Link,Clans_Button"): screenshot the row, click each link (and again, to close what it opened) and hide the first one for a moment
+    // A missing AUGA_TEST_CHARACTER is created as a new local character.
+    [BepInPlugin("augatest.autostart", "Auga AutoStart (test)", "0.2.0")]
+    [BepInDependency(AutoTest.Guid)]
     public class Plugin : BaseUnityPlugin
     {
-        public static string ShotDir;
-        private bool _menuStarted;
-        private bool _exercised;
+        private static string ShotDir => AutoTest.ShotDir;
         private float _nextSample;
         private static readonly Dictionary<string, string> _lastOverlays = new Dictionary<string, string>();
-        private float _menuSeen = -1f;
         private static float _playerSeen = -1f;
 
         private void Awake()
         {
-            ShotDir = Environment.GetEnvironmentVariable("AUGA_TEST_SHOTS");
-            if (string.IsNullOrEmpty(ShotDir)) ShotDir = Path.Combine(Path.GetTempPath(), "augashots");
-            Directory.CreateDirectory(ShotDir);
+            // the harness reads its settings only once the main menu is up, after this
+            foreach (var (auga, harness, fallback) in new[]
+                     {
+                         ("AUGA_TEST_CHARACTER", "VALHEIM_TEST_CHARACTER", "auga test"),
+                         ("AUGA_TEST_WORLD", "VALHEIM_TEST_WORLD", "AugaAutoTest"),
+                         ("AUGA_TEST_SHOTS", "VALHEIM_TEST_SHOTS", Path.Combine(Path.GetTempPath(), "augashots")),
+                         ("AUGA_TEST_QUIT", "VALHEIM_TEST_QUIT", ""),
+                     })
+            {
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(harness))) continue;
+                var value = Environment.GetEnvironmentVariable(auga);
+                Environment.SetEnvironmentVariable(harness, string.IsNullOrEmpty(value) ? fallback : value);
+            }
+            // the seed Auga's test world was made with, for a machine that does not have it yet
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VALHEIM_TEST_SEED"))) Environment.SetEnvironmentVariable("VALHEIM_TEST_SEED", "AugaAutoTest");
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
+            {
+                Environment.SetEnvironmentVariable("VALHEIM_TEST_HOST", "crossplay");
+                Environment.SetEnvironmentVariable("VALHEIM_TEST_PASSWORD", "augatest1");
+            }
+            AutoTest.AddMenuStep("auga main menu", MenuScreens);
+            AutoTest.AddWorldStep("auga ui", Exercise);
+
             if (Environment.GetEnvironmentVariable("AUGA_TEST_DUMP") == "1")
             {
                 var harmony = new Harmony("augatest.autostart");
@@ -124,39 +153,12 @@ namespace AugaAutoStart
         private void Update()
         {
             ForceEpicLootHasAuga();
-            if (!_menuStarted)
-            {
-                var fejd = FejdStartup.instance;
-                if (fejd != null)
-                {
-                    if (_menuSeen < 0f)
-                    {
-                        _menuSeen = Time.realtimeSinceStartup;
-                        Debug.Log($"[AugaAutoStart] FejdStartup seen, mainMenu active={fejd.m_mainMenu != null && fejd.m_mainMenu.activeInHierarchy}");
-                    }
-                    if (Time.realtimeSinceStartup - _menuSeen > 8f)
-                    {
-                        _menuStarted = true;
-                        StartCoroutine(AutoStart(fejd));
-                    }
-                }
-            }
-
+            if (Player.m_localPlayer != null && _playerSeen < 0f) _playerSeen = Time.realtimeSinceStartup;
             if (Player.m_localPlayer != null && _playerSeen >= 0f && Time.realtimeSinceStartup - _playerSeen < 45f && Time.realtimeSinceStartup >= _nextSample)
             {
                 // overlay monitor: log every big screen-covering graphic that appears or disappears after spawn
                 _nextSample = Time.realtimeSinceStartup + 0.5f;
                 Try(SampleOverlays);
-            }
-
-            if (!_exercised && Player.m_localPlayer != null)
-            {
-                if (_playerSeen < 0f) _playerSeen = Time.realtimeSinceStartup;
-                if (Time.realtimeSinceStartup - _playerSeen > 8f)
-                {
-                    _exercised = true;
-                    StartCoroutine(Exercise());
-                }
             }
         }
 
@@ -205,21 +207,15 @@ namespace AugaAutoStart
             Debug.Log($"[AugaAutoStart] new sounds after {what}: {sounds.Count} ({string.Join(", ", sounds)}); {before.Count} older sound objects were alive");
         }
 
-        public static void Shot(string name)
-        {
-            var path = Path.Combine(ShotDir, name + ".png");
-            ScreenCapture.CaptureScreenshot(path);
-            Debug.Log($"[AugaAutoStart] screenshot {path}");
-        }
+        public static void Shot(string name) => AutoTest.Shot(name);
 
-        private static IEnumerator AutoStart(FejdStartup fejd)
+        /// <summary>
+        /// The main menu step: the single-screen modes (AUGA_TEST_STARTGAME, AUGA_TEST_CHARSELECT, AUGA_TEST_SETTINGS)
+        /// end the run here; AUGA_TEST_MENUTOUR walks the main menu's dialogs, and the harness then starts the game.
+        /// </summary>
+        private static IEnumerator MenuScreens(FejdStartup fejd)
         {
-            Shot("00_mainmenu");
-            yield return new WaitForSecondsRealtime(1f);
-            var character = Environment.GetEnvironmentVariable("AUGA_TEST_CHARACTER");
-            if (string.IsNullOrEmpty(character)) character = "auga test";
-            var worldName = Environment.GetEnvironmentVariable("AUGA_TEST_WORLD");
-            if (string.IsNullOrEmpty(worldName)) worldName = "AugaAutoTest";
+            var character = AutoTest.Character;
 
             if (Environment.GetEnvironmentVariable("AUGA_TEST_STARTGAME") == "1")
             {
@@ -273,8 +269,7 @@ namespace AugaAutoStart
                 yield return new WaitForSecondsRealtime(0.5f);
                 Try(() => fejd.OnStartGameBack());
                 yield return new WaitForSecondsRealtime(1f);
-                Debug.Log("[AugaAutoStart] quitting (start game only)");
-                Application.Quit();
+                AutoTest.Finish("start game screens only (AUGA_TEST_STARTGAME)", quit: true);
                 yield break;
             }
 
@@ -283,7 +278,7 @@ namespace AugaAutoStart
                 // AUGA_TEST_CHARSELECT=1: only the character selection (list, portraits, remove dialog), then quit
                 Debug.Log("[AugaAutoStart] OnStartGame (character select only)");
                 Try(() => fejd.OnStartGame());
-                yield return new WaitForSecondsRealtime(5f); // the portrait booth photographs every profile first
+                yield return new WaitForSecondsRealtime(5f); // the portrait booth photographs profiles without a current portrait first
                 yield return SampleFrameRate("character select");
                 Shot("01_characterselect");
                 Try(() => LogRects(fejd.m_selectCharacterPanel.transform, "Panel"));
@@ -334,8 +329,7 @@ namespace AugaAutoStart
                 yield return new WaitForSecondsRealtime(1f);
                 Try(() => fejd.OnSelelectCharacterBack());
                 yield return new WaitForSecondsRealtime(1f);
-                Debug.Log("[AugaAutoStart] quitting (character select only)");
-                Application.Quit();
+                AutoTest.Finish("character select screens only (AUGA_TEST_CHARSELECT)", quit: true);
                 yield break;
             }
 
@@ -396,8 +390,7 @@ namespace AugaAutoStart
                     yield return new WaitForSecondsRealtime(1f);
                     Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
                     yield return new WaitForSecondsRealtime(1f);
-                    Debug.Log("[AugaAutoStart] quitting (settings only)");
-                    Application.Quit();
+                    AutoTest.Finish("settings tabs only (AUGA_TEST_SETTINGS)", quit: true);
                     yield break;
                 }
                 Try(() => { var s = Settings.instance; if (s != null) s.OnBack(); });
@@ -412,75 +405,8 @@ namespace AugaAutoStart
                 yield return new WaitForSecondsRealtime(1f);
 
             }
-
-            Debug.Log("[AugaAutoStart] OnStartGame");
-            Try(() => fejd.OnStartGame());
-            yield return new WaitForSecondsRealtime(2f);
-            Shot("01_characterselect");
-            yield return new WaitForSecondsRealtime(1f);
-
-            Try(() => fejd.SetSelectedProfile(character));
-            Debug.Log($"[AugaAutoStart] selected profile index {fejd.m_profileIndex} of {fejd.m_profiles?.Count}");
-            // the game falls back to the first profile in the list (the most recently played one, so the user's own
-            // character) when the requested one is missing or unreadable; that is never what a test run should do
-            var selected = fejd.m_profiles != null && fejd.m_profileIndex >= 0 && fejd.m_profileIndex < fejd.m_profiles.Count ? fejd.m_profiles[fejd.m_profileIndex] : null;
-            if (selected == null || !string.Equals(selected.GetFilename(), character, StringComparison.OrdinalIgnoreCase))
-            {
-                Quit($"character '{character}' is not in the profile list (selected '{selected?.GetFilename()}'); not starting");
-                yield break;
-            }
-            yield return new WaitForSecondsRealtime(1f);
-            Debug.Log("[AugaAutoStart] OnCharacterStart");
-            Try(() => fejd.OnCharacterStart());
-            yield return new WaitForSecondsRealtime(2f);
-            Shot("02_worldselect");
-            yield return new WaitForSecondsRealtime(1f);
-
-            Try(() => fejd.m_world = fejd.FindWorld(worldName));
-            Debug.Log($"[AugaAutoStart] world '{worldName}' found: {fejd.m_world != null}");
-            if (fejd.m_world == null)
-            {
-                // create a local world with that name (deterministic seed) so later runs reuse it
-                Debug.Log($"[AugaAutoStart] creating local world '{worldName}'");
-                Try(() =>
-                {
-                    fejd.OnWorldNew();
-                    fejd.m_newWorldName.text = worldName;
-                    fejd.m_newWorldSeed.text = "AugaAutoTest";
-                    fejd.OnNewWorldDone(true);
-                    fejd.m_world = fejd.FindWorld(worldName);
-                });
-                yield return new WaitForSecondsRealtime(1f);
-                Debug.Log($"[AugaAutoStart] world '{worldName}' after create: {fejd.m_world != null}");
-                if (fejd.m_world == null) { Quit("no world"); yield break; }
-            }
-            if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
-            {
-                // AUGA_TEST_CROSSPLAY=1: host the world as a password-protected crossplay server, which gives it a join code
-                Try(() =>
-                {
-                    fejd.m_openServerToggle.isOn = true;
-                    fejd.m_publicServerToggle.isOn = false;
-                    fejd.m_crossplayServerToggle.isOn = true;
-                    fejd.m_serverPassword.text = "augatest1";
-                });
-                yield return new WaitForSecondsRealtime(0.5f);
-            }
-            Debug.Log("[AugaAutoStart] OnWorldStart");
-            Try(() => fejd.OnWorldStart());
-
-            // watchdog: if the player never spawns (e.g. the save failed to load), do not hang the test
-            var deadline = Time.realtimeSinceStartup + 150f;
-            while (Player.m_localPlayer == null && Time.realtimeSinceStartup < deadline)
-                yield return null;
-            if (Player.m_localPlayer == null) Quit("player did not spawn within 150s");
-        }
-
-        private static void Quit(string why)
-        {
-            var quit = Environment.GetEnvironmentVariable("AUGA_TEST_QUIT");
-            Debug.LogError($"[AugaAutoStart] giving up: {why}");
-            if (int.TryParse(quit, out var seconds) && seconds > 0) Application.Quit();
+            // the harness goes on: character select, world, spawn, then Exercise below (AUGA_TEST_CROSSPLAY has it
+            // host the world as a password-protected crossplay server, which gives it a join code)
         }
 
         private static void LogSettingsRenderState(string tag)
@@ -522,6 +448,151 @@ namespace AugaAutoStart
             }
         }
 
+        private static readonly List<StatusEffect> TestStatusEffects = new List<StatusEffect>();
+
+        /// <summary>
+        /// AUGA_TEST_EFFECTS: tops the player's HUD status effects up to <paramref name="count"/> with plain stat effects
+        /// (meads, guardian powers and the like), after taking back the ones a previous call added; 0 only takes them back.
+        /// </summary>
+        private static void SetTestStatusEffects(int count)
+        {
+            var seman = Player.m_localPlayer.GetSEMan();
+            foreach (var se in TestStatusEffects) seman.RemoveStatusEffect(se, true);
+            TestStatusEffects.Clear();
+            var shown = new List<StatusEffect>();
+            seman.GetHUDStatusEffects(shown);
+            var candidates = ObjectDB.instance.m_StatusEffects
+                .Where(se => se != null && se.m_icon != null && !se.m_hidden && se.GetType() == typeof(SE_Stats) && !seman.HaveStatusEffect(se))
+                .OrderBy(se => se.name)
+                .Take(Math.Max(0, count - shown.Count));
+            foreach (var se in candidates)
+            {
+                // some of the game's own stat effects have a start effect without a prefab, which throws once the
+                // effect is already on the player
+                try { seman.AddStatusEffect(se, true); }
+                catch (Exception e) { Debug.LogWarning($"[AugaAutoStart] adding status effect {se.name}: {e.Message}"); }
+                if (seman.HaveStatusEffect(se)) TestStatusEffects.Add(se);
+            }
+            shown.Clear();
+            seman.GetHUDStatusEffects(shown);
+            Debug.Log($"[AugaAutoStart] status effects: asked {count}, added {TestStatusEffects.Count}, shown {shown.Count}");
+        }
+
+        /// <summary>The Active Effects grid of the player panel: its viewport, scale, columns and scrollbar.</summary>
+        private static void LogActiveEffectsGrid()
+        {
+            var right = InventoryGui.instance.transform.Find("root/RightPanel");
+            var grid = right != null ? right.GetComponentsInChildren<GridLayoutGroup>(true).FirstOrDefault(g => g.transform.parent != null && g.transform.parent.name == "Viewport") : null;
+            if (grid == null) { Debug.Log("[AugaAutoStart] active effects grid: not found"); return; }
+            var viewport = (RectTransform)grid.transform.parent;
+            var scroll = viewport.GetComponent<ScrollRect>();
+            Debug.Log($"[AugaAutoStart] active effects grid: cells={grid.transform.Cast<Transform>().Count(c => c.gameObject.activeSelf)} columns={grid.constraintCount} scrolls={(scroll != null && scroll.vertical)} scrollbar={(scroll != null && scroll.verticalScrollbar != null && scroll.verticalScrollbar.gameObject.activeSelf)}");
+            LogRect(viewport, 1);
+            LogRect((RectTransform)grid.transform, 2);
+            if (scroll != null && scroll.verticalScrollbar != null) LogRect((RectTransform)scroll.verticalScrollbar.transform, 2);
+        }
+
+        /// <summary>
+        /// Every Auga status effect list that is showing (the HUD's, the player panel's) has one icon per HUD status
+        /// effect: the list looks the effects up and hands each icon its own.
+        /// </summary>
+        private static void CheckStatusEffectLists(string when)
+        {
+            var shown = new List<StatusEffect>();
+            Player.m_localPlayer.GetSEMan().GetHUDStatusEffects(shown);
+            var lists = 0;
+            foreach (var root in new Component[] { Hud.instance, InventoryGui.instance })
+            {
+                if (root == null) continue;
+                // by type name: this plugin does not reference Unity.Auga
+                foreach (var list in root.GetComponentsInChildren<MonoBehaviour>(false).Where(c => c != null && c.GetType().Name == "AugaStatusEffects"))
+                {
+                    lists++;
+                    var container = Traverse.Create(list).Field("EffectsContainer").GetValue<GameObject>();
+                    var icons = container.transform.Cast<Transform>()
+                        .Where(t => t.gameObject.activeSelf && t.GetComponents<MonoBehaviour>().Any(c => c != null && c.GetType().Name == "PlayerPanelEffectController"))
+                        .ToList();
+                    var texts = icons.Select(t => string.Join("/", t.GetComponentsInChildren<TMP_Text>(false).Select(x => x.text)));
+                    Debug.Log($"[AugaAutoStart] status effects, {when}: {PathOf(list.transform)} shows {icons.Count} icons for {shown.Count} effects: {string.Join("; ", texts)}");
+                    if (icons.Count != shown.Count)
+                        AutoTest.Fail($"status effects, {when}: {PathOf(list.transform)} shows {icons.Count} icons for {shown.Count} effects");
+                }
+            }
+            if (lists == 0)
+                AutoTest.Fail($"status effects, {when}: no Auga status effect list is showing");
+        }
+
+        /// <summary>
+        /// AugaBindingDisplay shows its binding again only when the binding changes. A copy of one of the key hints'
+        /// key boxes (the test character may carry nothing that shows key hints) follows the Jump binding on the HUD;
+        /// the binding is overridden, read back from the box, and put back.
+        /// </summary>
+        private static IEnumerator RebindCheck()
+        {
+            const string keyName = "Jump";
+            GameObject copy = null;
+            MonoBehaviour display = null;
+            Try(() =>
+            {
+                bool IsDisplay(MonoBehaviour c) => c != null && c.GetType().Name == "AugaBindingDisplay";
+                var template = KeyHints.instance != null ? KeyHints.instance.GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(IsDisplay) : null;
+                if (template == null || Hud.instance == null) return;
+                copy = UnityEngine.Object.Instantiate(template.gameObject, Hud.instance.transform.Find("hudroot"), false);
+                copy.name = "AugaAutoStart rebind check";
+                copy.SetActive(true);
+                display = copy.GetComponents<MonoBehaviour>().First(IsDisplay);
+                Traverse.Create(display).Field("AutomaticKeyName").SetValue(keyName);
+            });
+            if (display == null || !ZInput.instance.m_buttons.TryGetValue(keyName, out var button))
+            {
+                AutoTest.Fail("rebind check: no key box to copy from the key hints, or no Jump binding");
+                yield break;
+            }
+
+            string Shown()
+            {
+                var t = Traverse.Create(display);
+                bool On(string field) { var go = t.Field(field).GetValue<GameObject>(); return go != null && go.activeSelf; }
+                string Text(string field) => t.Field(field).GetValue<TMP_Text>()?.text;
+                return $"key '{(On("KeybindBox") ? Text("KeybindText") : "")}' long '{(On("LongKeybindBox") ? Text("LongKeybindText") : "")}' mouse {(On("Mouse1") ? 1 : 0)}{(On("Mouse2") ? 1 : 0)}{(On("Mouse3") ? 1 : 0)}{(On("MouseX") ? 1 : 0)}";
+            }
+            // the box's text may be put in capitals
+            bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+            yield return null;
+            yield return null;
+            var before = Shown();
+            var bound = Localization.instance.GetBoundKeyString(keyName, true);
+            Debug.Log($"[AugaAutoStart] rebind check: {keyName} ('{bound}') shows {before}");
+            if (!Same(before, bound.Length == 1 ? $"key '{bound}' long '' mouse 0000" : $"key '' long '{bound}' mouse 0000"))
+                AutoTest.Fail($"rebind check: {keyName} shows {before}, not '{bound}'");
+
+            var action = button.ButtonAction;
+            var previousOverride = action.bindings[0].overridePath;
+            var newPath = button.GetActionPath() == "<Keyboard>/k" ? "<Keyboard>/j" : "<Keyboard>/k";
+            Try(() => action.ApplyBindingOverride(0, newPath));
+            yield return null;
+            yield return null;
+            var expected = Localization.instance.GetBoundKeyString(keyName, true);
+            var after = Shown();
+            Debug.Log($"[AugaAutoStart] rebind check: {keyName} bound to {newPath} ('{expected}') shows {after}");
+            if (!Same(after, $"key '{expected}' long '' mouse 0000"))
+                AutoTest.Fail($"rebind check: {keyName} bound to {newPath} shows {after}, not the key '{expected}'");
+
+            Try(() =>
+            {
+                if (previousOverride != null) action.ApplyBindingOverride(0, previousOverride);
+                else action.RemoveBindingOverride(0);
+            });
+            yield return null;
+            yield return null;
+            var restored = Shown();
+            Debug.Log($"[AugaAutoStart] rebind check: {keyName} put back shows {restored}");
+            if (!Same(restored, before))
+                AutoTest.Fail($"rebind check: {keyName} put back shows {restored} instead of {before}");
+            UnityEngine.Object.Destroy(copy);
+        }
+
         private static void LogRect(RectTransform t, int depth)
         {
             var corners = new Vector3[4];
@@ -542,25 +613,16 @@ namespace AugaAutoStart
             catch (Exception e) { Debug.LogError("[AugaAutoStart] live dump failed: " + e); }
         }
 
+        /// <summary>The world step. The harness has already taken back any tombstone from an earlier run's death (the
+        /// later steps need the weapon and hammer) and taken the 10_hud screenshot; it quits after this.</summary>
         private static IEnumerator Exercise()
         {
-            // a death in an earlier run (the damage step at low health) leaves the inventory in a tombstone at the
-            // spot; the later steps need that inventory (weapon, hammer), so it is taken back first
-            Try(() =>
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_ENEMIES") == "only" || Environment.GetEnvironmentVariable("AUGA_TEST_STATBARS") == "only")
             {
-                var player = Player.m_localPlayer;
-                foreach (var tomb in UnityEngine.Object.FindObjectsOfType<TombStone>())
-                {
-                    var container = tomb.GetComponent<Container>();
-                    if (container == null || Vector3.Distance(tomb.transform.position, player.transform.position) > 80f) continue;
-                    var inventory = container.GetInventory();
-                    var count = inventory.NrOfItems();
-                    player.GetInventory().MoveAll(inventory);
-                    Debug.Log($"[AugaAutoStart] tombstone at {tomb.transform.position}: took {count - inventory.NrOfItems()} of {count} items");
-                }
-            });
-            yield return new WaitForSecondsRealtime(1f);
-            Shot("10_hud");
+                yield return EnemyBars();
+                yield return StatBarTicks();
+                yield break;
+            }
             if (Environment.GetEnvironmentVariable("AUGA_TEST_CROSSPLAY") == "1")
             {
                 // the join code overlay: shown on the first spawn, it must fade and hide itself within ten seconds
@@ -614,6 +676,7 @@ namespace AugaAutoStart
             Try(() => LogKeyHintState("armed"));
             Try(() => LogKeyHintRects());
             Shot("10b_keyhints");
+            yield return RebindCheck();
             yield return new WaitForSecondsRealtime(1f);
 
             // build hints (hammer equipped): mouse wheel rows, two-key rows
@@ -698,6 +761,7 @@ namespace AugaAutoStart
                     yield return ClickAndCountSounds("crafting tab " + button.name, button);
                 }
             }
+            yield return Links();
             Try(() => LogKeyHintState("inventory"));
             Try(() => LogKeyHintRects());
             yield return new WaitForSecondsRealtime(1f);
@@ -718,10 +782,31 @@ namespace AugaAutoStart
                 yield return new WaitForSecondsRealtime(1f);
             }
 
+            // AUGA_TEST_EFFECTS: fill the player's status effects up to each count and screenshot the Active Effects
+            // grid of the player panel (the tab clicks above end on it).
+            var effectsSetting = Environment.GetEnvironmentVariable("AUGA_TEST_EFFECTS");
+            if (!string.IsNullOrEmpty(effectsSetting))
+            {
+                foreach (var part in effectsSetting.Split(','))
+                {
+                    if (!int.TryParse(part.Trim(), out var count))
+                        continue;
+                    Try(() => SetTestStatusEffects(count));
+                    yield return new WaitForSecondsRealtime(1f);
+                    Shot("11c_effects" + count);
+                    Try(() => LogActiveEffectsGrid());
+                    Try(() => CheckStatusEffectLists(count + " effects"));
+                }
+                Try(() => SetTestStatusEffects(0));
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => CheckStatusEffectLists("test effects removed"));
+            }
+
             Try(() => InventoryGui.instance.Hide());
             yield return new WaitForSecondsRealtime(1f);
 
             yield return MagicItems();
+            yield return Favorites();
 
             Debug.Log("[AugaAutoStart] open map");
             Try(() => Minimap.instance.SetMapMode(Minimap.MapMode.Large));
@@ -789,19 +874,193 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(2f);
             Shot("15_damage");
 
+            yield return EnemyBars();
+            yield return StatBarTicks();
             Debug.Log("[AugaAutoStart] exercise done");
-            var quit = Environment.GetEnvironmentVariable("AUGA_TEST_QUIT");
-            if (int.TryParse(quit, out var seconds) && seconds > 0)
+        }
+
+        // AUGA_TEST_STATBARS: with [StatBars] HealthBarFixedSize above 0 the health bar's ticks spread over the most
+        // health the player could reach, which changes with every food. Screenshotted and checked with no food, after
+        // three foods and after two of them wore off; a tick away from its place fails the run.
+        private static IEnumerator StatBarTicks()
+        {
+            var setting = Environment.GetEnvironmentVariable("AUGA_TEST_STATBARS");
+            if (setting != "1" && setting != "only") yield break;
+            Debug.Log("[AugaAutoStart] stat bar ticks");
+            BepInEx.Configuration.ConfigEntry<int> fixedSize = null;
+            Try(() => BepInEx.Bootstrap.Chainloader.PluginInfos["randyknapp.mods.auga"].Instance.Config.TryGetEntry("StatBars", "HealthBarFixedSize", out fixedSize));
+            // by type name: this plugin does not reference Unity.Auga, and Auga loads it itself
+            var bar = Hud.instance != null ? Hud.instance.transform.Find("hudroot/HealthBar")?.GetComponents<Component>().FirstOrDefault(c => c != null && c.GetType().Name == "AugaHealthBar") : null;
+            if (fixedSize == null || bar == null)
             {
-                yield return new WaitForSecondsRealtime(seconds);
-                Debug.Log("[AugaAutoStart] quitting");
-                Application.Quit();
+                AutoTest.Fail($"AUGA_TEST_STATBARS: {(fixedSize == null ? "no [StatBars] HealthBarFixedSize setting" : "no Auga health bar at hudroot/HealthBar")}");
+                yield break;
+            }
+
+            var previous = fixedSize.Value;
+            var player = Player.m_localPlayer;
+            Try(() => { player.ClearFood(); fixedSize.Value = 300; });
+            yield return new WaitForSecondsRealtime(1f);
+            CheckFixedLength(bar, 300);
+            CheckTicks(bar, "no food");
+            Shot("17_statbars_fixed");
+
+            Try(() =>
+            {
+                foreach (var food in new[] { "CookedMeat", "NeckTailGrilled", "Raspberry" })
+                {
+                    // EatFood names the food after the item's drop prefab, which a prefab's own item data lacks
+                    var prefab = ObjectDB.instance.GetItemPrefab(food);
+                    var item = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
+                    item.m_dropPrefab = prefab;
+                    player.EatFood(item);
+                }
+            });
+            yield return new WaitForSecondsRealtime(1f);
+            CheckTicks(bar, "three foods");
+            Shot("17b_statbars_fed");
+
+            // the two bigger foods wear off: each forced food update takes a second off every food and removes one that
+            // ran out (the world's food rate may stop the clock otherwise)
+            Try(() =>
+            {
+                foreach (var food in player.m_foods.OrderByDescending(f => f.m_item.m_shared.m_food).Take(2))
+                    food.m_time = 0.1f;
+                player.UpdateFood(0f, true);
+                player.UpdateFood(0f, true);
+            });
+            yield return new WaitForSecondsRealtime(1f);
+            CheckTicks(bar, "one food left");
+            Shot("17c_statbars_one_food");
+
+            Try(() => fixedSize.Value = previous);
+            yield return null;
+            CheckFixedLength(bar, previous);
+        }
+
+        // Auga hands the [StatBars] settings to the bars when one changes, not every frame
+        private static void CheckFixedLength(Component bar, int expected)
+        {
+            Try(() =>
+            {
+                var fixedLength = Traverse.Create(bar).Field("FixedLength").GetValue<float>();
+                Debug.Log($"[AugaAutoStart] health bar fixed length {fixedLength} (setting {expected})");
+                if (Mathf.Abs(fixedLength - expected) > 0.01f)
+                    AutoTest.Fail($"AUGA_TEST_STATBARS: the health bar's fixed length is {fixedLength} after the setting changed to {expected}");
+            });
+        }
+
+        private static void CheckTicks(Component bar, string when)
+        {
+            Try(() =>
+            {
+                var t = Traverse.Create(bar);
+                var maxPotential = t.Field("MaxPotentialValue").GetValue<float>();
+                var spacing = t.Field("UnitsPerTick").GetValue<float>() * (t.Field("MinBackgroundSize").GetValue<float>() + t.Field("FixedLength").GetValue<float>()) / maxPotential;
+                var ticks = t.Field("_ticks").GetValue<List<RectTransform>>();
+                var shown = ticks.Where(x => x.gameObject.activeSelf).ToList();
+                var positions = string.Join(", ", shown.Select(x => x.anchoredPosition.x.ToString("0.#")));
+                Debug.Log($"[AugaAutoStart] health bar ticks, {when}: max potential {maxPotential:0.#}, spacing {spacing:0.#}, {shown.Count} ticks at {positions}");
+                for (var i = 0; i < shown.Count; i++)
+                {
+                    if (Mathf.Abs(shown[i].anchoredPosition.x - spacing * (i + 1)) > 0.5f)
+                        AutoTest.Fail($"AUGA_TEST_STATBARS: health bar tick {i + 1} at {shown[i].anchoredPosition.x:0.#} instead of {spacing * (i + 1):0.#} ({when})");
+                }
+            });
+        }
+
+        // AUGA_TEST_ENEMIES: creatures of several levels and a boss spawned in front of the camera, their health bars
+        // screenshotted full, hurt and nearly empty, then removed again. Their AI is switched off so they stay put and
+        // leave the player alone. The boss is marked alerted through the field: SetAlerted would also count it as an
+        // active boss in the world's global keys. "only" runs just this step, right after the first HUD screenshot.
+        private static IEnumerator EnemyBars()
+        {
+            var setting = Environment.GetEnvironmentVariable("AUGA_TEST_ENEMIES");
+            if (setting != "1" && setting != "only") yield break;
+            Debug.Log("[AugaAutoStart] enemy bars");
+            var player = Player.m_localPlayer;
+            var spawned = new List<Character>();
+            Try(() =>
+            {
+                var forward = Vector3.ProjectOnPlane(GameCamera.instance.transform.forward, Vector3.up).normalized;
+                var right = Vector3.Cross(Vector3.up, forward);
+                var creatures = new[] { ("Greyling", 1), ("Boar", 2), ("Neck", 3), ("Deer", 5), ("Boar", 8) };
+                for (var i = 0; i < creatures.Length; i++)
+                {
+                    var offset = (i - (creatures.Length - 1) / 2f) * 2.2f;
+                    var creature = SpawnFrozen(creatures[i].Item1, player.transform.position + forward * 7f + right * offset, forward);
+                    if (creature == null) continue;
+                    creature.SetLevel(creatures[i].Item2);
+                    spawned.Add(creature);
+                }
+                var boss = SpawnFrozen("Eikthyr", player.transform.position + forward * 16f, forward);
+                if (boss != null) spawned.Add(boss);
+            });
+            Debug.Log($"[AugaAutoStart] spawned {spawned.Count} characters: {string.Join(", ", spawned.Select(c => $"{c.name} level {c.GetLevel()}"))}");
+
+            // A screenshot is taken at the end of the frame, so nothing changes in the frame after a Shot: destroying
+            // the creatures there blanks their names, and switching a setting back shows the old look.
+            foreach (var (health, shot) in new[] { (1f, "16_enemy_bars"), (0.55f, "16b_enemy_bars_hurt"), (0.08f, "16c_enemy_bars_low") })
+            {
+                Try(() => { foreach (var c in spawned) c.SetHealth(c.GetMaxHealth() * health); });
+                // the slow bar waits before it drains
+                yield return KeepEnemyHudsShown(3f);
+                Shot(shot);
+                yield return KeepEnemyHudsShown(0.5f);
+                if (health != 1f) continue;
+
+                DumpLive("EnemyHudLive", EnemyHud.instance);
+                // [EnemyHud] StarsBelowHealthBar off and back on, which moves the stars of the huds already shown
+                BepInEx.Configuration.ConfigEntry<bool> starsBelow = null;
+                Try(() => BepInEx.Bootstrap.Chainloader.PluginInfos["randyknapp.mods.auga"].Instance.Config.TryGetEntry("EnemyHud", "StarsBelowHealthBar", out starsBelow));
+                if (starsBelow == null)
+                {
+                    Debug.LogWarning("[AugaAutoStart] no [EnemyHud] StarsBelowHealthBar setting");
+                    continue;
+                }
+                Try(() => starsBelow.Value = false);
+                yield return KeepEnemyHudsShown(1f);
+                Shot("16a_enemy_bars_stars_on_bar");
+                yield return KeepEnemyHudsShown(0.5f);
+                Try(() => starsBelow.Value = true);
+            }
+
+            Try(() => { foreach (var c in spawned) if (c != null) ZNetScene.instance.Destroy(c.gameObject); });
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        // An ordinary creature's bar shows only for a while after the player has hovered it.
+        private static IEnumerator KeepEnemyHudsShown(float seconds)
+        {
+            for (var t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+            {
+                Try(() => { foreach (var hud in EnemyHud.instance.m_huds.Values) hud.m_hoverTimer = 0f; });
+                yield return null;
             }
         }
 
+        private static Character SpawnFrozen(string prefabName, Vector3 position, Vector3 facePlayer)
+        {
+            var prefab = ZNetScene.instance.GetPrefab(prefabName);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[AugaAutoStart] no {prefabName} prefab");
+                return null;
+            }
+            position.y = ZoneSystem.instance.GetGroundHeight(position) + 0.2f;
+            var go = UnityEngine.Object.Instantiate(prefab, position, Quaternion.LookRotation(-facePlayer));
+            var character = go.GetComponent<Character>();
+            var ai = go.GetComponent<BaseAI>();
+            if (ai != null)
+            {
+                ai.m_alerted = character != null && character.IsBoss();
+                ai.enabled = false;
+            }
+            return character;
+        }
+
         // AUGA_TEST_MAGIC: EpicLoot's magic items. One item per spec is spawned with the "magicitem" console command
-        // and picked up, then each is hovered in the inventory and its tooltip screenshotted. The tooltip follows the
-        // OS cursor and hides as soon as the cursor is outside the hovered slot, so the cursor is warped onto the slot.
+        // and picked up, then each is hovered in the inventory and its tooltip screenshotted.
         private static IEnumerator MagicItems()
         {
             var spec = Environment.GetEnvironmentVariable("AUGA_TEST_MAGIC");
@@ -891,33 +1150,10 @@ namespace AugaAutoStart
                     Debug.LogWarning($"[AugaAutoStart] no grid element for {item.m_shared.m_name} at {item.m_gridPos}");
                     continue;
                 }
-                var rect = (RectTransform)element.transform;
-                var corners = new Vector3[4];
-                rect.GetWorldCorners(corners);
-                var center = (Vector2)((corners[0] + corners[2]) / 2f);
                 Try(() => LogMagicElement(element));
                 if (shotIndex == 0 && element.m_tooltip != null && element.m_tooltip.m_tooltipPrefab != null)
                     Try(() => LogTree(element.m_tooltip.m_tooltipPrefab.transform, 0, 3));
-                var target = center;
-                for (var attempt = 0; attempt < 3; attempt++)
-                {
-                    var warpTo = target;
-                    Try(() => { if (Mouse.current != null) Mouse.current.WarpCursorPosition(warpTo); });
-                    yield return null;
-                    yield return null;
-                    var pointer = (Vector2)ZInput.pointerPosition;
-                    var inside = RectTransformUtility.RectangleContainsScreenPoint(rect, pointer);
-                    Debug.Log($"[AugaAutoStart] hover attempt {attempt} for {item.m_shared.m_name}: slot centre={center} warped to={warpTo} pointer={pointer} inside={inside}");
-                    if (!inside)
-                    {
-                        target = center + (center - pointer);   // the cursor landed off target: aim past it by the same error
-                        continue;
-                    }
-                    Try(() => ExecuteEvents.Execute(element.gameObject, new PointerEventData(EventSystem.current) { position = pointer, pointerEnter = element.gameObject }, ExecuteEvents.pointerEnterHandler));
-                    yield return new WaitForSecondsRealtime(1.5f);   // the tooltip appears half a second after the hover starts
-                    if (UITooltip.m_tooltip != null && UITooltip.m_tooltip.activeInHierarchy) break;
-                    Debug.Log($"[AugaAutoStart] hover attempt {attempt}: no tooltip shown (current={(UITooltip.m_current != null ? UITooltip.m_current.name : "null")} hovered={(UITooltip.m_hovered != null ? UITooltip.m_hovered.name : "null")})");
-                }
+                yield return HoverSlot(element, item.m_shared.m_name);
                 Try(() => LogTooltip(item));
                 var itemName = Localization.instance.Localize(item.m_shared.m_name).Replace(" ", "");
                 Shot($"16_tooltip_{shotIndex++}_{itemName}");
@@ -936,6 +1172,264 @@ namespace AugaAutoStart
             yield return new WaitForSecondsRealtime(0.5f);
             yield return EnchantingTable();
             Try(() => RemoveSpawnedItems(player, magic));
+        }
+
+        /// <summary>
+        /// Hovers an inventory slot (or any other element with a tooltip, such as a link) until its tooltip shows. The
+        /// tooltip follows the OS cursor and hides as soon as the cursor is outside the hovered slot, so the cursor is
+        /// warped onto the slot.
+        /// </summary>
+        private static IEnumerator HoverSlot(Component element, string what)
+        {
+            var rect = (RectTransform)element.transform;
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            var center = (Vector2)((corners[0] + corners[2]) / 2f);
+            var target = center;
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var warpTo = target;
+                var before = (Vector2)ZInput.pointerPosition;
+                Try(() => { if (Mouse.current != null) Mouse.current.WarpCursorPosition(warpTo); });
+                yield return null;
+                yield return null;
+                var pointer = (Vector2)ZInput.pointerPosition;
+                if (pointer == before && Mouse.current != null)
+                {
+                    // the OS sometimes ignores a warp and the game's pointer stays put: it is set on the mouse directly
+                    Try(() => InputState.Change(Mouse.current.position, center));
+                    yield return null;
+                    yield return null;
+                    pointer = ZInput.pointerPosition;
+                }
+                var inside = RectTransformUtility.RectangleContainsScreenPoint(rect, pointer);
+                Debug.Log($"[AugaAutoStart] hover attempt {attempt} for {what}: slot centre={center} warped to={warpTo} pointer={pointer} inside={inside} focused={Application.isFocused}");
+                if (!inside)
+                {
+                    target = center + (center - pointer);   // the cursor landed off target: aim past it by the same error
+                    continue;
+                }
+                Try(() => ExecuteEvents.Execute(element.gameObject, new PointerEventData(EventSystem.current) { position = pointer, pointerEnter = element.gameObject }, ExecuteEvents.pointerEnterHandler));
+                yield return new WaitForSecondsRealtime(1.5f);   // the tooltip appears half a second after the hover starts
+                if (UITooltip.m_tooltip != null && UITooltip.m_tooltip.activeInHierarchy) break;
+                Debug.Log($"[AugaAutoStart] hover attempt {attempt}: no tooltip shown (current={(UITooltip.m_current != null ? UITooltip.m_current.name : "null")} hovered={(UITooltip.m_hovered != null ? UITooltip.m_hovered.name : "null")})");
+            }
+        }
+
+        // AUGA_TEST_LINKS: other mods' links in the tab row under the player name (API.PlayerPanel_AddLink), found by
+        // link ID through Auga's API, by reflection since the helper does not reference Auga. The row's buttons are
+        // logged in order and screenshotted; each link is clicked, screenshotted and clicked again (links often open
+        // and close a window); the first link is hidden and shown again, so the row's re-centring shows.
+        private static IEnumerator Links()
+        {
+            var setting = Environment.GetEnvironmentVariable("AUGA_TEST_LINKS");
+            if (string.IsNullOrEmpty(setting)) yield break;
+            var api = Type.GetType("Auga.API, Auga");
+            if (api == null)
+            {
+                AutoTest.Fail("AUGA_TEST_LINKS: Auga's API was not found");
+                yield break;
+            }
+            GameObject GetLink(string id) => (GameObject)api.GetMethod("PlayerPanel_GetLink").Invoke(null, new object[] { id });
+            void SetVisible(string id, bool visible) => api.GetMethod("PlayerPanel_SetLinkVisible").Invoke(null, new object[] { id, visible });
+            void LogRow(string when) => Try(() =>
+            {
+                var container = InventoryGui.instance.transform.Find("root/RightPanel/DefaultContent/TabButtonContainer");
+                var tabs = container != null ? (RectTransform)container.Find("Tabs") : null;
+                if (tabs == null)
+                {
+                    Debug.Log($"[AugaAutoStart] tab row {when}: missing");
+                    return;
+                }
+                string Rect(Transform t) => $"x={((RectTransform)t).anchoredPosition.x:F0} w={((RectTransform)t).rect.width:F0}";
+                Debug.Log($"[AugaAutoStart] tab row {when}: row {Rect(tabs)}, lines {string.Join(" / ", container.Cast<Transform>().Where(t => t != tabs).Select(Rect))}; " +
+                          string.Join(", ", tabs.Cast<Transform>().Select(t => $"{t.name} ({(t.gameObject.activeSelf ? "" : "hidden, ")}{Rect(t)})")));
+            });
+
+            // A screenshot is written well after it is asked for (a second or more was seen), so the state it should
+            // show is held for a while after each one before the next change.
+            const float settle = 2.5f;
+            var ids = setting.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
+            LogRow("with links");
+            Shot("11c_links");
+            yield return new WaitForSecondsRealtime(settle);
+            foreach (var id in ids)
+            {
+                Button button = null;
+                Try(() => button = GetLink(id)?.GetComponent<Button>());
+                if (button == null)
+                {
+                    AutoTest.Fail($"AUGA_TEST_LINKS: there is no link '{id}'");
+                    continue;
+                }
+                Debug.Log($"[AugaAutoStart] link {id}: active={button.gameObject.activeInHierarchy}");
+                yield return HoverSlot(button, "link " + id);
+                Shot("11c_link_" + id + "_tooltip");
+                yield return new WaitForSecondsRealtime(settle);
+                Try(() => button.onClick.Invoke());
+                yield return new WaitForSecondsRealtime(1f);
+                Shot("11c_link_" + id);
+                yield return new WaitForSecondsRealtime(settle);
+                Try(() => button.onClick.Invoke());
+                yield return new WaitForSecondsRealtime(1f);
+            }
+
+            if (ids.Length == 0) yield break;
+            Try(() => SetVisible(ids[0], false));
+            yield return new WaitForSecondsRealtime(1f);
+            LogRow("with " + ids[0] + " hidden");
+            Shot("11c_links_hidden");
+            yield return new WaitForSecondsRealtime(settle);
+            Try(() => SetVisible(ids[0], true));
+            yield return new WaitForSecondsRealtime(1f);
+            LogRow("with " + ids[0] + " shown again");
+        }
+
+        // AUGA_TEST_FAVORITES: Item Favorite Framework's marks on Auga's slots. Test items are added and marked through
+        // IFF's public API, by reflection since the helper does not reference it: favorites, a trash flag, favorited
+        // slots (one empty, one holding a favorite), a custom mark with an icon and a wishlisted item, two of them on
+        // the hotbar row. The inventory and the tooltips of a favorite, the trash, the wishlisted food and a favorite
+        // mead are screenshotted, and one favorite again after it is unmarked while hovered. The objects IFF hung on
+        // each slot are logged, then every mark and test item is taken back.
+        private static IEnumerator Favorites()
+        {
+            if (Environment.GetEnvironmentVariable("AUGA_TEST_FAVORITES") != "1") yield break;
+            var api = Type.GetType("ItemFavoriteFramework.API, ItemFavoriteFramework");
+            if (api == null)
+            {
+                Debug.LogWarning("[AugaAutoStart] Item Favorite Framework is not loaded");
+                yield break;
+            }
+            object Call(string method, params object[] args) => api.GetMethods().First(m => m.Name == method && m.GetParameters().Length == args.Length).Invoke(null, args);
+            Try(() => Debug.Log($"[AugaAutoStart] Item Favorite Framework {Call("GetPluginVersion")} (API {Call("GetApiVersion")}) ready={Call("IsReady")}"));
+
+            const string markId = "augatest.mark";
+            var player = Player.m_localPlayer;
+            var inventory = player.GetInventory();
+            var added = new List<ItemDrop.ItemData>();
+            var slots = new List<Vector2i>();
+            ItemDrop.ItemData Add(string prefab, int stack, int row)
+            {
+                for (var x = 0; x < inventory.GetWidth(); x++)
+                {
+                    if (inventory.GetItemAt(x, row) != null || slots.Contains(new Vector2i(x, row))) continue;
+                    var item = inventory.AddItem(prefab, stack, 1, 0, 0L, "", new Vector2i(x, row), false);
+                    if (item != null) added.Add(item);
+                    return item;
+                }
+                Debug.LogWarning($"[AugaAutoStart] no free slot in row {row} for {prefab}");
+                return null;
+            }
+            void FavoriteSlot(Vector2i pos)
+            {
+                slots.Add(pos);
+                Debug.Log($"[AugaAutoStart] favorite slot {pos}: {Call("SetSlotFavorited", pos.x, pos.y, true)}");
+            }
+
+            ItemDrop.ItemData knife = null, torch = null, sword = null, wood = null, resin = null, chest = null, berries = null, mead = null;
+            Try(() =>
+            {
+                knife = Add("KnifeFlint", 1, 0);
+                torch = Add("Torch", 1, 0);
+                sword = Add("SwordBronze", 1, 1);
+                wood = Add("Wood", 20, 1);
+                resin = Add("Resin", 5, 1);
+                chest = Add("ArmorBronzeChest", 1, 1);
+                berries = Add("Raspberry", 3, 1);
+                mead = Add("MeadHealthMinor", 2, 1);
+                Debug.Log($"[AugaAutoStart] favorite knife: {Call("SetItemFavorited", knife, true)}, sword: {Call("SetItemFavorited", sword, true)}, chest: {Call("SetItemFavorited", chest, true)}, mead: {Call("SetItemFavorited", mead, true)}");
+                Debug.Log($"[AugaAutoStart] trash wood: {Call("SetItemTrashFlagged", wood, true)}");
+                FavoriteSlot(resin.m_gridPos);
+                FavoriteSlot(chest.m_gridPos);
+                for (var x = 0; x < inventory.GetWidth(); x++)
+                {
+                    if (inventory.GetItemAt(x, 2) != null) continue;
+                    FavoriteSlot(new Vector2i(x, 2));
+                    break;
+                }
+                Debug.Log($"[AugaAutoStart] custom mark: registered {Call("RegisterMarkType", markId, "", new Color(0.35f, 0.8f, 1f), Call("GetFavoriteIcon"), "")}, on torch {Call("SetCustomMark", torch, markId, true)}");
+                Debug.Log($"[AugaAutoStart] wishlist berries: {Call("AddWishlistEntryFromItem", berries)}");
+            });
+            yield return null;
+
+            Debug.Log("[AugaAutoStart] open inventory (favorites)");
+            Try(() => InventoryGui.instance.Show(null));
+            yield return new WaitForSecondsRealtime(1.5f);
+            Shot("19_favorites_inventory");
+            yield return new WaitForSecondsRealtime(0.5f);
+            var grid = InventoryGui.instance.m_playerGrid;
+            InventoryElement ElementAt(Vector2i pos)
+            {
+                var index = pos.y * grid.m_width + pos.x;
+                return index >= 0 && index < grid.m_elements.Count ? grid.m_elements[index] : null;
+            }
+            Try(() =>
+            {
+                foreach (var item in added)
+                {
+                    var element = ElementAt(item.m_gridPos);
+                    if (element != null) LogMarkElement(element, item.m_shared.m_name);
+                }
+                var empty = ElementAt(slots[slots.Count - 1]);
+                if (empty != null) LogMarkElement(empty, "empty favorited slot");
+            });
+
+            var hovered = new[] { sword, wood, berries, mead };
+            var names = new[] { "favorite", "trash", "wishlist_food", "favorite_mead" };
+            for (var i = 0; i < hovered.Length; i++)
+            {
+                var element = hovered[i] != null ? ElementAt(hovered[i].m_gridPos) : null;
+                if (element == null) continue;
+                yield return HoverSlot(element, hovered[i].m_shared.m_name);
+                var item = hovered[i];
+                Try(() => Debug.Log($"[AugaAutoStart] vanilla tooltip text of {item.m_shared.m_name}: '{item.GetTooltip().Replace("\n", " | ")}'"));
+                Try(() => LogTooltip(item));
+                Shot("19_favorites_tooltip_" + names[i]);
+                yield return new WaitForSecondsRealtime(1f);
+            }
+
+            // the tooltip of a hovered item has to follow a mark set while it is shown
+            if (sword != null)
+            {
+                var element = ElementAt(sword.m_gridPos);
+                yield return HoverSlot(element, sword.m_shared.m_name);
+                Try(() => Debug.Log($"[AugaAutoStart] unfavorite sword while hovered: {Call("SetItemFavorited", sword, false)}"));
+                yield return new WaitForSecondsRealtime(1f);
+                Try(() => LogTooltip(sword));
+                Shot("19_favorites_tooltip_unfavorited");
+                yield return new WaitForSecondsRealtime(1f);
+            }
+
+            Try(() => InventoryGui.instance.Hide());
+            yield return new WaitForSecondsRealtime(1f);
+            Try(() =>
+            {
+                foreach (var item in new[] { knife, sword, chest, mead })
+                    if (item != null) Call("SetItemFavorited", item, false);
+                if (wood != null) Call("SetItemTrashFlagged", wood, false);
+                if (torch != null) Call("SetCustomMark", torch, markId, false);
+                Call("RemoveWishlistEntries", "Raspberry");
+                foreach (var pos in slots) Call("SetSlotFavorited", pos.x, pos.y, false);
+                RemoveSpawnedItems(player, added);
+            });
+        }
+
+        /// <summary>The objects Item Favorite Framework hung on a slot (IFF_*): their images, sibling index and size.</summary>
+        private static void LogMarkElement(InventoryElement element, string what)
+        {
+            var sb = new StringBuilder();
+            foreach (var t in element.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!t.name.StartsWith("IFF_")) continue;
+                var image = t.GetComponent<Image>();
+                sb.Append(t.parent == element.transform ? "" : t.parent.name + "/").Append(t.name).Append('#').Append(t.GetSiblingIndex());
+                sb.Append(t.gameObject.activeInHierarchy ? "" : "(off)").Append(" size=").Append(t.rect.size);
+                if (image != null)
+                    sb.Append(" [").Append(image.enabled ? "" : "disabled ").Append(image.sprite != null ? image.sprite.name : "nosprite").Append(' ').Append(ColorUtility.ToHtmlStringRGBA(image.color)).Append(" alpha=").Append(image.canvasRenderer.GetInheritedAlpha().ToString("0.##")).Append(']');
+                sb.Append("; ");
+            }
+            Debug.Log($"[AugaAutoStart] marks on {what} at {element.Position}: {(sb.Length > 0 ? sb.ToString() : "none")}");
+            LogMagicElement(element);
         }
 
         /// <summary>Auga's compendium (pause menu): opened through its controller, every tab screenshotted, closed again.</summary>
@@ -1091,6 +1585,15 @@ namespace AugaAutoStart
                 return;
             }
             Debug.Log($"[AugaAutoStart] tooltip for {item.m_shared.m_name}: {PathOf(tooltip.transform)} active={tooltip.activeInHierarchy} pos={tooltip.transform.position}");
+            // Auga builds the scroll view once into a copy of the prefab, and every hover's tooltip is made from it
+            var prefab = UITooltip.m_current != null ? UITooltip.m_current.m_tooltipPrefab : null;
+            var scrollViews = tooltip.GetComponentsInChildren<ScrollRect>(true).Count(s => s.name == "Scroll View");
+            Debug.Log($"[AugaAutoStart] tooltip for {item.m_shared.m_name} made from {(prefab != null ? PathOf(prefab.transform) : "null")}, {scrollViews} scroll view(s)");
+            if (scrollViews != 1)
+                AutoTest.Fail($"tooltip for {item.m_shared.m_name} has {scrollViews} scroll views");
+            // by type name: GetComponent(string) misses types from Unity.Auga, which Auga loads itself
+            if (prefab != null && prefab.GetComponents<Component>().Any(c => c != null && c.GetType().Name == "ComplexTooltip") && (prefab.transform.parent == null || prefab.transform.parent.name != "Auga Tooltip Templates"))
+                AutoTest.Fail($"tooltip for {item.m_shared.m_name} was made from {PathOf(prefab.transform)}, not Auga's copy with the scroll view");
             LogTree(tooltip.transform, 0, 3);
             foreach (var text in tooltip.GetComponentsInChildren<TMP_Text>(false))
                 Debug.Log($"[AugaAutoStart] tooltip text {text.name}: '{text.text.Replace("\n", " | ")}'");

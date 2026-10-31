@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Valheim.SettingsGui;
 
 namespace AugaUnity
 {
@@ -18,26 +19,61 @@ namespace AugaUnity
         public GameObject MouseX;
         public TMP_Text MouseXText;
 
+        // What the shown key was worked out from. AutomaticKeyName is shown again only when one of these changes
+        // (the player rebinds it, switches language or gamepad), not every frame.
+        private string _shownKeyName;
+        private bool _shownMissing;
+        private string _shownPath;
+        private string _shownOverride;
+        private GamepadGlyphs _shownGlyph;
+        private GamepadType _shownGamepad;
+        private int _shownLanguage;
+
+        private static int _languageVersion;
+        private static bool _watchingLanguage;
+
+        public void Awake()
+        {
+            if (!_watchingLanguage)
+            {
+                _watchingLanguage = true;
+                Localization.OnLanguageChange += () => _languageVersion++;
+            }
+        }
+
         public void Update()
         {
-            if (!string.IsNullOrEmpty(AutomaticKeyName))
+            if (!string.IsNullOrEmpty(AutomaticKeyName) && !IsShowing(AutomaticKeyName))
             {
                 SetBinding(AutomaticKeyName);
             }
         }
 
+        private bool IsShowing(string keyName)
+        {
+            if (keyName != _shownKeyName)
+                return false;
+            // a key that was missing is not looked for again until a mod adds it
+            if (!ZInput.instance.m_buttons.TryGetValue(keyName, out var button))
+                return _shownMissing;
+            return !_shownMissing && button.GetActionPath() == _shownPath && button.DisplayNameOverride == _shownOverride
+                && ZInput.CurrentGlyph == _shownGlyph && ZInput.ConnectedGamepadType == _shownGamepad && _languageVersion == _shownLanguage;
+        }
+
         public void SetBinding(string keyName)
         {
-            if (!ZInput.instance.m_buttons.ContainsKey(keyName))
+            if (!ZInput.instance.m_buttons.TryGetValue(keyName, out var button))
             {
                 Debug.LogError($"[AugaBindingDisplay.SetBinding] Couldn't find key: {keyName}");
+                _shownKeyName = keyName;
+                _shownMissing = true;
                 return;
             }
 
             // Valheim now uses Unity's InputSystem: bindings are control paths such as
             // "<Keyboard>/e", "<Keyboard>/numpadDivide" or "<Mouse>/leftButton" instead of KeyCodes.
-            var button = ZInput.instance.m_buttons[keyName];
-            var path = button.GetActionPath() ?? string.Empty;
+            var actionPath = button.GetActionPath();
+            var path = actionPath ?? string.Empty;
             var device = string.Empty;
             var control = path;
             var slash = path.IndexOf('/');
@@ -98,10 +134,21 @@ namespace AugaUnity
             }
 
             SetText(localizedKeyString, showMouse);
+
+            _shownKeyName = keyName;
+            _shownMissing = false;
+            _shownPath = actionPath;
+            _shownOverride = button.DisplayNameOverride;
+            _shownGlyph = ZInput.CurrentGlyph;
+            _shownGamepad = ZInput.ConnectedGamepadType;
+            _shownLanguage = _languageVersion;
         }
 
         public void SetText(string localizedKeyString, int showMouse = -1)
         {
+            // whatever is shown now did not come from AutomaticKeyName, which is shown again on the next Update
+            _shownKeyName = null;
+
             var isOneCharLong = localizedKeyString.Length == 1;
             (isOneCharLong ? KeybindText : LongKeybindText).text = localizedKeyString;
             KeybindBox.SetActive(showMouse < 0 && isOneCharLong);

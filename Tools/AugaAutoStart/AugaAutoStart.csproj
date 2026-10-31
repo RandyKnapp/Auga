@@ -4,8 +4,10 @@
     Development-only BepInEx plugin that drives an automated in-game smoke test of Auga:
     main menu -> settings -> character select -> world -> HUD -> inventory -> map -> pause menu -> in-game settings
     -> chat -> damage text, taking a screenshot of every step, then quits. See BUILDING.md ("Testing in game").
-    Not part of Auga.sln and never shipped. With -p:DeployToValheim=true it deploys into the test profile only
-    (AugaTestProfile below, the Gale profile "AugaAuto" by default), never into a profile you play in.
+    It is a set of steps for the shared ValheimAutoTest harness (ValheimAutoTestDir below, a sibling of this repo),
+    which starts the game, loads the character and world and quits; the harness is built with this project.
+    Not part of Auga.sln and never shipped. With -p:DeployToValheim=true it and the harness deploy into the test
+    profile only (AugaTestProfile below, the Gale profile "AugaAuto" by default), never into a profile you play in.
     The game, Unity and BepInEx references come from the JotunnLib package, with the paths resolved in
     ..\..\Directory.Build.props.
   -->
@@ -17,7 +19,7 @@
     <LangVersion>10</LangVersion>
     <Deterministic>true</Deterministic>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -27,11 +29,15 @@
          Override with -p:AugaTestProfile=<folder that contains BepInEx\>. -->
     <AugaTestProfile Condition="'$(AugaTestProfile)' == ''">$(AppData)\com.kesomannen.gale\valheim\profiles\AugaAuto</AugaTestProfile>
     <DeployToValheim Condition="'$(DeployToValheim)' == ''">false</DeployToValheim>
+    <!-- The shared harness: C:\...\Valheim_Stuff\ValheimAutoTest next to this repo. Override with -p:ValheimAutoTestDir=. -->
+    <ValheimAutoTestDir Condition="'$(ValheimAutoTestDir)' == ''">$(MSBuildThisFileDirectory)..\..\..\ValheimAutoTest\</ValheimAutoTestDir>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Only for the game, Unity and BepInEx references JotunnLib's props wire up. -->
     <PackageReference Include="JotunnLib" Version="2.30.2" PrivateAssets="all" ExcludeAssets="runtime" />
+    <!-- Not copied: the harness is a plugin of its own and goes into its own folder in the profile. -->
+    <ProjectReference Include="$(ValheimAutoTestDir)ValheimAutoTest.csproj" Private="false" />
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -44,6 +50,8 @@
     <Error Condition="!Exists('$(AugaTestProfile)\BepInEx\core\BepInEx.dll')" Text="No BepInEx install at $(AugaTestProfile); the helper only deploys into the test profile (pass -p:AugaTestProfile=...)." />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AugaTestProfile)\BepInEx\plugins\AugaAutoStart\" />
     <Message Importance="high" Text="Deployed $(TargetFileName) to $(AugaTestProfile)\BepInEx\plugins\AugaAutoStart\" />
+    <Copy SourceFiles="@(_ResolvedProjectReferencePaths)" Condition="'%(Filename)' == 'ValheimAutoTest'" DestinationFolder="$(AugaTestProfile)\BepInEx\plugins\ValheimAutoTest\" />
+    <Message Importance="high" Text="Deployed ValheimAutoTest.dll to $(AugaTestProfile)\BepInEx\plugins\ValheimAutoTest\" />
   </Target>
 
 </Project>

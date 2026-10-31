@@ -153,6 +153,8 @@ namespace Auga
         public RectTransform Content;
         public TMP_Text Text;
         public float Padding = 14f;
+        /// <summary>Above 0, the lines keep this length and the divider itself is sized around the text (the boss name).</summary>
+        public float LineLength;
 
         private string _fittedText;
 
@@ -161,7 +163,14 @@ namespace Auga
             if (Content == null || Text == null || Text.text == _fittedText)
                 return;
             _fittedText = Text.text;
-            Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Text.preferredWidth + Padding * 2f);
+            var contentWidth = Text.preferredWidth + Padding * 2f;
+            Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentWidth);
+            if (LineLength > 0f)
+            {
+                var fitter = GetComponent<HorizontalDividerFitter>();
+                var spacing = fitter != null ? fitter.Spacing : 0f;
+                ((RectTransform)transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentWidth + 2f * (spacing + LineLength));
+            }
         }
     }
 
