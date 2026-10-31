@@ -17,10 +17,17 @@ dependency_map:
 # The Thunderstore/Hexium team these publish under.
 author_name: RandyKnapp
 
-# Off for now. Deploy copies every build into all the profiles listed in this
-# machine's mod-tools config.yml, and Auga replaces the whole UI: in a shared
-# test profile it changes what every other mod is tested against, and mods
-# such as MyLittleUI refuse to load beside it. Turn it on once config.yml
-# points at a profile meant for Auga.
 deploy:
   enabled: true
+
+publish:
+  thunderstore:
+    enabled: true
+  nexus:
+    enabled: true
+    mod_id: 1413
+    file_id: 2202499
+  github:
+    enabled: true
+  discord:
+    enabled: true
